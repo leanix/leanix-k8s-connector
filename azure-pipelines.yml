@@ -29,3 +29,14 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: '$(Build.SourceVersion)'
+- task: HelmDeploy@0
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceConnection: 'leanix-westeurope-int-aks-default'
+    namespace: 'default'
+    command: 'upgrade'
+    chartType: 'FilePath'
+    chartPath: 'helm/leanix-k8s-connector'
+    releaseName: 'leanix-k8s-connector'
+    overrideValues: 'image.tag $(Build.SourceVersion)'
+
