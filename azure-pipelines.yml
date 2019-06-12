@@ -22,3 +22,10 @@ steps:
   inputs:
     command: 'build'
     arguments: '-o bin/leanix-k8s-connector -ldflags "-X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION=$(Build.SourceVersion) -extldflags -static" ./cmd/leanix-k8s-connector/main.go'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'leanix-acr'
+    repository: 'leanix-k8s-connector'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: '$(Build.SourceVersion)'
