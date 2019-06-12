@@ -9,13 +9,16 @@ pool:
 
 steps:
 - task: GoTool@0
+  displayName: Prepare Go environment
   inputs:
     version: '1.12'
 - task: Go@0
+  displayName: Test
   inputs:
     command: 'test'
     arguments: './pkg/...'
 - task: Go@0
+  displayName: Build
   inputs:
     command: 'build'
-    arguments: '-o bin/leanix-k8s-connector -ldflags '-X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION=$(Build.SourceVersion) -extldflags "-static"' ./cmd/leanix-k8s-connector/main.go'
+    arguments: '-o bin/leanix-k8s-connector -ldflags ''-X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION=$(Build.SourceVersion) -extldflags "-static"'' ./cmd/leanix-k8s-connector/main.go'
