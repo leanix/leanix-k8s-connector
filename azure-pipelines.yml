@@ -16,6 +16,7 @@ steps:
   displayName: Download deps
   inputs:
     command: 'get'
+    arguments: '-d'
 - task: Go@0
   displayName: Test
   inputs:
