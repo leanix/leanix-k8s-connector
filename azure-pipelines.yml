@@ -1,4 +1,5 @@
 # Starter pipeline
+
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
@@ -16,5 +17,5 @@ steps:
     arguments: './pkg/...'
 - task: Go@0
   inputs:
-    command: 'test'
-    arguments: './pkg/...'
+    command: 'build'
+    arguments: '-o bin/leanix-k8s-connector -ldflags ''-X $(go list -m)/pkg/version.VERSION=$(Build.SourceVersion) -extldflags "-static"'' ./cmd/leanix-k8s-connector/main.go'
