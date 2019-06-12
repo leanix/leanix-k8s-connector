@@ -18,4 +18,4 @@ steps:
 - task: Go@0
   inputs:
     command: 'build'
-    arguments: '-o bin/leanix-k8s-connector -ldflags "-X $(go list -m)/pkg/version.VERSION=$(Build.SourceVersion) -extldflags "-static"" ./cmd/leanix-k8s-connector/main.go'
+    arguments: '-o bin/leanix-k8s-connector -ldflags '-X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION=$(Build.SourceVersion) -extldflags "-static"' ./cmd/leanix-k8s-connector/main.go'
