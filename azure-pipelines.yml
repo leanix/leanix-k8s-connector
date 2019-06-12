@@ -6,27 +6,15 @@
 pool:
   vmImage: 'ubuntu-latest'
 
-stages:
-- stage: PrepareBuildEnv
-  jobs:
-  - job: GoVersion
-    steps:
-    - task: GoTool@0
-      inputs:
-        version: '1.12'
-- stage: Test
-  jobs:
-  - job: TestJob
-    steps:
-    - task: Go@0
-      inputs:
-        command: 'test'
-        arguments: './pkg/...'
-- stage: Build
-  jobs:
-  - job: BuildJob
-    steps:
-    - task: Go@0
-      inputs:
-        command: 'test'
-        arguments: './pkg/...'
+steps:
+- task: GoTool@0
+  inputs:
+    version: '1.12'
+- task: Go@0
+  inputs:
+    command: 'test'
+    arguments: './pkg/...'
+- task: Go@0
+  inputs:
+    command: 'test'
+    arguments: './pkg/...'
