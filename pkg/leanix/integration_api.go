@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/op/go-logging"
 )
 
 // AuthResponse struct
@@ -24,6 +26,8 @@ type SyncRunResponse struct {
 	Description string `json:"description"`
 }
 
+var log = logging.MustGetLogger("leanix-k8s-connector")
+
 // Authenticate uses token to authenticate against MTM and response with access_token
 func Authenticate(fqdn string, token string) (string, error) {
 	body := strings.NewReader("grant_type=client_credentials")
@@ -36,6 +40,10 @@ func Authenticate(fqdn string, token string) (string, error) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
+	}
+	if resp.StatusCode != 200 {
+
+		log.Fatalf("Failed to authenticate. Check if the provided LeanIX API token is still valid and not expired. status: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
