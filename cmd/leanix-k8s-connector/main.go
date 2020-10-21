@@ -235,24 +235,17 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Info("Integration API authentication successfully.")
+		log.Info("Integration API authentication successful.")
 		syncRun, err := leanix.Upload(viper.GetString(integrationAPIFqdnFlag), accessToken, ldifByte)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if syncRun.ID == "" {
-			log.Fatal("Failed to upload LDIF. Check if connectorId, connectorType, and connectorVersion matches Integration API processor configuration. Ensure lxWorkspace is set to your workspace's UUID.")
 		}
 		log.Infof("LDIF successfully uploaded to Integration API. id: %s", syncRun.ID)
 		runStatus, err := leanix.StartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, syncRun.ID)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if runStatus == 200 {
-			log.Infof("Integration API run successfully started. status: %d", runStatus)
-		} else {
-			log.Fatalf("Integration API run could not be started. status: %d", runStatus)
-		}
+		log.Infof("Integration API run successfully started. status: %d", runStatus)
 	}
 	log.Debug("-----------End-----------")
 	err = uploader.UploadLog(debugLogBuffer.Bytes())

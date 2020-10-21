@@ -3,11 +3,10 @@ package leanix
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/op/go-logging"
 )
 
 // AuthResponse struct
@@ -26,8 +25,6 @@ type SyncRunResponse struct {
 	Description string `json:"description"`
 }
 
-var log = logging.MustGetLogger("leanix-k8s-connector")
-
 // Authenticate uses token to authenticate against MTM and response with access_token
 func Authenticate(fqdn string, token string) (string, error) {
 	body := strings.NewReader("grant_type=client_credentials")
@@ -42,8 +39,8 @@ func Authenticate(fqdn string, token string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
-
-		log.Fatalf("Failed to authenticate. Check if the provided LeanIX API token is still valid and not expired. status: %d", resp.StatusCode)
+		err := fmt.Errorf("Integration API authentication failed: %s", resp.Status)
+		return "", err
 	}
 	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
@@ -68,6 +65,12 @@ func Upload(fqdn string, accessToken string, ldif []byte) (SyncRunResponse, erro
 	if err != nil {
 		return SyncRunResponse{"", "", ""}, err
 	}
+	if resp.StatusCode != 200 {
+		err := fmt.Errorf("Failed to upload LDIF: %s\n"+
+			"-> Check if connectorId, connectorType, and connectorVersion matches Integration API processor configuration.\n"+
+			"-> Ensure lxWorkspace is set to your workspace's UUID.", resp.Status)
+		return SyncRunResponse{"", "", ""}, err
+	}
 	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -88,7 +91,11 @@ func StartRun(fqdn string, accessToken string, id string) (int, error) {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return resp.StatusCode, err
+		return 0, err
+	}
+	if resp.StatusCode != 200 {
+		err := fmt.Errorf("Integration API run could not be started: %s", resp.Status)
+		return 0, err
 	}
 	defer resp.Body.Close()
 	return resp.StatusCode, nil
