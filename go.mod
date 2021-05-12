@@ -3,13 +3,12 @@ module github.com/leanix/leanix-k8s-connector
 go 1.12
 
 require (
-	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
-	github.com/Azure/azure-sdk-for-go v42.0.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.8.0
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
-	github.com/dnaeon/go-vcr v1.0.1 // indirect
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
@@ -22,7 +21,7 @@ require (
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/pkg/errors v0.8.0 // indirect
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.3.0
