@@ -7,7 +7,7 @@ FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
 FULL_IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(FULL_VERSION)
 LATEST := $(DOCKER_NAMESPACE)/$(PROJECT):latest
-LOCAL := localhost:5000/leanix-dev/$(PROJECT):$(VERSION)
+LOCAL := localhost:5000/leanix-dev/$(PROJECT):latest
 GOOS ?= linux
 GOARCH ?= amd64
 
@@ -26,9 +26,9 @@ version:
 
 image:
 	docker build -t $(LATEST) .
+	docker tag $(LATEST) $(LOCAL)
 
 push:
-	docker tag $(IMAGE) $(LOCAL)
 	docker push $(LOCAL)
 
 test:

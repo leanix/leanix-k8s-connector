@@ -417,7 +417,7 @@ The connector can be published to a minikube instance
 2. If already installed make sure you run
     > `minikube delete`
 3. Start minikube instance
-   > `minikube start --insecure-registry="192.168.29.244:5000"`
+   > `minikube start --insecure-registry="<your-ip eg:192. ..>:5000"`
 4. Open minikube dashboard
    >  `minikube dashboard`
 
