@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f543a27f-8711-4452-b1a0-4f5be95b599e" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/leanix-k8s-connector.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/leanix-k8s-connector.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile.local" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile.local" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="f543a27f-8711-4452-b1a0-4f5be95b599e" name="Default Changelist" comment="CID-70 update docs and make file">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <list id="4b3bd1ab-3c60-475a-8b18-197615ddd2ec" name="local" comment="">
       <change beforePath="$PROJECT_DIR$/cmd/leanix-k8s-connector/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/leanix-k8s-connector/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,6 +31,9 @@
     <layout place="tools.popupGrunt">
       <scroll-view-position x="0" y="0" />
     </layout>
+  </component>
+  <component name="KubernetesApiPersistence">
+    <option name="context" value="minikube" />
   </component>
   <component name="ProjectId" id="1seNvfCt3xKBukoL738rVXHjGie" />
   <component name="ProjectViewState">
@@ -115,16 +115,40 @@
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="f543a27f-8711-4452-b1a0-4f5be95b599e" name="Default Changelist" comment="" />
+      <changelist id="4b3bd1ab-3c60-475a-8b18-197615ddd2ec" name="local" comment="" />
       <created>1621229326580</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1621229326580</updated>
-      <workItem from="1621229328371" duration="7688000" />
+      <workItem from="1621229328371" duration="13417000" />
     </task>
+    <task id="LOCAL-00001" summary="CID-70 update docs and make file">
+      <created>1621237362810</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1621237362810</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="CID-70 update docs and make file" />
+    <option name="LAST_COMMIT_MESSAGE" value="CID-70 update docs and make file" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

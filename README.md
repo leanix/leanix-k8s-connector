@@ -426,14 +426,14 @@ By default, The cronJob pulls the image from docker hub. To override the behavio
 1. Install local docker image registry (https://www.docker.com/blog/how-to-use-your-own-registry-2/)
 2. Run registry locally
    > `docker run -d -p 5000:5000 --name registry registry:2.7`
-3. Use Makefile.local `make -f Makefile.local`
+3. Use Makefile.local
     > `
-        make clean build image
+        make -f Makefile.local clean build image
         docker tag leanix-dev/leanix-k8s-connector localhost:5000/leanix-dev/leanix-k8s-connector:1.0.0-dev
         docker push localhost:5000/leanix-dev/leanix-k8s-connector:1.0.0-dev
     `
    
-   - or `make local`
+   - or `make -f Makefile.local local`
 4. Finally, run the command
 
     > `
