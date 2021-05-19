@@ -5,4 +5,4 @@ bin
 *.log
 vendor
 *.ldif
-.idea/workspace.xml
+.idea
