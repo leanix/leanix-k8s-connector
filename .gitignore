@@ -5,3 +5,4 @@ bin
 *.log
 vendor
 *.ldif
+.idea

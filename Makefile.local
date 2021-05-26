@@ -1,0 +1,35 @@
+PROJECT ?= leanix-k8s-connector
+DOCKER_NAMESPACE ?= leanix-dev
+
+VERSION := 1.0.0-dev
+FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
+
+IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
+FULL_IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(FULL_VERSION)
+LATEST := $(DOCKER_NAMESPACE)/$(PROJECT):latest
+LOCAL := localhost:5000/leanix-dev/$(PROJECT):latest
+GOOS ?= linux
+GOARCH ?= amd64
+
+.PHONY: all
+
+local: clean test build image push
+
+clean:
+	$(RM) bin/$(PROJECT)
+
+build:
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/$(PROJECT) -ldflags '-X $(shell go list -m)/pkg/version.VERSION=${FULL_VERSION} -extldflags "-static"' ./cmd/$(PROJECT)/main.go
+
+version:
+	@echo $(VERSION)
+
+image:
+	docker build -t $(LATEST) .
+	docker tag $(LATEST) $(LOCAL)
+
+push:
+	docker push $(LOCAL)
+
+test:
+	go test ./pkg/...
