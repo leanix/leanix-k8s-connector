@@ -13,7 +13,7 @@ env:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'develop'
+    if: github.event.workflow_run.head_branch == 'master'
     steps:
       - name: Get credentials
         uses: leanix/secrets-action@master
