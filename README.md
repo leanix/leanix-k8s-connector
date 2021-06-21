@@ -17,6 +17,7 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
       - [azureblob storage backend](#azureblob-storage-backend)
       - [Optional - POST call against LeanIX Integration API](#optional---post-call-against-leanix-integration-api)
       - [Optional - Advanced deployment settings](#advanced---customizable-deployment-settings)
+    - [Setting up development environment](#developer-environment-setup)
   - [Known issues](#known-issues)
   - [Version history](#version-history)
 
