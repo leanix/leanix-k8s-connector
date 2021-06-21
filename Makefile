@@ -1,7 +1,7 @@
 PROJECT ?= leanix-k8s-connector
 DOCKER_NAMESPACE ?= leanix
 
-VERSION := 2.0.0-beta7
+VERSION := 2.0.0
 FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 
 IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
