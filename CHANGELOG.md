@@ -1,5 +1,13 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2021-06-21 - 2.0.0
+
+### Release Notes
+
+* Changes
+  * Snyk - Update to alpine:3.11.6 to alpine:3.13.5 in Dockerfile
+  * Snyk - Removed obsolete go dependencies
+
 ## Release 2020-10-22 - 2.0.0-beta7
 
 ### Release Notes

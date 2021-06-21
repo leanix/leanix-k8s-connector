@@ -16,7 +16,7 @@ schedule:
 
 image:
   repository: docker.io/leanix/leanix-k8s-connector
-  tag: 2.0.0-beta7
+  tag: 2.0.0
   pullPolicy: Always
 
 securityContext:
