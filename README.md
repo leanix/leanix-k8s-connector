@@ -1,5 +1,7 @@
 # LeanIX Kubernetes Connector
 
+**Note**: This document is intended solely for developers. MI users should follow the [LeanIX MI docs](https://docs-mi.leanix.net/docs/kubernetes).
+
 The LeanIX Kubernetes Connector collects information from Kubernetes.
 
 ## Table of contents
