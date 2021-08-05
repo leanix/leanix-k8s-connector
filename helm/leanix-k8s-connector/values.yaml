@@ -16,7 +16,7 @@ schedule:
 
 image:
   repository: docker.io/leanix/leanix-k8s-connector
-  tag: 2.0.0
+  tag: 3.0.0
   pullPolicy: Always
 
 securityContext:
@@ -26,8 +26,8 @@ securityContext:
 args:
   clustername: kubernetes
   connectorID: ""
-  connectorVersion: "1.0.0"
-  processingMode: partial
+  connectorVersion: "1.1.1"
+  processingMode: full
   lxWorkspace: ""
   verbose: false
   storageBackend: file

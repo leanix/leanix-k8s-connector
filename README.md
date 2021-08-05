@@ -18,7 +18,7 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
       - [file storage backend](#file-storage-backend)
       - [azureblob storage backend](#azureblob-storage-backend)
       - [Optional - POST call against LeanIX Integration API](#optional---post-call-against-leanix-integration-api)
-      - [Optional - Advanced deployment settings](#advanced---customizable-deployment-settings)
+      - [Optional - Advanced deployment settings](#optional---advanced-deployment-settings)
     - [Setting up development environment](#developer-environment-setup)
   - [Known issues](#known-issues)
   - [Version history](#version-history)
@@ -178,8 +178,8 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | schedule.standard   | */1 * * * *               |                                      | CronJob schedule. Defaults to every minute. |
 | clustername         | kubernetes                | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID               | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.0.0"                   | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
-| processingMode            | "partial"     | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
+| connectorVersion    | "1.1.1"                   | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| processingMode      | "full"                    | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false                     | true                                 | Enables verbose logging on the stdout interface of the container. |
 | storageBackend      | file                      |                                      | The default value for the storage backend is `file`, if not provided. |
@@ -250,8 +250,8 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | schedule.standard   | */1 * * * *   |                                      | CronJob schedule. Defaults to every minute. |
 | clustername         | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.0.0"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
-| processingMode            | "partial"     | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
+| connectorVersion    | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| processingMode      | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
 | storageBackend      | file          | azureblob                            | The default value for the storage backend is `file`, if not provided. |
@@ -329,8 +329,8 @@ The following configuration example assumes that you use the `azureblob` storage
 | schedule.integrationApi   | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. |
 | clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion          | "1.0.0"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
-| processingMode            | "partial"     | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
+| connectorVersion          | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
 | storageBackend            | file          | azureblob                            | The default value for the storage backend is `file`, if not provided. |
@@ -485,6 +485,7 @@ Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2021-08-04  |       3.0.0       |        1.0.0        |       3.0.0        |        3.0.0        |
 |  2021-06-21  |       2.0.0       |        1.0.0        |       2.0.0        |        2.0.0        |
 |  2020-10-22  |    2.0.0-beta7    |        1.0.0        |    2.0.0-beta7     |     2.0.0-beta7     |
 |  2020-10-21  |    2.0.0-beta6    |        1.0.0        |    2.0.0-beta6     |     2.0.0-beta6     |
