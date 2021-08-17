@@ -15,7 +15,7 @@ schedule:
   integrationApi: "0 */1 * * *"
 
 image:
-  repository: docker.io/leanix/leanix-k8s-connector
+  repository: leanixacrpublic.azurecr.io/leanix-k8s-connector
   tag: 3.0.0
   pullPolicy: Always
 
@@ -38,7 +38,7 @@ args:
     secretName: ""
     container: ""
   blacklistNamespaces:
-  - "kube-system"
+    - "kube-system"
   additionalEnv: {}
 
 nameOverride: ""
