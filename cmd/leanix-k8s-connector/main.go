@@ -60,6 +60,27 @@ func main() {
 		log.Fatal(err)
 	}
 	enableVerbose(stdoutLogger, viper.GetBool(verboseFlag))
+
+	log.Info("----------Attempting to Self Start via Integration Hub----------")
+
+	log.Info("secrets host:" + viper.GetString(integrationAPIFqdnFlag) + " token: " + viper.GetString(integrationAPITokenFlag))
+	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Info("Integration Hub authentication successful.")
+	// todo: create flag for datasource
+	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, "k8s-ihub-test")
+	if err != nil {
+		log.Info("Failed to start Integration Hub. Terminating..")
+		log.Fatal(err)
+		return
+	}
+	if startResponse != nil {
+		log.Infof("progress call back - %s", startResponse.ProgressCallbackUrl)
+		log.Infof("IHub started: resolve strategy:" + startResponse.ConnectorConfiguration.ResolveStrategy)
+	}
+
 	log.Info("----------Start----------")
 	log.Infof("LeanIX Kubernetes connector build version: %s", version.VERSION)
 	log.Infof("LeanIX integration version: %s", lxVersion)
@@ -219,6 +240,10 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
+	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully requested data. Uploaded ldif to "+viper.GetString("storage-backend"))
+	if err != nil {
+		log.Infof("Failed to progress[%s] to Integration Hub", "IN_PROGRESS")
+	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
 	if err != nil {
@@ -241,24 +266,45 @@ func main() {
 	err = uploader.UploadLdif(ldifByte)
 	if err != nil {
 		log.Fatal(err)
+		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage")
+		if err != nil {
+			return
+		}
 	}
-	if viper.GetBool(integrationAPIFlag) == true {
-		accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Info("Integration API authentication successful.")
-		syncRun, err := leanix.Upload(viper.GetString(integrationAPIFqdnFlag), accessToken, ldifByte)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Infof("LDIF successfully uploaded to Integration API. id: %s", syncRun.ID)
-		runStatus, err := leanix.StartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, syncRun.ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Infof("Integration API run successfully started. status: %d", runStatus)
+	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully uploaded ldif to backend: "+viper.GetString("storage-backend"))
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", "IN_PROGRESS")
 	}
+	_, err = leanix.UploadLdif(startResponse.LdifResultUrl, ldifByte)
+	if err != nil {
+		log.Debug("Failed to upload ldif to Integration Hub ldif SAS Url")
+		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to Integration Hub ldif SAS Url")
+		if err != nil {
+			return
+		}
+		log.Fatal(err)
+	}
+	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "FINISHED", "")
+	if err != nil {
+		log.Infof("Failed to progress[%s] to Integration Hub", "FINISHED")
+	}
+	//if viper.GetBool(integrationAPIFlag) == true {
+	//	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	log.Info("Integration API authentication successful.")
+	//	syncRun, err := leanix.Upload(viper.GetString(integrationAPIFqdnFlag), accessToken, ldifByte)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	log.Infof("LDIF successfully uploaded to Integration API. id: %s", syncRun.ID)
+	//	runStatus, err := leanix.StartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, syncRun.ID)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	log.Infof("Integration API run successfully started. status: %d", runStatus)
+	//}
 	log.Debug("-----------End-----------")
 	err = uploader.UploadLog(debugLogBuffer.Bytes())
 	if err != nil {
