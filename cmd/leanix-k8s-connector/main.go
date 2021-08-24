@@ -36,7 +36,6 @@ const (
 	connectorIDFlag                  string = "connector-id"
 	connectorVersionFlag             string = "connector-version"
 	connectorProcessingModeFlag      string = "processing-mode"
-	integrationAPIFlag               string = "integration-api-enabled"
 	integrationAPIDatasourceNameFlag string = "integration-api-datasourcename"
 	integrationAPIFqdnFlag           string = "integration-api-fqdn"
 	integrationAPITokenFlag          string = "integration-api-token"
@@ -284,24 +283,6 @@ func main() {
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", "FINISHED")
 	}
-	// todo remove
-	//if viper.GetBool(integrationAPIFlag) == true {
-	//	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Info("Integration API authentication successful.")
-	//	syncRun, err := leanix.Upload(viper.GetString(integrationAPIFqdnFlag), accessToken, ldifByte)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Infof("LDIF successfully uploaded to Integration API. id: %s", syncRun.ID)
-	//	runStatus, err := leanix.StartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, syncRun.ID)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	log.Infof("Integration API run successfully started. status: %d", runStatus)
-	//}
 	log.Debug("-----------End-----------")
 	err = uploader.UploadLog(debugLogBuffer.Bytes())
 	if err != nil {
@@ -328,7 +309,6 @@ func parseFlags() error {
 	flag.String(connectorIDFlag, "", "unique id of the LeanIX Kubernetes connector")
 	flag.String(connectorVersionFlag, "1.0.0", "connector version defaults to 1.0.0 if not specified")
 	flag.String(connectorProcessingModeFlag, "partial", "processing mode defaults to partial if not specified")
-	flag.Bool(integrationAPIFlag, false, "enable Integration API usage")
 	flag.String(integrationAPIDatasourceNameFlag, "", "LeanIX Integration Hub Datasource name created on the workspace")
 	flag.String(integrationAPIFqdnFlag, "app.leanix.net", "LeanIX Instance FQDN")
 	flag.String(integrationAPITokenFlag, "", "LeanIX API token")
@@ -365,12 +345,6 @@ func parseFlags() error {
 			return fmt.Errorf("%s flag must be set", azureContainerFlag)
 		}
 	}
-	// todo remove
-	//if viper.GetBool(integrationAPIFlag) == true {
-	//	if viper.GetString(integrationAPITokenFlag) == "" {
-	//		return fmt.Errorf("%s flag must be set", integrationAPITokenFlag)
-	//	}
-	//}
 	if viper.GetString(integrationAPIDatasourceNameFlag) == "" {
 		return fmt.Errorf("%s flag must be set", integrationAPIDatasourceNameFlag)
 	}

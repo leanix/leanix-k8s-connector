@@ -6,7 +6,6 @@ rbac: true
 clusterRoleAlreadyCreated: false
 
 integrationApi:
-  enabled: false
   fqdn: ""
   secretName: ""
   datasourceName: ""
