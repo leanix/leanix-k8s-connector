@@ -66,6 +66,8 @@ spec:
             - name: BLACKLIST_NAMESPACES
               value: "{{ .Values.args.blacklistNamespaces | join ", " }}"
             {{- if .Values.integrationApi.enabled }}
+            - name: INTEGRATION_API_DATASOURCENAME
+              value: "{{ .Values.integrationApi.datasourceName }}"
             - name: INTEGRATION_API_ENABLED
               value: "true"
             - name: INTEGRATION_API_FQDN

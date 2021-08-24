@@ -9,6 +9,7 @@ integrationApi:
   enabled: false
   fqdn: ""
   secretName: ""
+  datasourceName: ""
 
 schedule:
   standard: "*/1 * * * *"

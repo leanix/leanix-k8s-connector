@@ -26,22 +26,23 @@ import (
 )
 
 const (
-	clusterNameFlag             string = "clustername"
-	storageBackendFlag          string = "storage-backend"
-	azureAccountNameFlag        string = "azure-account-name"
-	azureAccountKeyFlag         string = "azure-account-key"
-	azureContainerFlag          string = "azure-container"
-	localFilePathFlag           string = "local-file-path"
-	verboseFlag                 string = "verbose"
-	connectorIDFlag             string = "connector-id"
-	connectorVersionFlag        string = "connector-version"
-	connectorProcessingModeFlag string = "processing-mode"
-	integrationAPIFlag          string = "integration-api-enabled"
-	integrationAPIFqdnFlag      string = "integration-api-fqdn"
-	integrationAPITokenFlag     string = "integration-api-token"
-	blacklistNamespacesFlag     string = "blacklist-namespaces"
-	lxWorkspaceFlag             string = "lx-workspace"
-	localFlag                   string = "local"
+	clusterNameFlag                  string = "clustername"
+	storageBackendFlag               string = "storage-backend"
+	azureAccountNameFlag             string = "azure-account-name"
+	azureAccountKeyFlag              string = "azure-account-key"
+	azureContainerFlag               string = "azure-container"
+	localFilePathFlag                string = "local-file-path"
+	verboseFlag                      string = "verbose"
+	connectorIDFlag                  string = "connector-id"
+	connectorVersionFlag             string = "connector-version"
+	connectorProcessingModeFlag      string = "processing-mode"
+	integrationAPIFlag               string = "integration-api-enabled"
+	integrationAPIDatasourceNameFlag string = "integration-api-datasourcename"
+	integrationAPIFqdnFlag           string = "integration-api-fqdn"
+	integrationAPITokenFlag          string = "integration-api-token"
+	blacklistNamespacesFlag          string = "blacklist-namespaces"
+	lxWorkspaceFlag                  string = "lx-workspace"
+	localFlag                        string = "local"
 )
 
 const (
@@ -63,14 +64,12 @@ func main() {
 
 	log.Info("----------Attempting to Self Start via Integration Hub----------")
 
-	log.Info("secrets host:" + viper.GetString(integrationAPIFqdnFlag) + " token: " + viper.GetString(integrationAPITokenFlag))
 	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Info("Integration Hub authentication successful.")
-	// todo: create flag for datasource
-	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, "k8s-ihub-test")
+	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
 	if err != nil {
 		log.Info("Failed to start Integration Hub. Terminating..")
 		log.Fatal(err)
@@ -288,6 +287,7 @@ func main() {
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", "FINISHED")
 	}
+	// todo remove
 	//if viper.GetBool(integrationAPIFlag) == true {
 	//	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
 	//	if err != nil {
@@ -332,6 +332,7 @@ func parseFlags() error {
 	flag.String(connectorVersionFlag, "1.0.0", "connector version defaults to 1.0.0 if not specified")
 	flag.String(connectorProcessingModeFlag, "partial", "processing mode defaults to partial if not specified")
 	flag.Bool(integrationAPIFlag, false, "enable Integration API usage")
+	flag.String(integrationAPIDatasourceNameFlag, "", "LeanIX Integration Hub Datasource name created on the workspace")
 	flag.String(integrationAPIFqdnFlag, "app.leanix.net", "LeanIX Instance FQDN")
 	flag.String(integrationAPITokenFlag, "", "LeanIX API token")
 	flag.StringSlice(blacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
@@ -367,10 +368,14 @@ func parseFlags() error {
 			return fmt.Errorf("%s flag must be set", azureContainerFlag)
 		}
 	}
-	if viper.GetBool(integrationAPIFlag) == true {
-		if viper.GetString(integrationAPITokenFlag) == "" {
-			return fmt.Errorf("%s flag must be set", integrationAPITokenFlag)
-		}
+	// todo remove
+	//if viper.GetBool(integrationAPIFlag) == true {
+	//	if viper.GetString(integrationAPITokenFlag) == "" {
+	//		return fmt.Errorf("%s flag must be set", integrationAPITokenFlag)
+	//	}
+	//}
+	if viper.GetString(integrationAPIDatasourceNameFlag) == "" {
+		return fmt.Errorf("%s flag must be set", integrationAPIDatasourceNameFlag)
 	}
 	return nil
 }
