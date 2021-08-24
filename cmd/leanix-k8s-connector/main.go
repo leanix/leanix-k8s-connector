@@ -239,7 +239,7 @@ func main() {
 
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully requested data. Uploaded ldif to configured "+viper.GetString("storage-backend"))
 	if err != nil {
-		log.Infof("Failed to progress[%s] to Integration Hub", leanix.INPROGRESS)
+		log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
@@ -270,7 +270,7 @@ func main() {
 	}
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to backend: "+viper.GetString("storage-backend"))
 	if err != nil {
-		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.INPROGRESS)
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
 	_, err = leanix.UploadLdif(startResponse.LdifResultUrl, ldifByte)
 	if err != nil {

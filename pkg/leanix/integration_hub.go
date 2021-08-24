@@ -22,9 +22,9 @@ type ConnectorConfiguration struct {
 }
 
 const (
-	INPROGRESS string = "INPROGRESS"
-	FAILED     string = "FAILED"
-	FINISHED   string = "FINISHED"
+	IN_PROGRESS string = "IN_PROGRESS"
+	FAILED      string = "FAILED"
+	FINISHED    string = "FINISHED"
 )
 
 // SelfStartRun initiates the Integration Hub run and response with id
@@ -78,7 +78,7 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 }
 
 func UpdateInProgressStatus(progressCallbackUrl string, message string) (string, error) {
-	return UpdateProgress(progressCallbackUrl, INPROGRESS, message)
+	return UpdateProgress(progressCallbackUrl, IN_PROGRESS, message)
 }
 
 func UpdateFailedProgressStatus(progressCallbackUrl string, message string) (string, error) {
