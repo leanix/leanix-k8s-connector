@@ -76,8 +76,7 @@ func main() {
 		return
 	}
 	if startResponse != nil {
-		log.Infof("progress call back - %s", startResponse.ProgressCallbackUrl)
-		log.Infof("IHub started: resolve strategy:" + startResponse.ConnectorConfiguration.ResolveStrategy)
+		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
 	}
 
 	log.Info("----------Start----------")
@@ -239,7 +238,7 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
-	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully requested data. Uploaded ldif to "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully requested data. Uploaded ldif to configured "+viper.GetString("storage-backend"))
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", "IN_PROGRESS")
 	}
@@ -278,10 +277,8 @@ func main() {
 	if err != nil {
 		log.Debug("Failed to upload ldif to Integration Hub ldif SAS Url")
 		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to Integration Hub ldif SAS Url")
-		if err != nil {
-			return
-		}
 		log.Fatal(err)
+		return
 	}
 	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "FINISHED", "")
 	if err != nil {
