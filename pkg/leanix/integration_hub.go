@@ -51,9 +51,10 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 // UpdateProgress Updates progress to Integration Hub
 func UpdateProgress(progressCallbackUrl string, status string, message string) (string, error) {
 	body := struct {
-		Message string `json:"message"`
-		Status  string `json:"status"`
-	}{Message: message, Status: status}
+		Message        string `json:"message"`
+		Status         string `json:"status"`
+		ProgressOrigin string `json:"progressOrigin"`
+	}{Message: message, Status: status, ProgressOrigin: "CONNECTOR"}
 	marshal, err := json.Marshal(body)
 	if err != nil {
 		fmt.Printf("Failed to marshal the request body")
@@ -68,6 +69,10 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 		return status, err
 	}
 	return status, nil
+}
+
+func UpdateInProgressStatus(progressCallbackUrl string, message string) (string, error) {
+	return UpdateProgress(progressCallbackUrl, "IN_PROGRESS", message)
 }
 
 func UpdateFailedProgressStatus(progressCallbackUrl string, message string) (string, error) {

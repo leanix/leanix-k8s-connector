@@ -237,7 +237,7 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
-	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully requested data. Uploaded ldif to configured "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully requested data. Uploaded ldif to configured "+viper.GetString("storage-backend"))
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", "IN_PROGRESS")
 	}
@@ -268,7 +268,7 @@ func main() {
 			return
 		}
 	}
-	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, "IN_PROGRESS", "Successfully uploaded ldif to backend: "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to backend: "+viper.GetString("storage-backend"))
 	if err != nil {
 		log.Infof("Failed to update progress[%s] to Integration Hub", "IN_PROGRESS")
 	}
