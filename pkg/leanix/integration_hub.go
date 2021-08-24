@@ -23,8 +23,8 @@ type ConnectorConfiguration struct {
 
 // SelfStartRun initiates the Integration Hub run and response with id
 func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStartResponse, error) {
-	url := "https://" + fqdn + "/services/integration-hub/v1/datasourceRuns/name/" + datasource + "/selfStart"
-	req, err := http.NewRequest("GET", url, nil)
+	datasourceRunUrl := "https://" + fqdn + "/services/integration-hub/v1/datasourceRuns/name/" + datasource + "/selfStart"
+	req, err := http.NewRequest("GET", datasourceRunUrl, nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
