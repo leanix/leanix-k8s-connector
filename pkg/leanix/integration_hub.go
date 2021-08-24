@@ -21,6 +21,12 @@ type ConnectorConfiguration struct {
 	ResolveStrategy string `json:"resolveStrategy"`
 }
 
+const (
+	INPROGRESS string = "INPROGRESS"
+	FAILED     string = "FAILED"
+	FINISHED   string = "FINISHED"
+)
+
 // SelfStartRun initiates the Integration Hub run and response with id
 func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStartResponse, error) {
 	datasourceRunUrl := "https://" + fqdn + "/services/integration-hub/v1/datasourceRuns/name/" + datasource + "/selfStart"
@@ -72,11 +78,11 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 }
 
 func UpdateInProgressStatus(progressCallbackUrl string, message string) (string, error) {
-	return UpdateProgress(progressCallbackUrl, "IN_PROGRESS", message)
+	return UpdateProgress(progressCallbackUrl, INPROGRESS, message)
 }
 
 func UpdateFailedProgressStatus(progressCallbackUrl string, message string) (string, error) {
-	return UpdateProgress(progressCallbackUrl, "FAILED", message)
+	return UpdateProgress(progressCallbackUrl, FAILED, message)
 }
 
 // UploadLdif Uploads ldif for processing to provided ldif result url
