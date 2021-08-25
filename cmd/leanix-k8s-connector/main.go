@@ -222,6 +222,7 @@ func main() {
 	customFields := mapper.CustomFields{
 		ConnectorInstance: viper.GetString(connectorIDFlag),
 		BuildVersion:      version.VERSION,
+		ResolveStrategy:   startResponse.ConnectorConfiguration.ResolveStrategy,
 	}
 
 	ldif := mapper.LDIF{
