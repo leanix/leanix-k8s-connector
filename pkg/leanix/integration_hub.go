@@ -19,6 +19,7 @@ type SelfStartResponse struct {
 
 type ConnectorConfiguration struct {
 	ResolveStrategy string `json:"resolveStrategy"`
+	ResolveLabel    string `json:"resolveLabel"`
 }
 
 const (

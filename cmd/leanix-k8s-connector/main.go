@@ -223,6 +223,7 @@ func main() {
 		ConnectorInstance: viper.GetString(connectorIDFlag),
 		BuildVersion:      version.VERSION,
 		ResolveStrategy:   startResponse.ConnectorConfiguration.ResolveStrategy,
+		ResolveLabel:      startResponse.ConnectorConfiguration.ResolveLabel,
 	}
 
 	ldif := mapper.LDIF{
