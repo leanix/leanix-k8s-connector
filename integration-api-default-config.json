@@ -1,0 +1,2518 @@
+{	
+	"externalId": "cider-k8s-connector",
+	"config": {
+		"connectorType": "leanix-mi-connector",
+		"connectorId": "leanix-k8s-connector",
+		"connectorVersion": "1.0.0",
+		"processingDirection": "inbound",
+		"processingMode": "full",
+		"processors": [
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_tech_component_of_type_CRD",
+				"processorDescription": "create fact sheet technical component of type CRD",
+				"type": "TechnicalComponent",
+				"filter": {
+					"exactType": "CustomResourceDefinition"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.name}"
+							},
+							{
+								"expr": "${data.metadata.name} (${content.id})"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "metadata"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "specifications"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sStatus"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.status)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "customResourceDefinition"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_Comp_env",
+				"processorDescription": "Create a fact sheet of type compute environment from a cluster",
+				"type": "ComputeEnvironment",
+				"filter": {
+					"exactType": "Cluster"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${content.id}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "cluster"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "os"
+						},
+						"values": [
+							{
+								"expr": "${data.osImage[0]}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sVersion"
+						},
+						"values": [
+							{
+								"expr": "${data.kubeletVersion[0]}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "nodesCount"
+						},
+						"values": [
+							{
+								"expr": "${data.numberNodes}"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_deployment",
+				"processorDescription": "Create fact sheet of type Deployment from a deployment k8s object",
+				"type": "Deployment",
+				"filter": {
+					"exactType": "Deployment"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "deployment"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "version"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.labels['app.kubernetes.io/version']}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "image"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.template.spec.containers[0].image.substring(0, data.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "deploymentTime"
+						},
+						"values": [
+							{
+								"expr": "${content.data.metadata.creationTimestamp}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "deployment"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sName"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "namespace"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "labels"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.labels)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "annotations"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.annotations)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "updateStrategy"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.strategy.type}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sImage"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.template.spec.containers[0].image.substring(0, data.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "limits"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.template.spec.containers[0].resources.limits)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "requests"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.template.spec.containers[0].resources.requests)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "replicas"
+						},
+						"values": [
+							{
+								"expr": "${data.status.replicas}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "readyReplicas"
+						},
+						"values": [
+							{
+								"expr": "${data.status.readyReplicas}"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_deployment_from_cron_job",
+				"processorDescription": "Create fact sheet of type deployment from a k8s CronJob object",
+				"type": "Deployment",
+				"filter": {
+					"exactType": "CronJob"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${variables['cronJobIdForUid_'.concat(content.id)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "version"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.labels['app.kubernetes.io/version']}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "image"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.jobTemplate.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.jobTemplate.spec.template.spec.containers[0].image.substring(0, data.spec.jobTemplate.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.jobTemplate.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "deploymentTime"
+						},
+						"values": [
+							{
+								"expr": "${content.data.metadata.creationTimestamp}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "job"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sName"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "namespace"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "labels"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.labels)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "annotations"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.annotations)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sImage"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.jobTemplate.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.jobTemplate.spec.template.spec.containers[0].image.substring(0, data.spec.jobTemplate.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.jobTemplate.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "limits"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.jobTemplate.spec.template.spec.containers[0].resources.limits)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "requests"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.jobTemplate.spec.template.spec.containers[0].resources.requests)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "schedule"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.schedule}"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.spec.jobTemplate.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_deployment_from_stateful_set",
+				"processorDescription": "Create fact sheet of type deployment from a k8s Stateful set object",
+				"type": "Deployment",
+				"filter": {
+					"exactType": "StatefulSet"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "statefulSet"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "version"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.labels['app.kubernetes.io/version']}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "image"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.template.spec.containers[0].image.substring(0, data.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "deploymentTime"
+						},
+						"values": [
+							{
+								"expr": "${content.data.metadata.creationTimestamp}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sName"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "namespace"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "labels"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.labels)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "annotations"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata.annotations)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "updateStrategy"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.updateStrategy.type}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sImage"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.template.spec.containers[0].image.lastIndexOf(':') != -1 ? data.spec.template.spec.containers[0].image.substring(0, data.spec.template.spec.containers[0].image.lastIndexOf(':')) : data.spec.template.spec.containers[0].image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "limits"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.template.spec.containers[0].resources.limits)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "requests"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.template.spec.containers[0].resources.requests)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "replicas"
+						},
+						"values": [
+							{
+								"expr": "${data.status.replicas}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "readyReplicas"
+						},
+						"values": [
+							{
+								"expr": "${data.status.readyReplicas}"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_tech_component_of_type_image",
+				"processorDescription": "Create fact sheet of type Technical Component (Image) from  k8s CronJob, Deploment, Stateful Set objects",
+				"type": "TechnicalComponent",
+				"filter": {
+					"advanced": "${content.type == 'Deployment' || content.type == 'Job' || content.type == 'StatefulSet'}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "img_${integration.valueOfForEach.image}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${integration.valueOfForEach.image}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "image"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_microservice_from_label_strategy",
+				"processorDescription": "Create fact sheet of type microservice from Label resolve strategy",
+				"type": "Microservice",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${integration.valueOfForEach}"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}"
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_microservice_from_namespace_strategy",
+				"processorDescription": "Create fact sheet of type microservice using namespace resolve strategy from  k8s CronJob, Deploment, Stateful Set objects",
+				"type": "Microservice",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy) and (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob')}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace}_${data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${lx.factsheet.name}"
+							},
+							{
+								"expr": "${data.metadata.namespace}:${data.metadata.name}"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"variables": [
+					{
+						"key": "createdMS",
+						"value": "${(lx.factsheet.name==null)?content.id:null}"
+					}
+				],
+				"read": {
+					"fields": [
+						"name"
+					]
+				}
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_tech_comp_of_type_persistent_vol",
+				"processorDescription": "Create fact sheet of type Technical Component (PersistentVolume) from a k8s PersistentVolume object",
+				"type": "TechnicalComponent",
+				"filter": {
+					"exactType": "PersistentVolume"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "metadata"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "specifications"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sStatus"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.status)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "persistentVolume"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_tech_comp_for_service",
+				"processorDescription": "Create fact sheet of type Technical Component from a k8s Service object",
+				"type": "TechnicalComponent",
+				"filter": {
+					"exactType": "Service"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${'srv_'.concat(data.metadata.namespace).concat('_').concat(data.metadata.name)}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace}:${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "metadata"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.metadata)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "specifications"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec)}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "k8sStatus"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.status)}"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_tag_on_depl_fact_sheets_missing_version_label",
+				"processorDescription": "Create 'VERSION LABEL MISSING' tag belonging to 'Data Quality' tag group on deployment fact sheets",
+				"filter": {
+					"advanced": "${(content.type == 'Deployment' || content.type == 'CronJob' || content.type == 'StatefulSet') && !data.metadata.labels['app.kubernetes.io/version']}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':')}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 10,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "VERSION LABEL MISSING"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Quality"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "color"
+						},
+						"values": [
+							{
+								"expr": "#f96464"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_tech_comp_for_ingress",
+				"processorDescription": "Create fact sheet of type Technical Component from a k8s Ingress object",
+				"type": "TechnicalComponent",
+				"filter": {
+					"exactType": "Ingress"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${'srv_'.concat(data.metadata.namespace).concat('_').concat(data.metadata.name)}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "ingress"
+						},
+						"values": [
+							{
+								"expr": "${integration.toJson(data.spec.rules)}"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_storage_class_tag_on_tech_comp_for_PV",
+				"processorDescription": "Create storage class tag belonging to 'storageClass' tag group for technical component fact sheets created from Persistent Volume k8s object",
+				"filter": {
+					"advanced": "${content.type == 'PersistentVolume' && data.spec.storageClassName}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.spec.storageClassName}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "storageClass"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.shortName"
+						},
+						"values": [
+							{
+								"expr": "storageClass"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.restrictToFactSheetTypes"
+						},
+						"values": [
+							{
+								"expr": "TechnicalComponent"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_CRD",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from CRD k8s object",
+				"filter": {
+					"exactType": "CustomResourceDefinition"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${content.id}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_Cluster",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from Cluster k8s object",
+				"filter": {
+					"exactType": "Cluster"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${content.id}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_Crob_job",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from Cron Job k8s object",
+				"filter": {
+					"exactType": "CronJob"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${variables['cronJobIdForUid_'.concat(content.id)].get()}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_tag_on_depl_fact_sheets_missing_labels",
+				"processorDescription": "Create 'LABELS MISSING ON DEPLOYMENT' tag belonging to 'Data Quality' tag group on deployment fact sheets",
+				"filter": {
+					"advanced": "${(content.type == 'Deployment' || content.type == 'CronJob' || content.type == 'StatefulSet') && data.metadata.labels == null}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':')}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "LABELS MISSING ON DEPLOYMENT"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Quality"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "color"
+						},
+						"values": [
+							{
+								"expr": "#f96464"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_depl",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from Deployment k8s object",
+				"filter": {
+					"exactType": "Deployment"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_label_tag_CUSTOMER_SPECIFIC",
+				"processorDescription": "Create label white list tag for fact sheets created from Deployment k8s object CUSTOMER SPECIFIC (We could move this to outside execution groups)",
+				"filter": {
+					"advanced": "${content.type == 'Deployment' && (integration.keyOfForEach.equals('app.kubernetes.io/managed-by') or integration.keyOfForEach.startsWith('k8s.nuernberger.de/'))}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${integration.valueOfForEach}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "${integration.keyOfForEach}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.shortName"
+						},
+						"values": [
+							{
+								"expr": "${integration.keyOfForEach}"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.restrictToFactSheetTypes"
+						},
+						"values": [
+							{
+								"expr": "Deployment"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}"
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_depl",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for tech comp (image) fact sheets created from Deployment, Job, Stateful set k8s object",
+				"filter": {
+					"advanced": "${content.type == 'Deployment' || content.type == 'Job' || content.type == 'StatefulSet'}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "img_${integration.valueOfForEach.image}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_depl_fact_sheet_from_label_strategy",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created Label strategy",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && ( content.type == 'Deployment' || content.type == 'CronJob' || content.type == 'StatefulSet' ) && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${integration.valueOfForEach}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}"
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheet_from_namespace_strategy",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created Namespace strategy",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy)  && ( content.type == 'Deployment' || content.type == 'ReplicationController' || content.type == 'StatefulSet' || content.type == 'CronJob')}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${content.data.metadata.namespace}_${content.data.metadata.name}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_pv",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from PV k8s object",
+				"filter": {
+					"exactType": "PersistentVolume"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${content.id}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_service",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from Service k8s object",
+				"filter": {
+					"exactType": "Service"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${'srv_'.concat(data.metadata.namespace).concat('_').concat(data.metadata.name)}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_kubernetes_tag_on_fact_sheets_for_stateful_set",
+				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created from Stateful Set k8s object",
+				"filter": {
+					"exactType": "StatefulSet"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${variables['statefulSetIdForUid_'.concat(content.id)].get()}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "Kubernetes"
+							}
+						]
+					},
+					{
+						"key": {
+							"expr": "group.name"
+						},
+						"values": [
+							{
+								"expr": "Data Source"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundTag",
+				"processorName": "create_to_be_checked_tag_on_fact_sheet_from_namespace_strategy",
+				"processorDescription": "Create 'TO BE CHECKED' tag for fact sheets created Namespace strategy",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy) && variables.createdMS.toList().contains(content.id) && ( content.type == 'Deployment' || content.type == 'ReplicationController' || content.type == 'StatefulSet' )}"
+				},
+				"factSheets": {
+					"external": {
+						"ids": "${content.data.metadata.namespace}_${content.data.metadata.name}",
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 11,
+				"updates": [
+					{
+						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "TO BE CHECKED"
+							}
+						]
+					}
+				],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "delete_rel_ms_to_curr_depl_label_strategy",
+				"processorDescription": "Delete Relation between microservice and current deployments using Label strategy",
+				"type": "relMicroserviceToCurrentDeployments",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"internal": "${variables['currentDeploymentToBeRemovedViaLabel_'.concat(integration.valueOfForEach)].get()}"
+				},
+				"run": 11,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}",
+				"mode": "delete"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "delete_rel_ms_to_curr_depl_namespace_strategy",
+				"processorDescription": "Delete Relation between microservice and current deployments using Namespace strategy",
+				"type": "relMicroserviceToCurrentDeployments",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob')}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace}_${data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"internal": "${integration.valueOfForEach}"
+				},
+				"run": 11,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${variables['currentDeploymentToBeRemovedViaNamespace_'.concat(content.data.metadata.namespace).concat('_').concat(content.data.metadata.name)]}",
+				"mode": "delete"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_ms_to_curr_depl_label_strategy",
+				"processorDescription": "Create Relation between microservice and current deployments using Namespace strategy",
+				"type": "relCurrentDeploymentsToMicroservice",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 20,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_ms_to_curr_depl_namespace_strategy",
+				"processorDescription": "Create Relation between microservice and current deployments using Namespace strategy",
+				"type": "relCurrentDeploymentsToMicroservice",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy)  && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob')}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${content.data.metadata.namespace}_${content.data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 20,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_ms_to_depl_label_strategy",
+				"processorDescription": "Create Relation between microservice and deployments using Label strategy",
+				"type": "relAllDeploymentsToMicroservice",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 20,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_ms_to_depl_namespace_strategy",
+				"processorDescription": "Create Relation between microservice and deployments using Namespace strategy",
+				"type": "relAllDeploymentsToMicroservice",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy)  && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob')}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${content.data.metadata.namespace}_${content.data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 20,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_ms_to_depl_for_replication_controller_namespace_strategy",
+				"processorDescription": "Create Relation between microservice and deployments using Namespace strategy for Replication controller k8s object",
+				"type": "relAllDeploymentsToMicroservice",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy) && content.type == 'ReplicationController' && data.metadata.ownerReferences != null}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['deplIdForUid_'.concat(data.metadata.ownerReferences[0].uid)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${content.data.metadata.namespace}_${content.data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 20,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_cluster",
+				"processorDescription": "Create a variable to store id of created Cluster (Compute Environment)",
+				"filter": {
+					"exactType": "Cluster"
+				},
+				"run": 20,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "cluster",
+						"value": "${content.id.toString()}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_deploymentForPV",
+				"processorDescription": "Create a dynamic variable deploymentForPV_ for storing deployment Ids for PVC",
+				"filter": {
+					"advanced": "${content.type == 'Deployment' || content.type == 'StatefulSet'}"
+				},
+				"run": 20,
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.volumes}",
+				"variables": [
+					{
+						"key": "deploymentForPV_${content.data.metadata.namespace}_${integration.valueOfForEach.persistentVolumeClaim.claimName}",
+						"value": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_serviceForSelector_",
+				"processorDescription": "Create dynamic variable serviceForSelector_ to store Id of tech component Fs created from Service k8s object",
+				"filter": {
+					"exactType": "Service"
+				},
+				"run": 20,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "serviceForSelector_${data.metadata.namespace}_${content.data.spec.selector.app}",
+						"value": "srv_${data.metadata.namespace}_${data.metadata.name}"
+					}
+				]
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_tech_comp_to_comp_env",
+				"processorDescription": "Create relation between technical component and compute env for CRD type k8s object",
+				"type": "relTechnicalComponentToComputeEnvironment",
+				"filter": {
+					"exactType": "CustomResourceDefinition"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${variables['cluster'].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_tech_comp",
+				"processorDescription": "Create relation between deployment and technical component for Deployment and Stateful Set k8s objects",
+				"type": "relDeploymentToTechnicalComponent",
+				"filter": {
+					"advanced": "${content.type == 'Deployment' || content.type == 'StatefulSet'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "img_${integration.valueOfForEach.image}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_tech_comp_for_cron_job",
+				"processorDescription": "Create relation between deployment and technical component for CronJob k8s objects",
+				"type": "relDeploymentToTechnicalComponent",
+				"filter": {
+					"exactType": "CronJob"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['cronJobIdForUid_'.concat(content.id)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "img_${integration.valueOfForEach.image}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.spec.jobTemplate.spec.template.spec.containers}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_tech_comp_for_depl",
+				"processorDescription": "Create relation between deployment and technical component for Deployment k8s objects",
+				"type": "relDeploymentToTechnicalComponent",
+				"filter": {
+					"exactType": "Deployment"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${variables['serviceForSelector_'.concat(content.data.metadata.namespace).concat('_').concat(content.data.metadata.labels.app)]}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_tech_comp_for_pv",
+				"processorDescription": "Create relation between deployment and technical component for Persistent Volume k8s objects",
+				"type": "relTechnicalComponentToDeployment",
+				"filter": {
+					"advanced": "${content.type == 'PersistentVolume'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${content.id}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach.toString()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${variables['deploymentForPV_'.concat(data.spec.claimRef.namespace).concat('_').concat(data.spec.claimRef.name)]}"
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_tech_comp_for_stateful_set",
+				"processorDescription": "Create relation between deployment and technical component for Stateful Set k8s objects",
+				"type": "relDeploymentToTechnicalComponent",
+				"filter": {
+					"exactType": "StatefulSet"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['statefulSetIdForUid_'.concat(content.id)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${'srv_'.concat(data.metadata.namespace).concat('_').concat(data.spec.serviceName).replace('-headless', '')}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 21,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_cronJobForJob_",
+				"processorDescription": "Create variable cronJobForJob_ to store cronJob Id related to k8s Job Object",
+				"filter": {
+					"exactType": "Job"
+				},
+				"run": 30,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "cronJobForJob_${content.id}",
+						"value": "${variables['cronJobIdForUid_'.concat(data.metadata.ownerReferences[0].uid)].get()}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_clusterForNode_",
+				"processorDescription": "Create variable clusterForNode_ to store values related to kubernetes.io/hostname label key for Cluster k8s Object",
+				"filter": {
+					"exactType": "Cluster"
+				},
+				"run": 30,
+				"enabled": true,
+				"forEach": "${data.labels.get('kubernetes.io/hostname')}",
+				"variables": [
+					{
+						"key": "clusterForNode_${integration.valueOfForEach}",
+						"value": "${content.id.toString()}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_deploymentForReplicaSet_",
+				"processorDescription": "Create variable deploymentForReplicaSet_ to store  deployment Id for ReplicaSet k8s Object",
+				"filter": {
+					"exactType": "ReplicaSet"
+				},
+				"run": 30,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "deploymentForReplicaSet_${content.id}",
+						"value": "${variables['deplIdForUid_'.concat(data.metadata.ownerReferences[0].uid)].get()}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_deploymentForReplicationController_",
+				"processorDescription": "Create variable deploymentForReplicationController_ to store deployment Id for ReplicationController k8s Object",
+				"filter": {
+					"exactType": "ReplicationController"
+				},
+				"run": 30,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "deploymentForReplicationController_${content.id}",
+						"value": "${variables['deplIdForUid_'.concat(data.metadata.ownerReferences[0].uid)].get()}"
+					}
+				]
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_comp_env_for_pod_job",
+				"processorDescription": "Create relation between deployment and compute environment for Pod k8s objects referencing Job",
+				"type": "relDeploymentToComputeEnvironment",
+				"filter": {
+					"advanced": "${content.type == 'Pod' && content.data.metadata.ownerReferences[0].kind == 'Job'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['cronJobForJob_'.concat(content.data.metadata.ownerReferences[0].uid)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${variables['clusterForNode_'.concat(content.data.spec.nodeName)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 31,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_comp_env_for_pod_replica_set",
+				"processorDescription": "Create relation between deployment and compute environment for Pod k8s objects referencing Replica set",
+				"type": "relDeploymentToComputeEnvironment",
+				"filter": {
+					"advanced": "${content.type == 'Pod' && content.data.metadata.ownerReferences[0].kind == 'ReplicaSet'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['deploymentForReplicaSet_'.concat(content.data.metadata.ownerReferences[0].uid)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${variables['clusterForNode_'.concat(content.data.spec.nodeName)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 31,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_comp_env_for_pod_replcation_controller",
+				"processorDescription": "Create relation between deployment and compute environment for Pod k8s objects referencing Replication Controller",
+				"type": "relDeploymentToComputeEnvironment",
+				"filter": {
+					"advanced": "${content.type == 'Pod' && content.data.metadata.ownerReferences[0].kind == 'ReplicationController'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['deploymentForReplicationController_'.concat(content.data.metadata.ownerReferences[0].uid)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${variables['clusterForNode_'.concat(content.data.spec.nodeName)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 31,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundRelation",
+				"processorName": "create_rel_depl_comp_env_for_pod_stateful_set",
+				"processorDescription": "Create relation between deployment and compute environment for Pod k8s objects referencing Stateful Set",
+				"type": "relDeploymentToComputeEnvironment",
+				"filter": {
+					"advanced": "${content.type == 'Pod' && content.data.metadata.ownerReferences[0].kind == 'StatefulSet'}"
+				},
+				"from": {
+					"external": {
+						"id": {
+							"expr": "${variables['statefulSetIdForUid_'.concat(content.data.metadata.ownerReferences[0].uid)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"to": {
+					"external": {
+						"id": {
+							"expr": "${variables['clusterForNode_'.concat(content.data.spec.nodeName)].get()}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					}
+				},
+				"run": 31,
+				"updates": [],
+				"enabled": true
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_variable_currentDeploymentToBeRemovedViaLabel_",
+				"processorDescription": "Create variable currentDeploymentToBeRemovedViaLabel_ to store deployment FS ids to be removed in later runs",
+				"type": "Microservice",
+				"filter": {
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${integration.valueOfForEach}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					},
+					"search": {
+						"scope": {
+							"ids": [],
+							"facetFilters": [
+								{
+									"keys": [
+										"Microservice"
+									],
+									"facetKey": "FactSheetTypes",
+									"operator": "OR"
+								}
+							]
+						},
+						"filter": "${integration.variables.valueOfForEach.target}",
+						"multipleMatchesAllowed": true
+					}
+				},
+				"run": 8,
+				"updates": [],
+				"enabled": true,
+				"forEach": "${data.metadata.labels}",
+				"variables": [
+					{
+						"key": "currentDeploymentToBeRemovedViaLabel_${integration.valueOfForEach}",
+						"value": "${integration.variables.valueOfForEach.target.id}",
+						"forEach": {
+							"elementOf": "${lx.relations}",
+							"filter": "${true}"
+						}
+					}
+				],
+				"read": {
+					"relations": {
+						"filter": [
+							"relMicroserviceToCurrentDeployments"
+						],
+						"targetFields": [
+							"id"
+						]
+					}
+				}
+			},
+			{
+				"processorType": "inboundFactSheet",
+				"processorName": "create_variable_currentDeploymentToBeRemovedViaNamespace_",
+				"processorDescription": "Create variable currentDeploymentToBeRemovedViaNamespace_ to store deployment FS ids to be removed in later runs",
+				"type": "Microservice",
+				"filter": {
+					"advanced": "${('namespace' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob')}"
+				},
+				"identifier": {
+					"external": {
+						"id": {
+							"expr": "${data.metadata.namespace}_${data.metadata.name}"
+						},
+						"type": {
+							"expr": "kubernetesId"
+						}
+					},
+					"search": {
+						"scope": {
+							"ids": [],
+							"facetFilters": [
+								{
+									"keys": [
+										"Microservice"
+									],
+									"facetKey": "FactSheetTypes",
+									"operator": "OR"
+								}
+							]
+						},
+						"filter": "${integration.variables.valueOfForEach.target}",
+						"multipleMatchesAllowed": true
+					}
+				},
+				"run": 8,
+				"updates": [],
+				"enabled": true,
+				"variables": [
+					{
+						"key": "currentDeploymentToBeRemovedViaNamespace_${data.metadata.namespace}_${data.metadata.name}",
+						"value": "${integration.variables.valueOfForEach.target.id}",
+						"forEach": {
+							"elementOf": "${lx.relations}",
+							"filter": "${true}"
+						}
+					}
+				],
+				"read": {
+					"relations": {
+						"filter": [
+							"relMicroserviceToCurrentDeployments"
+						],
+						"targetFields": [
+							"id"
+						]
+					}
+				}
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_cronJobIdForUid_",
+				"processorDescription": "Create variable to store cronJobIdForUid_ for each k8s CronJob Object",
+				"filter": {
+					"exactType": "CronJob"
+				},
+				"run": 8,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "cronJobIdForUid_${content.id}",
+						"value": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_deplIdForUid_",
+				"processorDescription": "Create variable to store deplIdForUid_ for each k8s Deployment Object",
+				"filter": {
+					"exactType": "Deployment"
+				},
+				"run": 8,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "deplIdForUid_${content.id}",
+						"value": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_statefulSetIdForUid_",
+				"processorDescription": "Create variable to store statefulSetIdForUid_ for each k8s StatefulSet Object",
+				"filter": {
+					"exactType": "StatefulSet"
+				},
+				"run": 8,
+				"enabled": true,
+				"variables": [
+					{
+						"key": "statefulSetIdForUid_${content.id}",
+						"value": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+					}
+				]
+			},
+			{
+				"processorType": "variableProcessor",
+				"processorName": "create_variable_deploymentForLabelName_",
+				"processorDescription": "Create variable to store deploymentForLabelName_ for each k8s Deployment Object",
+				"forEach": "${data.metadata.labels}",
+				"run": 10,
+				"filter": {
+				"advanced": "${('label' ==  header.customFields.resolveStrategy) && (content.type == 'Deployment') && (integration.keyOfForEach == header.customFields.label)}"
+				},
+				"variables": [
+				{
+					"key": "deploymentForLabelName_${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}",
+					"value": "${integration.valueOfForEach.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
+				}
+				]
+			},
+			{
+			"processorType": "inboundFactSheet",
+			"processorName": "create_depl_fs_label_strategy_name_update",
+			"processorDescription": "Create fact sheet of type Deployment from a deployment k8s object for Label Strategy",
+			"type": "Deployment",
+			"filter": {
+				"advanced": "${('label' == header.customFields.resolveStrategy) && integration.contentIndex == 0}"
+			},
+			"run": 11,
+			"identifier": {
+				"search": {
+				"scope": {
+					"ids": [],
+					"facetFilters": [
+					{
+						"keys": ["Deployment"],
+						"facetKey": "FactSheetTypes",
+						"operator": "AND"
+					},
+					{
+						"keys": ["${integration.tags.getTagId('Data Source','Kubernetes')}"],
+						"facetKey": "${integration.tags.getTagGroupId('Data Source')}",
+						"operator": "OR"
+					}
+					]
+				},
+				"multipleMatchesAllowed": true
+				}
+			},
+			"read": {
+				"fields": ["k8sName", "version", "namespace"]
+			},
+			"updates": [
+				{
+				"key": {
+					"expr": "name"
+				},
+				"values": [
+					{
+					"expr": "${variables['deploymentForLabelName_'.concat(lx.factsheet.namespace).concat(':').concat(lx.factsheet.k8sName).concat(':').concat(lx.factsheet.version)].toList()[0]}"
+					}
+				]
+				}
+			]
+		}				
+		],
+		"dataProvider": {
+			"url": "${header.customFields.resultUrl}"
+		},
+		"visibleIf": [
+			{
+				"featureFlags": [""]
+			}
+		],
+		"readOnly": true,
+		"processingThreads": 1,
+		"logLdifUrl": true
+	},
+	"availableIf": [
+		{
+			"featureFlags": ["integration.integrationapi"]
+		}
+	]
+}

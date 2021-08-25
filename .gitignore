@@ -1,7 +1,6 @@
 # binary
 bin
 
-*.json
 *.log
 vendor
 *.ldif
