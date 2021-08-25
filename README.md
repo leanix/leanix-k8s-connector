@@ -178,7 +178,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | schedule.standard   | */1 * * * *               |                                      | CronJob schedule. Defaults to every minute. |
 | clustername         | kubernetes                | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID               | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.1.1"                   | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| connectorVersion    | "1.0.0"                   | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"                    | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false                     | true                                 | Enables verbose logging on the stdout interface of the container. |
@@ -191,7 +191,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.clustername=aks-cluster \
 --set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
+--set args.connectorVersion=1.0.0 \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
@@ -210,7 +210,7 @@ schedule:
 args:
   clustername: aks-cluster
   connectorID: aks-cluster
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
@@ -250,7 +250,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | schedule.standard   | */1 * * * *   |                                      | CronJob schedule. Defaults to every minute. |
 | clustername         | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| connectorVersion    | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
@@ -263,7 +263,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.clustername=aks-cluster \
 --set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
+--set args.connectorVersion=1.0.0 \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
@@ -284,7 +284,7 @@ schedule:
 args:
   clustername: aks-cluster
   connectorID: aks-cluster
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
@@ -329,7 +329,7 @@ The following configuration example assumes that you use the `azureblob` storage
 | schedule.integrationApi   | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. |
 | clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion          | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| connectorVersion          | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
@@ -345,7 +345,7 @@ helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set integrationApi.secretName=api-token \
 --set args.clustername=aks-cluster \
 --set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
+--set args.connectorVersion=1.0.0 \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
@@ -371,7 +371,7 @@ schedule:
 args:
   clustername: aks-cluster
   connectorID: aks-cluster
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true

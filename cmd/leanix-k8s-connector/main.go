@@ -46,8 +46,8 @@ const (
 
 const (
 	lxVersion                      string = "1.0.0"
-	lxConnectorID                  string = "Kubernetes"
-	lxConnectorType                string = "leanix-k8s-connector"
+	lxConnectorID                  string = "leanix-k8s-connector"
+	lxConnectorType                string = "leanix-mi-connector"
 	lxConnectorProcessingDirection string = "inbound"
 )
 
