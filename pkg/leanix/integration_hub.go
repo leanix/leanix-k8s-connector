@@ -52,7 +52,23 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	}
 	startResponse := SelfStartResponse{}
 	json.Unmarshal(responseData, &startResponse)
+	_, err = validateConnectorConfiguration(startResponse.ConnectorConfiguration)
+	if err != nil {
+		return nil, err
+	}
 	return &startResponse, nil
+}
+
+func validateConnectorConfiguration(configuration ConnectorConfiguration) (bool, error) {
+	if configuration.ResolveStrategy == "" {
+		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
+	}
+
+	if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
+		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+	}
+
+	return true, nil
 }
 
 // UpdateProgress Updates progress to Integration Hub
