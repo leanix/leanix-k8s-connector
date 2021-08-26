@@ -45,12 +45,12 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Ensure Integration API schedule lowest value is every hour
+Ensure standard schedule lowest value is every hour
 */}}
 
 {{- define "leanix-k8s-connector.integrationApiSchedule" -}}
-{{- if regexMatch "^([0-9]|[1-5][0-9]) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+)$" .Values.schedule.integrationApi -}}
-{{- printf "%s" .Values.schedule.integrationApi -}}
+{{- if regexMatch "^([0-9]|[1-5][0-9]) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+) (\\*|\\*/\\d+|\\d+)$" .Values.schedule.standard -}}
+{{- printf "%s" .Values.schedule.standard -}}
 {{- else -}}
 {{- printf "%s" "0 */1 * * *" -}}
 {{- end -}}

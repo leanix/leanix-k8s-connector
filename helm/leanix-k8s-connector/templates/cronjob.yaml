@@ -6,11 +6,7 @@ metadata:
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
 spec:
-  {{- if .Values.integrationApi.enabled }}
   schedule: "{{ include "leanix-k8s-connector.integrationApiSchedule" . }}"
-  {{- else }}
-  schedule: "{{ .Values.schedule.standard }}"
-  {{- end }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   jobTemplate:
