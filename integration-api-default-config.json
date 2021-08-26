@@ -228,16 +228,6 @@
 					},
 					{
 						"key": {
-							"expr": "category"
-						},
-						"values": [
-							{
-								"expr": "deployment"
-							}
-						]
-					},
-					{
-						"key": {
 							"expr": "k8sName"
 						},
 						"values": [
@@ -1293,67 +1283,6 @@
 					}
 				],
 				"enabled": true
-			},
-			{
-				"processorType": "inboundTag",
-				"processorName": "create_kubernetes_label_tag_CUSTOMER_SPECIFIC",
-				"processorDescription": "Create label white list tag for fact sheets created from Deployment k8s object CUSTOMER SPECIFIC (We could move this to outside execution groups)",
-				"filter": {
-					"advanced": "${content.type == 'Deployment' && (integration.keyOfForEach.equals('app.kubernetes.io/managed-by') or integration.keyOfForEach.startsWith('k8s.nuernberger.de/'))}"
-				},
-				"factSheets": {
-					"external": {
-						"ids": "${data.metadata.namespace.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}",
-						"type": {
-							"expr": "kubernetesId"
-						}
-					}
-				},
-				"run": 11,
-				"updates": [
-					{
-						"key": {
-							"expr": "name"
-						},
-						"values": [
-							{
-								"expr": "${integration.valueOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.name"
-						},
-						"values": [
-							{
-								"expr": "${integration.keyOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.shortName"
-						},
-						"values": [
-							{
-								"expr": "${integration.keyOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.restrictToFactSheetTypes"
-						},
-						"values": [
-							{
-								"expr": "Deployment"
-							}
-						]
-					}
-				],
-				"enabled": true,
-				"forEach": "${data.metadata.labels}"
 			},
 			{
 				"processorType": "inboundTag",
