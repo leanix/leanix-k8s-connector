@@ -1001,6 +1001,16 @@
 				"updates": [
 					{
 						"key": {
+							"expr": "name"
+						},
+						"values": [
+							{
+								"expr": "${data.metadata.namespace}:${data.metadata.name}"
+							}
+						]
+					},
+					{
+						"key": {
 							"expr": "ingress"
 						},
 						"values": [
@@ -2508,11 +2518,14 @@
 		],
 		"readOnly": true,
 		"processingThreads": 1,
-		"logLdifUrl": true
+		"logLdifUrl": true,
+		"executionGroups": [
+			"miK8sInbound"
+		]
 	},
 	"availableIf": [
 		{
-			"featureFlags": ["integration.integrationapi"]
+			"featureFlags": ["integration.integrationapi", "integration.k8s"]
 		}
 	]
 }
