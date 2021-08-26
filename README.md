@@ -517,6 +517,18 @@ leanix-k8s-connector-1563961200   0/1           20m        20m
 
 Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should see a new pod coming up afterwards.
 
+## Migration docs
+
+### 3.0.0 to 4.0.0
+- Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
+- New **mandatory** flag is introduced to work with Integration hub data source - `integrationApi.datasourceName`
+- LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration API automatically. Hence `integrationApi.enabled` flag is removed
+- All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
+- Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
+- Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
+- `schedule.integratioApi` flag is removed and there is a single `schedule.standard`
+- Lowest possible value for `schedule.standard` is every hour
+
 ## Version history
 
 [CHANGELOG](CHANGELOG.md)
