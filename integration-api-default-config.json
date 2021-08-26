@@ -718,7 +718,7 @@
 				"processorDescription": "Create fact sheet of type microservice from Label resolve strategy",
 				"type": "Microservice",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"identifier": {
 					"external": {
@@ -1401,7 +1401,7 @@
 				"processorName": "create_kubernetes_tag_on_depl_fact_sheet_from_label_strategy",
 				"processorDescription": "Create 'kubernetes' tag belonging to 'Data Source' tag group for fact sheets created Label strategy",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && ( content.type == 'Deployment' || content.type == 'CronJob' || content.type == 'StatefulSet' ) && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && ( content.type == 'Deployment' || content.type == 'CronJob' || content.type == 'StatefulSet' ) && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"factSheets": {
 					"external": {
@@ -1633,7 +1633,7 @@
 				"processorDescription": "Delete Relation between microservice and current deployments using Label strategy",
 				"type": "relMicroserviceToCurrentDeployments",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"from": {
 					"external": {
@@ -1687,7 +1687,7 @@
 				"processorDescription": "Create Relation between microservice and current deployments using Namespace strategy",
 				"type": "relCurrentDeploymentsToMicroservice",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"from": {
 					"external": {
@@ -1752,7 +1752,7 @@
 				"processorDescription": "Create Relation between microservice and deployments using Label strategy",
 				"type": "relAllDeploymentsToMicroservice",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"from": {
 					"external": {
@@ -2287,7 +2287,7 @@
 				"processorDescription": "Create variable currentDeploymentToBeRemovedViaLabel_ to store deployment FS ids to be removed in later runs",
 				"type": "Microservice",
 				"filter": {
-					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.label)}"
+					"advanced": "${('label' == header.customFields.resolveStrategy) && (content.type == 'Deployment' or content.type == 'StatefulSet' or content.type == 'CronJob') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"identifier": {
 					"external": {
@@ -2453,7 +2453,7 @@
 				"forEach": "${data.metadata.labels}",
 				"run": 10,
 				"filter": {
-				"advanced": "${('label' ==  header.customFields.resolveStrategy) && (content.type == 'Deployment') && (integration.keyOfForEach == header.customFields.label)}"
+				"advanced": "${('label' ==  header.customFields.resolveStrategy) && (content.type == 'Deployment') && (integration.keyOfForEach == header.customFields.resolveLabel)}"
 				},
 				"variables": [
 				{
