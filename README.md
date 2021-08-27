@@ -155,7 +155,6 @@ The following configuration example assumes that you use the `azureblob` storage
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
---set integrationApi.enabled=true \
 --set integrationApi.fqdn=app.leanix.net \
 --set integrationApi.secretName=api-token \
 --set integrationApi.datasourceName=aks-cluster-k8s-connector \
@@ -526,7 +525,7 @@ Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should
 - All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
 - Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
 - Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
-- `schedule.integratioApi` flag is removed and there is a single `schedule.standard`
+- `schedule.integrationApi` flag is removed and there is a single `schedule.standard`
 - Lowest possible value for `schedule.standard` is every hour
 
 ## Version history
