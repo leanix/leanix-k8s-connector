@@ -220,10 +220,11 @@ func main() {
 	}
 
 	customFields := mapper.CustomFields{
-		ConnectorInstance: viper.GetString(connectorIDFlag),
-		BuildVersion:      version.VERSION,
-		ResolveStrategy:   startResponse.ConnectorConfiguration.ResolveStrategy,
-		ResolveLabel:      startResponse.ConnectorConfiguration.ResolveLabel,
+		ConnectorInstance:     viper.GetString(connectorIDFlag),
+		BuildVersion:          version.VERSION,
+		ResolveStrategy:       startResponse.ConnectorConfiguration.ResolveStrategy,
+		ResolveLabel:          startResponse.ConnectorConfiguration.ResolveLabel,
+		EnabledLabelWhitelist: startResponse.ConnectorConfiguration.EnabledLabelWhitelist,
 	}
 
 	ldif := mapper.LDIF{

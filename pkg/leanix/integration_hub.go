@@ -18,8 +18,9 @@ type SelfStartResponse struct {
 }
 
 type ConnectorConfiguration struct {
-	ResolveStrategy string `json:"resolveStrategy"`
-	ResolveLabel    string `json:"resolveLabel"`
+	ResolveStrategy       string `json:"resolveStrategy"`
+	ResolveLabel          string `json:"resolveLabel"`
+	EnabledLabelWhitelist bool   `json:"enabledLabelWhitelist"` // special case for Numberger customer (Until execution groups is supported by Integration Hub)
 }
 
 const (
