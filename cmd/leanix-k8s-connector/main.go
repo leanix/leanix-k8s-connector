@@ -265,12 +265,12 @@ func main() {
 	err = uploader.UploadLdif(ldifByte)
 	if err != nil {
 		log.Fatal(err)
-		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage")
+		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
 		if err != nil {
 			return
 		}
 	}
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to backend: "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
 	if err != nil {
 		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
