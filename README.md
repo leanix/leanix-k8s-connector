@@ -54,7 +54,7 @@ Only necessary permissions are given to the connector as the default ClusterRole
 | "rbac.authorization.k8s.io" | roles, clusterroles, rolebindings, clusterrolebindings | get, list, watch |
 | "storage.k8s.io"            | storageclasses                                         | get, list, watch |
 
-The CronJob is configured to run every minute and spins up a new pod of the LeanIX Kubernetes Connector. As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
+The CronJob is configured to run every hour and spins up a new pod of the LeanIX Kubernetes Connector. As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
 
 Currently, two storage backend types are natively supported by the connector.
 
@@ -126,6 +126,7 @@ Create a new data source with k8s connector template(mentioned above) and add re
 #### **Starting Connector in k8s**
 
 > **_NOTE:_** The LeanIX Integration API options requires an API token. See the LeanIX technical documentation on how to obtain one. [LeanIX Technical Documentation](https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
+
 > **_NOTE:_** Make sure Integration Hub data source is setup on the workspace
 
 Create a Kubernetes secret with the LeanIX API token.
