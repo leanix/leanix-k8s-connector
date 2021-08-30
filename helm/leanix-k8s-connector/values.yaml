@@ -6,13 +6,12 @@ rbac: true
 clusterRoleAlreadyCreated: false
 
 integrationApi:
-  enabled: false
   fqdn: ""
   secretName: ""
+  datasourceName: ""
 
 schedule:
-  standard: "*/1 * * * *"
-  integrationApi: "0 */1 * * *"
+  standard: "0 */1 * * *"
 
 image:
   repository: leanixacrpublic.azurecr.io/leanix-k8s-connector
@@ -26,7 +25,7 @@ securityContext:
 args:
   clustername: kubernetes
   connectorID: ""
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: ""
   verbose: false

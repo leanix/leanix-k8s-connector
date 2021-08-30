@@ -78,3 +78,12 @@ func (u *AzureContainer) uploadFile(name string, content []byte) error {
 
 	return err
 }
+
+func UploadFileToSasUrl(blobSasUrl url.URL, content []byte) error {
+	ctx := context.Background()
+	_, err := azblob.UploadBufferToBlockBlob(ctx, content, azblob.NewBlockBlobURL(blobSasUrl, azblob.NewPipeline(azblob.NewAnonymousCredential(), azblob.PipelineOptions{})), azblob.UploadToBlockBlobOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}

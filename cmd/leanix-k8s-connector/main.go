@@ -26,28 +26,28 @@ import (
 )
 
 const (
-	clusterNameFlag             string = "clustername"
-	storageBackendFlag          string = "storage-backend"
-	azureAccountNameFlag        string = "azure-account-name"
-	azureAccountKeyFlag         string = "azure-account-key"
-	azureContainerFlag          string = "azure-container"
-	localFilePathFlag           string = "local-file-path"
-	verboseFlag                 string = "verbose"
-	connectorIDFlag             string = "connector-id"
-	connectorVersionFlag        string = "connector-version"
-	connectorProcessingModeFlag string = "processing-mode"
-	integrationAPIFlag          string = "integration-api-enabled"
-	integrationAPIFqdnFlag      string = "integration-api-fqdn"
-	integrationAPITokenFlag     string = "integration-api-token"
-	blacklistNamespacesFlag     string = "blacklist-namespaces"
-	lxWorkspaceFlag             string = "lx-workspace"
-	localFlag                   string = "local"
+	clusterNameFlag                  string = "clustername"
+	storageBackendFlag               string = "storage-backend"
+	azureAccountNameFlag             string = "azure-account-name"
+	azureAccountKeyFlag              string = "azure-account-key"
+	azureContainerFlag               string = "azure-container"
+	localFilePathFlag                string = "local-file-path"
+	verboseFlag                      string = "verbose"
+	connectorIDFlag                  string = "connector-id"
+	connectorVersionFlag             string = "connector-version"
+	connectorProcessingModeFlag      string = "processing-mode"
+	integrationAPIDatasourceNameFlag string = "integration-api-datasourcename"
+	integrationAPIFqdnFlag           string = "integration-api-fqdn"
+	integrationAPITokenFlag          string = "integration-api-token"
+	blacklistNamespacesFlag          string = "blacklist-namespaces"
+	lxWorkspaceFlag                  string = "lx-workspace"
+	localFlag                        string = "local"
 )
 
 const (
 	lxVersion                      string = "1.0.0"
-	lxConnectorID                  string = "Kubernetes"
-	lxConnectorType                string = "leanix-k8s-connector"
+	lxConnectorID                  string = "leanix-k8s-connector"
+	lxConnectorType                string = "leanix-mi-connector"
 	lxConnectorProcessingDirection string = "inbound"
 )
 
@@ -60,6 +60,24 @@ func main() {
 		log.Fatal(err)
 	}
 	enableVerbose(stdoutLogger, viper.GetBool(verboseFlag))
+
+	log.Info("----------Attempting to Self Start via Integration Hub----------")
+
+	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Info("Integration Hub authentication successful.")
+	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
+	if err != nil {
+		log.Info("Failed to start Integration Hub. Terminating..")
+		log.Fatal(err)
+		return
+	}
+	if startResponse != nil {
+		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
+	}
+
 	log.Info("----------Start----------")
 	log.Infof("LeanIX Kubernetes connector build version: %s", version.VERSION)
 	log.Infof("LeanIX integration version: %s", lxVersion)
@@ -202,8 +220,11 @@ func main() {
 	}
 
 	customFields := mapper.CustomFields{
-		ConnectorInstance: viper.GetString(connectorIDFlag),
-		BuildVersion:      version.VERSION,
+		ConnectorInstance:     viper.GetString(connectorIDFlag),
+		BuildVersion:          version.VERSION,
+		ResolveStrategy:       startResponse.ConnectorConfiguration.ResolveStrategy,
+		ResolveLabel:          startResponse.ConnectorConfiguration.ResolveLabel,
+		EnabledLabelWhitelist: startResponse.ConnectorConfiguration.EnabledLabelWhitelist,
 	}
 
 	ldif := mapper.LDIF{
@@ -219,6 +240,10 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully requested data. Uploading ldif to configured storage backend - "+viper.GetString("storage-backend"))
+	if err != nil {
+		log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
 	if err != nil {
@@ -241,23 +266,25 @@ func main() {
 	err = uploader.UploadLdif(ldifByte)
 	if err != nil {
 		log.Fatal(err)
+		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
+		if err != nil {
+			return
+		}
 	}
-	if viper.GetBool(integrationAPIFlag) == true {
-		accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Info("Integration API authentication successful.")
-		syncRun, err := leanix.Upload(viper.GetString(integrationAPIFqdnFlag), accessToken, ldifByte)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Infof("LDIF successfully uploaded to Integration API. id: %s", syncRun.ID)
-		runStatus, err := leanix.StartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, syncRun.ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Infof("Integration API run successfully started. status: %d", runStatus)
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
+	_, err = leanix.UploadLdif(startResponse.LdifResultUrl, ldifByte)
+	if err != nil {
+		log.Debug("Failed to upload ldif to Integration Hub ldif SAS Url")
+		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to Integration Hub ldif SAS Url")
+		log.Fatal(err)
+		return
+	}
+	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, leanix.FINISHED, "")
+	if err != nil {
+		log.Infof("Failed to progress[%s] to Integration Hub", leanix.FINISHED)
 	}
 	log.Debug("-----------End-----------")
 	err = uploader.UploadLog(debugLogBuffer.Bytes())
@@ -285,7 +312,7 @@ func parseFlags() error {
 	flag.String(connectorIDFlag, "", "unique id of the LeanIX Kubernetes connector")
 	flag.String(connectorVersionFlag, "1.0.0", "connector version defaults to 1.0.0 if not specified")
 	flag.String(connectorProcessingModeFlag, "partial", "processing mode defaults to partial if not specified")
-	flag.Bool(integrationAPIFlag, false, "enable Integration API usage")
+	flag.String(integrationAPIDatasourceNameFlag, "", "LeanIX Integration Hub Datasource name created on the workspace")
 	flag.String(integrationAPIFqdnFlag, "app.leanix.net", "LeanIX Instance FQDN")
 	flag.String(integrationAPITokenFlag, "", "LeanIX API token")
 	flag.StringSlice(blacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
@@ -321,10 +348,8 @@ func parseFlags() error {
 			return fmt.Errorf("%s flag must be set", azureContainerFlag)
 		}
 	}
-	if viper.GetBool(integrationAPIFlag) == true {
-		if viper.GetString(integrationAPITokenFlag) == "" {
-			return fmt.Errorf("%s flag must be set", integrationAPITokenFlag)
-		}
+	if viper.GetString(integrationAPIDatasourceNameFlag) == "" {
+		return fmt.Errorf("%s flag must be set", integrationAPIDatasourceNameFlag)
 	}
 	return nil
 }
