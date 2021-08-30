@@ -11,6 +11,7 @@ on:
       - "**README.md"
       - "**CHANGELOG.md"
       - "**publishNewHelmChartVersion.sh"
+      - "integration-api-default-config.json"
 
 jobs:
   main:
