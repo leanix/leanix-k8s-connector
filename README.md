@@ -10,14 +10,15 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
   - [Table of contents](#table-of-contents)
   - [Overview](#overview)
   - [Getting started](#getting-started)
+    - [Integration Hub](#integration-hub)
     - [Architecture](#architecture)
     - [Installation - Helm chart](#installation---helm-chart)
       - [Pre-release versions](#pre-release-versions)
       - [Helm 2 requirements](#helm-2-requirements)
       - [Add LeanIX Kubernetes Connector Helm chart repository](#add-leanix-kubernetes-connector-helm-chart-repository)
+      - [Starting Connector in k8s](#starting-connector-in-k8s)
       - [file storage backend](#file-storage-backend)
       - [azureblob storage backend](#azureblob-storage-backend)
-      - [Optional - POST call against LeanIX Integration API](#optional---post-call-against-leanix-integration-api)
       - [Optional - Advanced deployment settings](#optional---advanced-deployment-settings)
     - [Setting up development environment](#developer-environment-setup)
   - [Known issues](#known-issues)
@@ -25,11 +26,17 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
 
 ## Overview
 
-The LeanIX Kubernetes Connector runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc.. Those informations are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX.
+The LeanIX Kubernetes Connector (Integration Hub self start) runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc. The information are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX. The progress is updated to Integration Hub datasource. The Integration API run is taken care by Integration Hub.
 
 ## Getting started
 
 Depending on how you would like to run the LeanIX Kubernetes Connector the installation steps differ a bit and depends on the selected storage backend.
+
+### Integration Hub
+
+#### Connector template
+
+- mi-k8s-connector
 
 ### Architecture
 
@@ -47,7 +54,7 @@ Only necessary permissions are given to the connector as the default ClusterRole
 | "rbac.authorization.k8s.io" | roles, clusterroles, rolebindings, clusterrolebindings | get, list, watch |
 | "storage.k8s.io"            | storageclasses                                         | get, list, watch |
 
-The CronJob is configured to run every minute and spins up a new pod of the LeanIX Kubernetes Connector. As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
+The CronJob is configured to run every hour and spins up a new pod of the LeanIX Kubernetes Connector. As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
 
 Currently, two storage backend types are natively supported by the connector.
 
@@ -102,6 +109,98 @@ A list of the available LeanIX Kubernetes connector Helm chart versions can be r
 ``` bash
 NAME                                        CHART VERSION APP VERSION DESCRIPTION
 leanix/leanix-k8s-connector                 1.0.0         1.0.0       Retrieves information from Kubernetes cluster
+```
+
+#### Setting up data source in LeanIX workspace
+
+Create a new data source with k8s connector template(mentioned above) and add required parameters
+
+##### Integration Hub connector configuration
+
+|      Name       |     Format      | Default | Mandatory |
+| :-------------: | :-------------: | :-----: | :-------: |
+| resolveStrategy | label/namespace |  empty  |    ✅     |
+|  resolveLabel   |   plain text    |  empty  |    ❌     |
+
+
+#### **Starting Connector in k8s**
+
+> **_NOTE:_** The LeanIX Integration API options requires an API token. See the LeanIX technical documentation on how to obtain one. [LeanIX Technical Documentation](https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
+
+> **_NOTE:_** Make sure Integration Hub data source is setup on the workspace
+
+Create a Kubernetes secret with the LeanIX API token.
+
+``` bash
+kubectl create secret generic api-token --from-literal=token={LEANIX_API_TOKEN}
+```
+
+The following configuration example assumes that you use the `azureblob` storage backend.
+
+| Parameter                 | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
+| ------------------------- | ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
+| schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster.                                                                                                                                                                                                    |
+| connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default.                                                                                                                                            |
+| connectorVersion          | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0.                                                                                                                                     |
+| processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial.                                                                                                                                        |
+| lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
+| verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| storageBackend            | file          | azureblob                            | The default value for the storage backend is `file`, if not provided.                                                                                                                                                                  |
+| secretName                | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
+| container                 | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
+| blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+
+``` bash
+helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
+--set integrationApi.fqdn=app.leanix.net \
+--set integrationApi.secretName=api-token \
+--set integrationApi.datasourceName=aks-cluster-k8s-connector \
+--set args.clustername=aks-cluster \
+--set args.connectorID=aks-cluster \
+--set args.connectorVersion=1.0.0 \
+--set args.processingMode=full \
+--set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
+--set args.verbose=true \
+--set args.storageBackend=azureblob \
+--set args.azureblob.secretName=azure-secret \
+--set args.azureblob.container=leanixk8sconnector \
+--set args.blacklistNamespaces="{kube-system,default}"
+```
+
+Beside the option to override the default values and provide values via the `--set` option of the `helm` command, you can also edit the `values.yaml` file.
+
+``` yaml
+...
+integrationApi:
+  fqdn: "app.leanix.net"
+  secretName: "api-token"
+  datasourceName: "aks-cluster-k8s-connector"
+
+schedule:
+  standard: "0 */1 * * *"
+...
+args:
+  clustername: aks-cluster
+  connectorID: aks-cluster
+  connectorVersion: "1.0.0"
+  processingMode: full
+  lxWorkspace: "00000000-0000-0000-0000-000000000000"
+  verbose: true
+  storageBackend: azureblob
+  file:
+    localFilePath: "/mnt/leanix-k8s-connector"
+    claimName: ""
+  azureblob:
+    secretName: "azure-secret"
+    container: "leanixk8sconnector"
+  blacklistNamespaces:
+  - "kube-system"
+  - "default"
+...
 ```
 
 #### **file storage backend**
@@ -175,10 +274,13 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 
 | Parameter           | Default value             | Provided value                       | Notes |
 | ------------------- | ------------------------- | ------------------------------------ | ----- |
-| schedule.standard   | */1 * * * *               |                                      | CronJob schedule. Defaults to every minute. |
+| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
+| schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
 | clustername         | kubernetes                | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID               | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.1.1"                   | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| connectorVersion    | "1.0.0"                   | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"                    | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false                     | true                                 | Enables verbose logging on the stdout interface of the container. |
@@ -189,9 +291,12 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
+--set integrationApi.fqdn=app.leanix.net \
+--set integrationApi.secretName=api-token \
+--set integrationApi.datasourceName=aks-cluster-k8s-connector \
 --set args.clustername=aks-cluster \
 --set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
+--set args.connectorVersion=1.0.0 \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
@@ -203,14 +308,18 @@ Beside the option to override the default values and provide values via the `--s
 
 ``` yaml
 ...
+integrationApi:
+  fqdn: "app.leanix.net"
+  secretName: "api-token"
+  datasourceName: "aks-cluster-k8s-connector"
+
 schedule:
-  standard: "*/1 * * * *"
-  integrationApi: "0 */1 * * *"
+  standard: "0 */1 * * *"
 ...
 args:
   clustername: aks-cluster
   connectorID: aks-cluster
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
@@ -247,10 +356,13 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 
 | Parameter           | Default value | Provided value                       | Notes |
 | ------------------- | ------------- | ------------------------------------ | ----- |
-| schedule.standard   | */1 * * * *   |                                      | CronJob schedule. Defaults to every minute. |
+| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
+| schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
 | clustername         | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
 | connectorID         | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion    | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
+| connectorVersion    | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
@@ -261,91 +373,12 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
---set args.clustername=aks-cluster \
---set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
---set args.processingMode=full \
---set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
---set args.verbose=true \
---set args.storageBackend=azureblob \
---set args.azureblob.secretName=azure-secret \
---set args.azureblob.container=leanixk8sconnector \
---set args.blacklistNamespaces="{kube-system,default}"
-```
-
-Beside the option to override the default values and provide values via the `--set` option of the `helm` command, you can also edit the `values.yaml` file.
-
-``` yaml
-...
-schedule:
-  standard: "*/1 * * * *"
-  integrationApi: "0 */1 * * *"
-...
-args:
-  clustername: aks-cluster
-  connectorID: aks-cluster
-  connectorVersion: "1.1.1"
-  processingMode: full
-  lxWorkspace: "00000000-0000-0000-0000-000000000000"
-  verbose: true
-  storageBackend: azureblob
-  file:
-    localFilePath: "/mnt/leanix-k8s-connector"
-    claimName: ""
-  azureblob:
-    secretName: "azure-secret"
-    container: "leanixk8sconnector"
-  blacklistNamespaces:
-  - "kube-system"
-  - "default"
-...
-```
-
-#### **Optional - POST call against LeanIX Integration API**
-
-As an additional option to the `file` and `azureblog` storage backend the LeanIX Kubernetes Connector starts supporting with version `2.0.0-beta5` an optional POST call against the LeanIX Integration API.
-
-This additional option lets you upload the generated LDIF to the LeanIX Integration API and starts after a successful upload a synchronization run.
-
-> **_NOTE:_** You still need to configure a `file` or `azureblob` storage backend for storing the LeanIX Kubernetes Connector log file. You cannot use the LeanIX Integration API option without one of these options.
-
-For configuring one of the mentioned storage backend options click on [file storage backend](#file-storage-backend) or [azureblob storage backend](#azureblob-storage-backend).
-
-> **_NOTE:_** The LeanIX Integration API options requies an API token. See the LeanIX technical documentation on how to obtain one. [LeanIX Technical Documentation](https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
-
-Create a Kubernetes secret with the LeanIX API token.
-
-``` bash
-kubectl create secret generic api-token --from-literal=token={LEANIX_API_TOKEN}
-```
-
-The following configuration example assumes that you use the `azureblob` storage backend.
-
-| Parameter                 | Default value | Provided value                       | Notes |
-| ------------------------- | ------------- | ------------------------------------ | ----- |
-| integrationApi.enabled    | false         | true                                 | Enables the LeanIX Integration API option |
-| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance |
-| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token. |
-| schedule.integrationApi   | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. |
-| clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
-| connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
-| connectorVersion          | "1.1.1"       | "1.1.1"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
-| processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
-| lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
-| verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
-| storageBackend            | file          | azureblob                            | The default value for the storage backend is `file`, if not provided. |
-| secretName                | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials. |
-| container                 | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
-| blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
-
-``` bash
-helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
---set integrationApi.enabled=true \
 --set integrationApi.fqdn=app.leanix.net \
 --set integrationApi.secretName=api-token \
+--set integrationApi.datasourceName=aks-cluster-k8s-connector \
 --set args.clustername=aks-cluster \
 --set args.connectorID=aks-cluster \
---set args.connectorVersion=1.1.1 \
+--set args.connectorVersion=1.0.0 \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
@@ -360,9 +393,9 @@ Beside the option to override the default values and provide values via the `--s
 ``` yaml
 ...
 integrationApi:
-  enabled: true
   fqdn: "app.leanix.net"
   secretName: "api-token"
+  datasourceName: "aks-cluster-k8s-connector"
 
 schedule:
   standard: "*/1 * * * *"
@@ -371,7 +404,7 @@ schedule:
 args:
   clustername: aks-cluster
   connectorID: aks-cluster
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
@@ -420,6 +453,8 @@ args:
 ```
 
 ### Developer Environment Setup
+> **_NOTE:_** Make sure Integration Hub data source is setup on the workspace
+ 
 The connector can be published to a minikube instance
 
 ## Steps
@@ -452,6 +487,9 @@ By default, The cronJob pulls the image from docker hub. To override the behavio
     --set image.tag=1.0.0-dev \
     --set args.clustername=minikube \
     --set args.connectorID=minikube \
+    --set integrationApi.fqdn=app.leanix.net \
+    --set integrationApi.secretName=api-token \
+    --set integrationApi.datasourceName=k8s-connector-test \
     --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
     --set args.verbose=true \
     --set args.storageBackend=azureblob \
@@ -479,12 +517,25 @@ leanix-k8s-connector-1563961200   0/1           20m        20m
 
 Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should see a new pod coming up afterwards.
 
+## Migration docs
+
+### 3.0.0 to 4.0.0
+- Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
+- New **mandatory** flag is introduced to work with Integration hub data source - `integrationApi.datasourceName`
+- LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration API automatically. Hence `integrationApi.enabled` flag is removed
+- All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
+- Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
+- Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
+- `schedule.integrationApi` flag is removed and there is a single `schedule.standard`
+- Lowest possible value for `schedule.standard` is every hour
+
 ## Version history
 
 [CHANGELOG](CHANGELOG.md)
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2021-08-30  |       4.0.0       |        1.0.0        |       4.0.0        |        4.0.0        |
 |  2021-08-04  |       3.0.0       |        1.0.0        |       3.0.0        |        3.0.0        |
 |  2021-06-21  |       2.0.0       |        1.0.0        |       2.0.0        |        2.0.0        |
 |  2020-10-22  |    2.0.0-beta7    |        1.0.0        |    2.0.0-beta7     |     2.0.0-beta7     |

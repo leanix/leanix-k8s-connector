@@ -6,17 +6,16 @@ rbac: true
 clusterRoleAlreadyCreated: false
 
 integrationApi:
-  enabled: false
   fqdn: ""
   secretName: ""
+  datasourceName: ""
 
 schedule:
-  standard: "*/1 * * * *"
-  integrationApi: "0 */1 * * *"
+  standard: "0 */1 * * *"
 
 image:
-  repository: docker.io/leanix/leanix-k8s-connector
-  tag: 3.0.0
+  repository: leanixacrpublic.azurecr.io/leanix-k8s-connector
+  tag: 4.0.0
   pullPolicy: Always
 
 securityContext:
@@ -26,7 +25,7 @@ securityContext:
 args:
   clustername: kubernetes
   connectorID: ""
-  connectorVersion: "1.1.1"
+  connectorVersion: "1.0.0"
   processingMode: full
   lxWorkspace: ""
   verbose: false
@@ -38,7 +37,7 @@ args:
     secretName: ""
     container: ""
   blacklistNamespaces:
-  - "kube-system"
+    - "kube-system"
   additionalEnv: {}
 
 nameOverride: ""

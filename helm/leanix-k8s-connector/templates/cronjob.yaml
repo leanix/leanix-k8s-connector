@@ -6,11 +6,7 @@ metadata:
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
 spec:
-  {{- if .Values.integrationApi.enabled }}
   schedule: "{{ include "leanix-k8s-connector.integrationApiSchedule" . }}"
-  {{- else }}
-  schedule: "{{ .Values.schedule.standard }}"
-  {{- end }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   jobTemplate:
@@ -65,9 +61,8 @@ spec:
               value: "{{ .Values.args.processingMode }}"
             - name: BLACKLIST_NAMESPACES
               value: "{{ .Values.args.blacklistNamespaces | join ", " }}"
-            {{- if .Values.integrationApi.enabled }}
-            - name: INTEGRATION_API_ENABLED
-              value: "true"
+            - name: INTEGRATION_API_DATASOURCENAME
+              value: "{{ .Values.integrationApi.datasourceName }}"
             - name: INTEGRATION_API_FQDN
               value: "{{ .Values.integrationApi.fqdn }}"
             - name: INTEGRATION_API_TOKEN
@@ -75,7 +70,6 @@ spec:
                 secretKeyRef:
                   name: "{{ .Values.integrationApi.secretName }}"
                   key: token
-            {{- end }}
             {{- range $key, $val := .Values.args.additionalEnv }}
             - name: {{ $key }}
               value: {{ $val | quote }}
