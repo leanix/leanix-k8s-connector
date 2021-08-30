@@ -6,9 +6,11 @@ on:
   push:
     branches:
       - feature/**
-      - main
+      - master
     paths:
       - 'integration-api-default-config.json'
+  workflow_dispatch:
+  
 
 jobs:
   deployment:
@@ -23,13 +25,13 @@ jobs:
         secret-store-credentials: ${{ secrets.INJECTED_SECRET_STORE_CREDENTIALS }}
 
     - name: Provision default config to Test
-      if: github.ref!='refs/heads/main'
+      if: github.ref!='refs/heads/master'
       uses: leanix/integration-api-default-config-action@main
       with:
         environment: 'test'  
     
     - name: Provision default config to Prod
-      if: github.ref=='refs/heads/main'
+      if: github.ref=='refs/heads/master'
       uses: leanix/integration-api-default-config-action@main
       with:
         environment: 'prod'  
