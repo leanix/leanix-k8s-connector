@@ -1,5 +1,23 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2021-08-30 - 4.0.0
+
+### Release Notes
+
+* Breaking changes! Follow the below migration docs to upgrade from 3.0.0 or below to 4.0.0
+
+#### Migration docs
+* 3.0.0 or below to 4.0.0
+  * Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
+  * New **mandatory** flag is introduced to work with Integration hub data source - `integrationApi.datasourceName`
+  * LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration API automatically. Hence `integrationApi.enabled` flag is removed
+  * All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
+  * Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
+  * Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
+  * `schedule.integrationApi` flag is removed and there is a single `schedule.standard`
+  * Lowest possible value for `schedule.standard` is every hour
+
+
 ## Release 2021-08-04 - 3.0.0
 
 ### Release Notes
