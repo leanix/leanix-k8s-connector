@@ -1,5 +1,11 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2021-09-16 - 5.0.0
+
+### Release Notes
+
+* Fix timeout issue of Integration Hub - Added more progress updates
+
 ## Release 2021-08-30 - 4.0.0
 
 ### Release Notes
