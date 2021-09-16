@@ -76,6 +76,10 @@ func main() {
 	}
 	if startResponse != nil {
 		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully self started via Integration Hub. Connector is in progress")
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
 	}
 
 	log.Info("----------Start----------")
@@ -131,14 +135,16 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
 	log.Debug("Listing nodes...")
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Debug("Listing nodes done.")
-
 	log.Debug("Map nodes to Kubernetes object")
 	clusterKubernetesObject, err := mapper.MapNodes(
 		viper.GetString("clustername"),
@@ -147,10 +153,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
-
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
 	resourceGroupWhitelist := map[string]map[string]interface{}{
 		"": map[string]interface{}{
 			"serviceaccounts":        struct{}{},
@@ -218,7 +226,6 @@ func main() {
 			kubernetesObjects = append(kubernetesObjects, nko)
 		}
 	}
-
 	customFields := mapper.CustomFields{
 		ConnectorInstance:     viper.GetString(connectorIDFlag),
 		BuildVersion:          version.VERSION,
@@ -240,7 +247,7 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully requested data. Uploading ldif to configured storage backend - "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully collected required kubernetes data. Uploading ldif to configured storage backend - "+viper.GetString("storage-backend"))
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
