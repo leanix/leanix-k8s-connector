@@ -74,6 +74,7 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	log.Info("Getting connector config...")
 	if startResponse != nil {
 		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully self started via Integration Hub. Connector is in progress")
@@ -254,6 +255,7 @@ func main() {
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
 	if err != nil {
+		_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to marshal ldif")
 		log.Fatal(err)
 	}
 
@@ -268,6 +270,7 @@ func main() {
 	}
 	uploader, err := storage.NewBackend(viper.GetString("storage-backend"), &azureOpts, &localFileOpts)
 	if err != nil {
+		_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
 		log.Fatal(err)
 	}
 	err = uploader.UploadLdif(ldifByte)
