@@ -29,6 +29,7 @@ args:
   processingMode: full
   lxWorkspace: ""
   verbose: false
+  enableCustomStorage: false
   storageBackend: file
   file:
     localFilePath: "/mnt/leanix-k8s-connector"

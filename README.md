@@ -26,7 +26,7 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
 
 ## Overview
 
-The LeanIX Kubernetes Connector (Integration Hub self start) runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc. The information are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX. The progress is updated to Integration Hub datasource. The Integration API run is taken care by Integration Hub.
+The LeanIX Kubernetes Connector (Integration Hub self start) runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc. The information are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. If custom storage backend is enabled, The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX. The progress is updated to Integration Hub datasource. The Integration API run is taken care by Integration Hub.
 
 ## Getting started
 
@@ -54,7 +54,7 @@ Only necessary permissions are given to the connector as the default ClusterRole
 | "rbac.authorization.k8s.io" | roles, clusterroles, rolebindings, clusterrolebindings | get, list, watch |
 | "storage.k8s.io"            | storageclasses                                         | get, list, watch |
 
-The CronJob is configured to run every hour and spins up a new pod of the LeanIX Kubernetes Connector. As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
+The CronJob is configured to run every hour and spins up a new pod of the LeanIX Kubernetes Connector. If the flag is enabled, As mentioned in the overview the connector creates the `kubernetes.ldif` file and logs into the `leanix-k8s-connector.log` file.
 
 Currently, two storage backend types are natively supported by the connector.
 
@@ -153,6 +153,7 @@ The following configuration example assumes that you use the `azureblob` storage
 | secretName                | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
 | container                 | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
 | blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage       | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -165,6 +166,7 @@ helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
+--set args.enableCustomStorage=true \
 --set args.storageBackend=azureblob \
 --set args.azureblob.secretName=azure-secret \
 --set args.azureblob.container=leanixk8sconnector \
@@ -190,6 +192,7 @@ args:
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
+  enableCustomStorage: true
   storageBackend: azureblob
   file:
     localFilePath: "/mnt/leanix-k8s-connector"
@@ -288,6 +291,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | localFilePath       | /mnt/leanix-k8s-connector |                                      | The path that is used for mounting the PVC into the container and storing the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | claimName           | ""                        | azurefile                            | The name of the PVC used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | blacklistNameSpaces | kube-system               | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage | false                     | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -300,6 +304,7 @@ helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
+--set args.enableCustomStorage=true \
 --set args.file.claimName=azurefile \
 --set args.blacklistNamespaces="{kube-system,default}"
 ```
@@ -323,6 +328,7 @@ args:
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
+  enableCustomStorage: true
   storageBackend: file
   file:
     localFilePath: "/mnt/leanix-k8s-connector"
@@ -370,6 +376,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | secretName          | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials. |
 | container           | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | blacklistNameSpaces | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -382,6 +389,7 @@ helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.processingMode=full \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
+--set args.enableCustomStorage=true \
 --set args.storageBackend=azureblob \
 --set args.azureblob.secretName=azure-secret \
 --set args.azureblob.container=leanixk8sconnector \
@@ -408,6 +416,7 @@ args:
   processingMode: full
   lxWorkspace: "00000000-0000-0000-0000-000000000000"
   verbose: true
+  enableCustomStorage: true
   storageBackend: azureblob
   file:
     localFilePath: "/mnt/leanix-k8s-connector"
@@ -492,6 +501,7 @@ By default, The cronJob pulls the image from docker hub. To override the behavio
     --set integrationApi.datasourceName=k8s-connector-test \
     --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
     --set args.verbose=true \
+    --set enableCustomStorage=true
     --set args.storageBackend=azureblob \
     --set args.azureblob.secretName=azure-secret \
     --set args.azureblob.container=leanixk8sconnector \
@@ -518,6 +528,11 @@ leanix-k8s-connector-1563961200   0/1           20m        20m
 Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should see a new pod coming up afterwards.
 
 ## Migration docs
+
+### 4.0.0 to 5.0.0
+- New flag `enableCustomStorage` is introduced. This flags allows to disable the option to upload LDIF to custom storage backend. Disabling the flag will not affect the functionality of the connector.
+- The default value is `false`. The new flag needs to be added with `true` value for same behaviour even after k8s connector upgrade to 5.0.0.
+`--set args.enableCustomStorage=true`
 
 ### 3.0.0 to 4.0.0
 - Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
