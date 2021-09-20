@@ -135,6 +135,62 @@ Create a Kubernetes secret with the LeanIX API token.
 kubectl create secret generic api-token --from-literal=token={LEANIX_API_TOKEN}
 ```
 
+The following configuration example for quick start
+
+| Parameter                 | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
+| ------------------------- | ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
+| schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster.                                                                                                                                                                                                    |
+| connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default.                                                                                                                                            |
+| connectorVersion          | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0.                                                                                                                                     |
+| processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial.                                                                                                                                        |
+| lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
+| verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage       | false         | false                                | Disable/enable custom storage backend option. Even if disabled the connector works
+
+``` bash
+helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
+--set integrationApi.fqdn=app.leanix.net \
+--set integrationApi.secretName=api-token \
+--set integrationApi.datasourceName=aks-cluster-k8s-connector \
+--set args.clustername=aks-cluster \
+--set args.connectorID=aks-cluster \
+--set args.connectorVersion=1.0.0 \
+--set args.processingMode=full \
+--set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
+--set args.verbose=true \
+--set args.blacklistNamespaces="{kube-system,default}"
+```
+
+Beside the option to override the default values and provide values via the `--set` option of the `helm` command, you can also edit the `values.yaml` file.
+
+``` yaml
+...
+integrationApi:
+  fqdn: "app.leanix.net"
+  secretName: "api-token"
+  datasourceName: "aks-cluster-k8s-connector"
+
+schedule:
+  standard: "0 */1 * * *"
+...
+args:
+  clustername: aks-cluster
+  connectorID: aks-cluster
+  connectorVersion: "1.0.0"
+  processingMode: full
+  lxWorkspace: "00000000-0000-0000-0000-000000000000"
+  verbose: true
+  blacklistNamespaces:
+  - "kube-system"
+  - "default"
+...
+```
+
 The following configuration example assumes that you use the `azureblob` storage backend.
 
 | Parameter                 | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
