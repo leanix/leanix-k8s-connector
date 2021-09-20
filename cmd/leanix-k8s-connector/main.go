@@ -364,6 +364,10 @@ func parseFlags() error {
 		return fmt.Errorf("%s flag must be set", lxWorkspaceFlag)
 	}
 	if viper.GetBool(enableCustomStorageFlag) {
+		if viper.GetString(storageBackendFlag) == "none" {
+				return fmt.Errorf("%s flag must be set since %s is enabled", storageBackendFlag, enableCustomStorageFlag)
+		}
+
 		if viper.GetString(storageBackendFlag) == "azureblob" {
 			if viper.GetString(azureAccountNameFlag) == "" {
 				return fmt.Errorf("%s flag must be set", azureAccountNameFlag)
