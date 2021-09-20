@@ -36,8 +36,10 @@ spec:
             {{- end }}
             - name: ENABLE_CUSTOM_STORAGE
               value: "{{ .Values.args.enableCustomStorage }}"
+            {{- if .Values.args.enableCustomStorage }}
             - name: STORAGE_BACKEND
               value: "{{ .Values.args.storageBackend }}"
+            {{- end }}
             {{- if eq .Values.args.storageBackend "file" }}
             - name: LOCAL_FILE_PATH
               value: "{{ .Values.args.file.localFilePath }}"
