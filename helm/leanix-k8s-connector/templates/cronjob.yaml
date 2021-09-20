@@ -34,6 +34,8 @@ spec:
             - name: VERBOSE
               value: "true"
             {{- end }}
+            - name: ENABLE_CUSTOM_STORAGE
+              value: "{{ .Values.args.enableCustomStorage }}"
             - name: STORAGE_BACKEND
               value: "{{ .Values.args.storageBackend }}"
             {{- if eq .Values.args.storageBackend "file" }}

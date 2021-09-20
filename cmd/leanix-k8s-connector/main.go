@@ -27,6 +27,7 @@ import (
 
 const (
 	clusterNameFlag                  string = "clustername"
+	enableCustomStorageFlag          string = "enable-custom-storage"
 	storageBackendFlag               string = "storage-backend"
 	azureAccountNameFlag             string = "azure-account-name"
 	azureAccountKeyFlag              string = "azure-account-key"
@@ -74,8 +75,13 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	log.Info("Getting connector config...")
 	if startResponse != nil {
 		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully self started via Integration Hub. Connector is in progress")
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
 	}
 
 	log.Info("----------Start----------")
@@ -131,14 +137,16 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
 	log.Debug("Listing nodes...")
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Debug("Listing nodes done.")
-
 	log.Debug("Map nodes to Kubernetes object")
 	clusterKubernetesObject, err := mapper.MapNodes(
 		viper.GetString("clustername"),
@@ -147,10 +155,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
-
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
+	if err != nil {
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	}
 	resourceGroupWhitelist := map[string]map[string]interface{}{
 		"": map[string]interface{}{
 			"serviceaccounts":        struct{}{},
@@ -218,7 +228,6 @@ func main() {
 			kubernetesObjects = append(kubernetesObjects, nko)
 		}
 	}
-
 	customFields := mapper.CustomFields{
 		ConnectorInstance:     viper.GetString(connectorIDFlag),
 		BuildVersion:          version.VERSION,
@@ -240,41 +249,61 @@ func main() {
 		Content:             kubernetesObjects,
 	}
 
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully requested data. Uploading ldif to configured storage backend - "+viper.GetString("storage-backend"))
+	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully collected required kubernetes data.")
 	if err != nil {
 		log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
 	if err != nil {
+		_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to marshal ldif")
 		log.Fatal(err)
 	}
 
-	log.Infof("Upload %s to %s", storage.LdifFileName, viper.GetString("storage-backend"))
-	azureOpts := storage.AzureBlobOpts{
-		AccountName: viper.GetString(azureAccountNameFlag),
-		AccountKey:  viper.GetString(azureAccountKeyFlag),
-		Container:   viper.GetString(azureContainerFlag),
-	}
-	localFileOpts := storage.LocalFileOpts{
-		Path: viper.GetString(localFilePathFlag),
-	}
-	uploader, err := storage.NewBackend(viper.GetString("storage-backend"), &azureOpts, &localFileOpts)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = uploader.UploadLdif(ldifByte)
-	if err != nil {
-		log.Fatal(err)
-		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
+	if viper.GetBool(enableCustomStorageFlag) {
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Uploading ldif to configured storage backend - "+viper.GetString("storage-backend"))
 		if err != nil {
-			return
+			log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
+
+		log.Infof("Upload %s to %s", storage.LdifFileName, viper.GetString("storage-backend"))
+		azureOpts := storage.AzureBlobOpts{
+			AccountName: viper.GetString(azureAccountNameFlag),
+			AccountKey:  viper.GetString(azureAccountKeyFlag),
+			Container:   viper.GetString(azureContainerFlag),
+		}
+		localFileOpts := storage.LocalFileOpts{
+			Path: viper.GetString(localFilePathFlag),
+		}
+		uploader, err := storage.NewBackend(viper.GetString("storage-backend"), &azureOpts, &localFileOpts)
+		if err != nil {
+			_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
+			log.Fatal(err)
+		}
+		err = uploader.UploadLdif(ldifByte)
+		if err != nil {
+			log.Fatal(err)
+			_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
+			if err != nil {
+				return
+			}
+		}
+
+		log.Info("Uploading log file to configured backend storage")
+		err = uploader.UploadLog(debugLogBuffer.Bytes())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
+		log.Info("-----------Done Uploading to custom storage backend-----------")
+	} else {
+		log.Infof("Skipping uploading LDIF and log file to custom storage backend. reason - flag is disabled")
 	}
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
-	if err != nil {
-		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
-	}
+
 	_, err = leanix.UploadLdif(startResponse.LdifResultUrl, ldifByte)
 	if err != nil {
 		log.Debug("Failed to upload ldif to Integration Hub ldif SAS Url")
@@ -284,13 +313,9 @@ func main() {
 	}
 	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, leanix.FINISHED, "")
 	if err != nil {
-		log.Infof("Failed to progress[%s] to Integration Hub", leanix.FINISHED)
+		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.FINISHED)
 	}
 	log.Debug("-----------End-----------")
-	err = uploader.UploadLog(debugLogBuffer.Bytes())
-	if err != nil {
-		log.Fatal(err)
-	}
 	log.Info("-----------End-----------")
 }
 
@@ -303,6 +328,7 @@ func ServerPreferredListableResources(d discovery.DiscoveryInterface) ([]*metav1
 
 func parseFlags() error {
 	flag.String(clusterNameFlag, "", "unique name of the Kubernetes cluster")
+	flag.Bool(enableCustomStorageFlag, false, "Disable/enable custom storage backend option")
 	flag.String(storageBackendFlag, storage.FileStorage, fmt.Sprintf("storage where the %s file is placed (%s, %s)", storage.LdifFileName, storage.FileStorage, storage.AzureBlobStorage))
 	flag.String(azureAccountNameFlag, "", "Azure storage account name")
 	flag.String(azureAccountKeyFlag, "", "Azure storage account key")
@@ -337,15 +363,17 @@ func parseFlags() error {
 	if viper.GetString(lxWorkspaceFlag) == "" {
 		return fmt.Errorf("%s flag must be set", lxWorkspaceFlag)
 	}
-	if viper.GetString(storageBackendFlag) == "azureblob" {
-		if viper.GetString(azureAccountNameFlag) == "" {
-			return fmt.Errorf("%s flag must be set", azureAccountNameFlag)
-		}
-		if viper.GetString(azureAccountKeyFlag) == "" {
-			return fmt.Errorf("%s flag must be set", azureAccountKeyFlag)
-		}
-		if viper.GetString(azureContainerFlag) == "" {
-			return fmt.Errorf("%s flag must be set", azureContainerFlag)
+	if viper.GetBool(enableCustomStorageFlag) {
+		if viper.GetString(storageBackendFlag) == "azureblob" {
+			if viper.GetString(azureAccountNameFlag) == "" {
+				return fmt.Errorf("%s flag must be set", azureAccountNameFlag)
+			}
+			if viper.GetString(azureAccountKeyFlag) == "" {
+				return fmt.Errorf("%s flag must be set", azureAccountKeyFlag)
+			}
+			if viper.GetString(azureContainerFlag) == "" {
+				return fmt.Errorf("%s flag must be set", azureContainerFlag)
+			}
 		}
 	}
 	if viper.GetString(integrationAPIDatasourceNameFlag) == "" {
