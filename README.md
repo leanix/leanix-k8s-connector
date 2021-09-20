@@ -590,6 +590,8 @@ Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should
 - New flag `enableCustomStorage` is introduced. This flags allows to disable the option to upload LDIF to custom storage backend. Disabling the flag will not affect the functionality of the connector.
 - The default value is `false`. The new flag needs to be added with `true` value for same behaviour even after k8s connector upgrade to 5.0.0.
 `--set args.enableCustomStorage=true`
+- `args.storageBackend` default is changed to `none`. Rename according to your configuration. Previously default value was `file`.
+e.g `--set args.enableCustomStorage=true` 
 
 ### 3.0.0 to 4.0.0
 - Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
