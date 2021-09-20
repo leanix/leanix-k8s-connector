@@ -30,7 +30,7 @@ args:
   lxWorkspace: ""
   verbose: false
   enableCustomStorage: false
-  storageBackend: file
+  storageBackend: none
   file:
     localFilePath: "/mnt/leanix-k8s-connector"
     claimName: ""

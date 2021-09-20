@@ -205,7 +205,7 @@ The following configuration example assumes that you use the `azureblob` storage
 | processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial.                                                                                                                                        |
 | lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
 | verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
-| storageBackend            | file          | azureblob                            | The default value for the storage backend is `file`, if not provided.                                                                                                                                                                  |
+| storageBackend            | none          | azureblob                            | The default value for the storage backend is `file`, if not provided.                                                                                                                                                                  |
 | secretName                | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
 | container                 | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
 | blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
@@ -343,7 +343,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | processingMode      | "full"                    | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false                     | true                                 | Enables verbose logging on the stdout interface of the container. |
-| storageBackend      | file                      |                                      | The default value for the storage backend is `file`, if not provided. |
+| storageBackend      | none                      | file                                 | The default value for the storage backend is `file`, if not provided. |
 | localFilePath       | /mnt/leanix-k8s-connector |                                      | The path that is used for mounting the PVC into the container and storing the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | claimName           | ""                        | azurefile                            | The name of the PVC used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | blacklistNameSpaces | kube-system               | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
@@ -361,6 +361,7 @@ helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
 --set args.lxWorkspace=00000000-0000-0000-0000-000000000000 \
 --set args.verbose=true \
 --set args.enableCustomStorage=true \
+  storageBackend= file \
 --set args.file.claimName=azurefile \
 --set args.blacklistNamespaces="{kube-system,default}"
 ```
@@ -428,7 +429,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | processingMode      | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
 | verbose             | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
-| storageBackend      | file          | azureblob                            | The default value for the storage backend is `file`, if not provided. |
+| storageBackend      | none          | azureblob                            | The default value for the storage backend is `file`, if not provided. |
 | secretName          | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials. |
 | container           | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
 | blacklistNameSpaces | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
