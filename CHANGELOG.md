@@ -8,7 +8,7 @@
 * The default value is `false`. The new flag needs to be added with `true` value for same behaviour even after k8s connector upgrade to 5.0.0.
   `--set args.enableCustomStorage=true`
 * `args.storageBackend` default is changed to `none`. Rename according to your configuration. Previously default value was `file`.
-    e.g `--set args.enableCustomStorage=true`
+    e.g `--set args.enableCustomStorage=file`
 
 ## Release 2021-08-30 - 4.0.0
 
