@@ -2541,7 +2541,7 @@
 	},
 	"availableIf": [
 		{
-			"featureFlags": ["integration.integrationapi", "integration.k8s"]
+			"featureFlags": ["integration.integrationapi", "integration.vsm.k8s"]
 		}
 	]
 }
