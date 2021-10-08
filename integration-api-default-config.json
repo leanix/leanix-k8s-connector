@@ -2375,7 +2375,7 @@
 									"keys": [
 										"Microservice"
 									],
-									"facetKey": "FactSheetTypes",
+									"facetKey": "FactSheetTypes", // todo add category
 									"operator": "OR"
 								}
 							]
