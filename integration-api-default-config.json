@@ -2382,7 +2382,7 @@
                   "keys": [
                     "microservice"
                   ],
-                  "facetKey": "category",
+                  "facetKey": "category"
                 }
 							]
 						},
