@@ -15,7 +15,7 @@ on:
 
 jobs:
   register-ihub-connector-template:
-    name: deploy and register to all regions
+    name: register self start connector template to all regions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
