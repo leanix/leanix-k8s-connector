@@ -2317,8 +2317,15 @@
 										"Microservice"
 									],
 									"facetKey": "FactSheetTypes",
-									"operator": "OR"
-								}
+									"operator": "AND"
+								},
+                {
+                  "keys": [
+                    "microservice"
+                  ],
+                  "facetKey": "category"
+                }
+
 							]
 						},
 						"filter": "${integration.variables.valueOfForEach.target}",
