@@ -26,7 +26,7 @@ jobs:
         with:
           secret-store-credentials: ${{ secrets.INJECTED_SECRET_STORE_CREDENTIALS }}
 
-      - name: Register k8s Connector on ${{ matrix.cluster }} cluster
+      - name: Register k8s Connector on test
         if: github.ref!='refs/heads/master'
         uses: leanix/integration-hub-connector-register-action@main
         with:
@@ -34,7 +34,7 @@ jobs:
           connector_definition_file: 'ihub-resources/connector-definition.json'
           connector_icon: 'ihub-resources/connector-k8s-icon.png'
 
-      - name: Register k8s Connector on ${{ matrix.cluster }} cluster
+      - name: Register k8s Connector on all regions
         if: github.ref=='refs/heads/master'
         uses: leanix/integration-hub-connector-register-action@main
         with:
