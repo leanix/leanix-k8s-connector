@@ -12,8 +12,7 @@ on:
       - "**CHANGELOG.md"
       - "**publishNewHelmChartVersion.sh"
       - "integration-api-default-config.json"
-      - 'ihub-resources/connector-k8s-icon.png'
-      - 'ihub-resources/connector-definition.json'
+      - 'ihub-resources/**'
 
 jobs:
   main:
