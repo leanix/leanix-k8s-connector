@@ -8,8 +8,7 @@ on:
       - feature/**
       - main
     paths:
-      - 'ihub-resources/connector-k8s-icon.png'
-      - 'ihub-resources/connector-definition.json'
+      - 'ihub-resources/**'
 
 jobs:
   register-ihub-connector-template:
