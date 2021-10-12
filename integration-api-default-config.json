@@ -1,7 +1,7 @@
 {	
-	"externalId": "cider-k8s-connector",
+	"externalId": "cider-vsm-k8s-connector",
 	"config": {
-		"connectorType": "leanix-mi-connector",
+		"connectorType": "leanix-vsm-connector",
 		"connectorId": "leanix-k8s-connector",
 		"connectorVersion": "1.0.0",
 		"processingDirection": "inbound",
@@ -731,6 +731,16 @@
 								"expr": "${integration.valueOfForEach}"
 							}
 						]
+					},
+					{
+						"key": {
+							"expr": "category"
+						},
+						"values": [
+							{
+								"expr": "microservice"
+							}
+						]
 					}
 				],
 				"enabled": true,
@@ -768,7 +778,17 @@
 								"expr": "${data.metadata.namespace}:${data.metadata.name}"
 							}
 						]
-					}
+					},
+          {
+            "key": {
+              "expr": "category"
+            },
+            "values": [
+              {
+                "expr": "microservice"
+              }
+            ]
+          }
 				],
 				"enabled": true,
 				"variables": [
@@ -2297,8 +2317,15 @@
 										"Microservice"
 									],
 									"facetKey": "FactSheetTypes",
-									"operator": "OR"
-								}
+									"operator": "AND"
+								},
+                {
+                  "keys": [
+                    "microservice"
+                  ],
+                  "facetKey": "category"
+                }
+
 							]
 						},
 						"filter": "${integration.variables.valueOfForEach.target}",
@@ -2356,8 +2383,14 @@
 										"Microservice"
 									],
 									"facetKey": "FactSheetTypes",
-									"operator": "OR"
-								}
+									"operator": "AND"
+								},
+								{
+                  "keys": [
+                    "microservice"
+                  ],
+                  "facetKey": "category"
+                }
 							]
 						},
 						"filter": "${integration.variables.valueOfForEach.target}",
@@ -2515,7 +2548,7 @@
 	},
 	"availableIf": [
 		{
-			"featureFlags": ["integration.integrationapi", "integration.k8s"]
+			"featureFlags": ["integration.integrationapi", "integration.vsm.k8s"]
 		}
 	]
 }

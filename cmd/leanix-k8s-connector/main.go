@@ -48,7 +48,7 @@ const (
 const (
 	lxVersion                      string = "1.0.0"
 	lxConnectorID                  string = "leanix-k8s-connector"
-	lxConnectorType                string = "leanix-mi-connector"
+	lxConnectorType                string = "leanix-vsm-connector"
 	lxConnectorProcessingDirection string = "inbound"
 )
 
@@ -364,8 +364,8 @@ func parseFlags() error {
 		return fmt.Errorf("%s flag must be set", lxWorkspaceFlag)
 	}
 	if viper.GetBool(enableCustomStorageFlag) {
-		if viper.GetString(storageBackendFlag) == "none" || viper.GetString(storageBackendFlag) == ""{
-				return fmt.Errorf("%s flag must be set since %s is enabled", storageBackendFlag, enableCustomStorageFlag)
+		if viper.GetString(storageBackendFlag) == "none" || viper.GetString(storageBackendFlag) == "" {
+			return fmt.Errorf("%s flag must be set since %s is enabled", storageBackendFlag, enableCustomStorageFlag)
 		}
 
 		if viper.GetString(storageBackendFlag) == "azureblob" {
