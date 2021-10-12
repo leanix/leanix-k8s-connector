@@ -8,18 +8,16 @@ on:
       - feature/**
       - main
     paths:
-      - 'ihub-resources/connector-k8s-icon.png'
-      - 'ihub-resources/connector-definition.json'
+      - 'ihub-resources/**'
+  workflow_dispatch:
 
 jobs:
-  deployment:
-    runs-on: ubuntu-latest
   register-ihub-connector-template:
     name: register self start connector template to all regions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-          uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Get credentials
         uses: leanix/secrets-action@master
