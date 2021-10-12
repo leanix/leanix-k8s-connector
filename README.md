@@ -1,6 +1,6 @@
 # LeanIX Kubernetes Connector
 
-**Note**: This document is intended solely for developers. MI users should follow the [LeanIX MI docs](https://docs-mi.leanix.net/docs/kubernetes).
+**Note**: This document is intended solely for developers. VSM users should follow the [LeanIX VSM docs](https://docs-mi.leanix.net/docs/kubernetes).
 
 The LeanIX Kubernetes Connector collects information from Kubernetes.
 
@@ -36,7 +36,7 @@ Depending on how you would like to run the LeanIX Kubernetes Connector the insta
 
 #### Connector template
 
-- mi-k8s-connector
+- vsm-k8s-connector
 
 ### Architecture
 
@@ -609,6 +609,7 @@ e.g `--set args.storageBackend=file`
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2021-10-12  |       6.0.0       |        1.0.0        |       6.0.0        |        6.0.0        |
 |  2021-09-20  |       5.0.0       |        1.0.0        |       5.0.0        |        5.0.0        |
 |  2021-08-30  |       4.0.0       |        1.0.0        |       4.0.0        |        4.0.0        |
 |  2021-08-04  |       3.0.0       |        1.0.0        |       3.0.0        |        3.0.0        |
