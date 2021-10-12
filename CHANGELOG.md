@@ -1,5 +1,9 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2021-10-12 - 6.0.0
+* Breaking changes! Adapted changes for VSM data model. No changes in the behaviour of the connector.
+* No backward compatibility with MI data model
+
 ## Release 2021-09-20 - 5.0.0
 * Breaking changes! Follow the below migration docs to upgrade from 4.0.0 to 5.0.0
 
