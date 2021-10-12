@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - 'ihub-resources/**'
+  workflow_dispatch:
 
 jobs:
   register-ihub-connector-template:
