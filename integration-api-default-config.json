@@ -125,7 +125,7 @@
 					},
 					{
 						"key": {
-							"expr": "os"
+							"expr": "k8sProperties"
 						},
 						"values": [
 							{
