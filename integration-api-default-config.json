@@ -2543,7 +2543,7 @@
 		"processingThreads": 1,
 		"logLdifUrl": true,
 		"executionGroups": [
-			"miK8sInbound"
+			"vsmK8sInbound"
 		]
 	},
 	"availableIf": [
