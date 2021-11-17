@@ -49,12 +49,16 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	}
 	if resp.StatusCode != 200 {
 		err := fmt.Errorf("Integration Hub run could not be started: %s\n ", resp.Status)
+		responseData, readErr := ioutil.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, readErr
+		}
+		log.Errorf("Integration Hub run failed with error message: %s\n ", responseData)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Connection to Integration Hub API failed because of %s\n ", string(responseData))
 		return nil, err
 	}
 	startResponse := SelfStartResponse{}
