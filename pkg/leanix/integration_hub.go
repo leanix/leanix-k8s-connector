@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/storage"
+	"github.com/op/go-logging"
 )
 
 type SelfStartResponse struct {
@@ -29,6 +31,8 @@ const (
 	FINISHED    string = "FINISHED"
 )
 
+var log = logging.MustGetLogger("leanix-k8s-connector")
+
 // SelfStartRun initiates the Integration Hub run and response with id
 func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStartResponse, error) {
 	datasourceRunUrl := "https://" + fqdn + "/services/integration-hub/v1/datasourceRuns/name/" + datasource + "/selfStart"
@@ -38,12 +42,13 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	if err != nil {
 		return nil, err
 	}
+	log.Info("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s", datasource, fqdn)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		err := fmt.Errorf("Integration Hub run could not be started: %s\n", resp.Status)
+		err := fmt.Errorf("Integration Hub run could not be started: %s\n and received error %s ", resp.Status, resp.Body)
 		return nil, err
 	}
 	defer resp.Body.Close()
