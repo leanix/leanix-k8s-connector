@@ -1,6 +1,6 @@
 # LeanIX Kubernetes Connector Changelog
 
-## Release 2021-11-18 - 7.0.0
+## Release 2021-11-18 - 6.0.1
 * Improved error logging for LeanIX Integration Hub API calls
 
 ## Release 2021-10-12 - 6.0.0
