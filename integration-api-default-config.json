@@ -2493,7 +2493,7 @@
 			"filter": {
 				"advanced": "${('label' == header.customFields.resolveStrategy) && integration.contentIndex == 0}"
 			},
-			"run": 11,
+			"run": 12,
 			"identifier": {
 				"search": {
 				"scope": {
