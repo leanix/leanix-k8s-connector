@@ -1,7 +1,7 @@
 PROJECT ?= leanix-k8s-connector
 DOCKER_NAMESPACE ?= leanixacrpublic.azurecr.io
 
-VERSION := 6.0.0
+VERSION := 7.0.0
 FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 
 IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
