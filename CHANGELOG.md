@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2021-11-19 - 6.0.2
+* Empty `connectorID` will now use the `clustername` instead of a random uuid.
+
 ## Release 2021-11-18 - 6.0.1
 * Improved error logging for LeanIX Integration Hub API calls
 
