@@ -125,12 +125,16 @@ Create a new data source with k8s connector template(mentioned above) and add re
 #### Integration API Default Configuration
 Default configurations are a list of Integration API configurations that are available on all workspaces automatically. 
 Availability and visibility can be still controlled using feature flags. The default configurations show all 
-processor configuration for a given workspace. 
-    In the context of `leanix-k8s-connector` the configuration file `integration-api-default-config`
+processor configuration for a given workspace.
+ 
+In the context of `leanix-k8s-connector` the configuration file `integration-api-default-config`
 has feature flags `integration.integrationapi` and `integration.vsm.k8s` which needs to be enabled. 
-The configuration has list of `Processor Type` which enables updating the data from K8S Infrastructure. 
-It is important to know  iff certain changes on this file are needed and if you have no idea. Please contact #team-helios on Slack. 
-Additionally in the References Section you can find the Confulence link to details of Default Configurations.
+
+[Sample Default configuration Explained](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+API#Create-single-default-configuration)
+
+> It is important to know  iff certain changes on this file are needed and if you have no idea. Please contact #team-helios on Slack. 
+
+_Additionally in the [References](#references-for-detailed-understanding) Section you can find the Confulence link to details of Default Configurations._
 
 #### **Starting Connector in k8s**
 
