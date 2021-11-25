@@ -58,7 +58,7 @@ spec:
               value: "{{ .Values.args.azureblob.container }}"
             {{- end }}
             - name: CONNECTOR_ID
-              value: "{{ .Values.args.connectorID | default uuidv4 }}"
+              value: "{{ .Values.args.connectorID | default .Values.args.clustername }}"
             - name: CONNECTOR_VERSION
               value: "{{ .Values.args.connectorVersion }}"
             - name: PROCESSING_MODE

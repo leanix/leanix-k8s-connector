@@ -122,6 +122,19 @@ Create a new data source with k8s connector template(mentioned above) and add re
 | resolveStrategy | label/namespace |  empty  |    ✅     |
 |  resolveLabel   |   plain text    |  empty  |    ❌     |
 
+#### Integration API Default Configuration
+Default configurations are a list of Integration API configurations that are available on all workspaces automatically. 
+Availability and visibility can be still controlled using feature flags. The default configurations show all 
+processor configuration for a given workspace.
+ 
+In the context of `leanix-k8s-connector` the configuration file `integration-api-default-config`
+has feature flags `integration.integrationapi` and `integration.vsm.k8s` which needs to be enabled. 
+
+[Sample Default configuration Explained](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+API#Create-single-default-configuration)
+
+> It is important to know  iff certain changes on this file are needed and if you have no idea. Please contact #team-helios on Slack. 
+
+_Additionally in the [References](#references-for-detailed-understanding) Section you can find the Confulence link to details of Default Configurations._
 
 #### **Starting Connector in k8s**
 
@@ -144,7 +157,7 @@ The following configuration example for quick start
 | integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
 | schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
 | clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster.                                                                                                                                                                                                    |
-| connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default.                                                                                                                                            |
+| connectorID               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. If not provided cluster name is set by default.                                                                                                                                            |
 | connectorVersion          | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0.                                                                                                                                     |
 | processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial.                                                                                                                                        |
 | lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
@@ -200,7 +213,7 @@ The following configuration example assumes that you use the `azureblob` storage
 | integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
 | schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
 | clustername               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster.                                                                                                                                                                                                    |
-| connectorID               | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default.                                                                                                                                            |
+| connectorID               | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. If not provided cluster name is set by default.                                                                                                                                            |
 | connectorVersion          | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0.                                                                                                                                     |
 | processingMode            | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial.                                                                                                                                        |
 | lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
@@ -338,7 +351,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
 | schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
 | clustername         | kubernetes                | aks-cluster                          | The name of the Kubernetes cluster. |
-| connectorID         | Random UUID               | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
+| connectorID         |  kubernetes               | aks-cluster                          | The name of the Kubernetes cluster. If not provided cluster name is set by default.                    |
 | connectorVersion    | "1.0.0"                   | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"                    | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
@@ -424,7 +437,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
 | schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
 | clustername         | kubernetes    | aks-cluster                          | The name of the Kubernetes cluster. |
-| connectorID         | Random UUID   | aks-cluster                          | The name of the Kubernetes cluster. If not provided a random UUID is generated per default. |
+| connectorID         |  kubernetes               | aks-cluster                          | The name of the Kubernetes cluster. If not provided cluster name is set by default.                    |
 | connectorVersion    | "1.0.0"       | "1.0.0"                              | The version that is used in the LeanIX Integration API processor configuration. Defaults to 1.0.0. |
 | processingMode      | "full"        | "full"                               | The processing mode of the LeanIX Integration API processor configuration. Defaults to partial. |
 | lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
@@ -624,3 +637,8 @@ e.g `--set args.storageBackend=file`
 |  2020-01-14  |    2.0.0-beta1    |        1.0.0        |    2.0.0-beta1     | 2.0.0-beta1-d5555d2 |
 |  2019-09-26  |       1.1.0       |        1.0.0        |       1.0.0        |       23d019b       |
 |  2019-08-28  |       1.0.0       |        1.0.0        |       1.0.0        |       b0bc069       |
+
+## References for detailed understanding
+[Integration API](https://leanix.atlassian.net/wiki/spaces/~956226893/pages/4296016089/Integration+API)  
+[Integration Hub](https://leanix.atlassian.net/wiki/spaces/FLOW/pages/7464358115/Integration+Hub+-+Getting+started+creating+a+Connector)  
+[Default Config iAPI](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+API)  
