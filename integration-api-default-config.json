@@ -2543,7 +2543,9 @@
 		"processingThreads": 1,
 		"logLdifUrl": true,
 		"executionGroups": [
-			"vsmK8sInbound"
+			"vsmK8sInbound",
+			"vsm-kubernetes-import-all",
+			"vsm-kubernetes-import-default"
 		]
 	},
 	"availableIf": [
