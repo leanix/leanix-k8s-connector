@@ -7,13 +7,7 @@
 	  "resolveLabel": ""
 	},
 	"secretsConfiguration": {},
-	"bindingKey": {
-		"connectorType": "leanix-vsm-connector",
-		"connectorId": "leanic-k8s-connector",
-		"connectorVersion": "1.0.0",
-		"processingDirection": "inbound",
-		"processingMode": "full"
-	},
+	"executionGroup": "vsm-kubernetes-import-all",
 	"featureFlags": [
 	    {
       "featureFlags": [
