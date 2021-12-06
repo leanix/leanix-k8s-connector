@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"regexp"
 	"strings"
 
@@ -13,7 +14,7 @@ var replacer = strings.NewReplacer(
 
 // Namespaces gets the list of blacklisted namespaces
 func (k *API) Namespaces(blacklistedNamespaces []string) (map[string]interface{}, error) {
-	namespaces, err := k.Client.CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := k.Client.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
