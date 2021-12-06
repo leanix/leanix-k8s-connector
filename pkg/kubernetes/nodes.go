@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -8,7 +9,7 @@ import (
 
 // Nodes gets the list of worker nodes (kubelets)
 func (k *API) Nodes() (*corev1.NodeList, error) {
-	nodes, err := k.Client.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := k.Client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
