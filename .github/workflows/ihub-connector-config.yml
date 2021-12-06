@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - feature/**
-      - main
+      - master
     paths:
       - 'ihub-resources/**'
   workflow_dispatch:
