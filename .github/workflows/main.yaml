@@ -23,6 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setup go version
+        uses: actions/setup-go@v2
+          with:
+            go-version: '1.16.10'
+
       - name: Build and test
         run: |
           VERSION=$(make version)
