@@ -4,7 +4,8 @@
 	"connectorUrl": "",
 	"connectorConfiguration": {
 	  "resolveStrategy" : "label/namespace",
-	  "resolveLabel": ""
+	  "resolveLabel": "",
+	  "clusterName": ""
 	},
 	"secretsConfiguration": {},
 	"executionGroup": "vsm-kubernetes-import-all",
