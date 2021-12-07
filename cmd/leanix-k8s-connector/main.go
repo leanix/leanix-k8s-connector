@@ -47,6 +47,7 @@ const (
 	lxConnectorID                  string = "leanix-k8s-connector"
 	lxConnectorType                string = "leanix-vsm-connector"
 	lxConnectorProcessingDirection string = "inbound"
+	lxConnectorProcessingMode      string = "full"
 )
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
@@ -235,7 +236,7 @@ func main() {
 		ConnectorID:         lxConnectorID,
 		ConnectorType:       lxConnectorType,
 		ProcessingDirection: lxConnectorProcessingDirection,
-		ProcessingMode:      "full",
+		ProcessingMode:      lxConnectorProcessingMode,
 		LxVersion:           lxVersion,
 		LxWorkspace:         viper.GetString(lxWorkspaceFlag),
 		Description:         "Map Kubernetes objects to LeanIX Fact Sheets",
