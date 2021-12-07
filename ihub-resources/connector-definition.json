@@ -3,6 +3,7 @@
 	"description": "",
 	"connectorUrl": "",
 	"connectorConfiguration": {
+	  "clusterName": "",
 	  "resolveStrategy" : "label/namespace",
 	  "resolveLabel": ""
 	},
