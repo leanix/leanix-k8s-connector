@@ -26,8 +26,6 @@ spec:
               allowPrivilegeEscalation: false
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             env:
-            - name: CLUSTERNAME
-              value: "{{ .Values.args.clustername }}"
             - name: LX_WORKSPACE
               value: "{{ .Values.args.lxWorkspace }}"
             {{- if .Values.args.verbose }}
@@ -57,12 +55,6 @@ spec:
             - name: AZURE_CONTAINER
               value: "{{ .Values.args.azureblob.container }}"
             {{- end }}
-            - name: CONNECTOR_ID
-              value: "{{ .Values.args.connectorID | default .Values.args.clustername }}"
-            - name: CONNECTOR_VERSION
-              value: "{{ .Values.args.connectorVersion }}"
-            - name: PROCESSING_MODE
-              value: "{{ .Values.args.processingMode }}"
             - name: BLACKLIST_NAMESPACES
               value: "{{ .Values.args.blacklistNamespaces | join ", " }}"
             - name: INTEGRATION_API_DATASOURCENAME

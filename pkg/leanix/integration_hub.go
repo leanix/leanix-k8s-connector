@@ -22,6 +22,7 @@ type SelfStartResponse struct {
 type ConnectorConfiguration struct {
 	ResolveStrategy       string `json:"resolveStrategy"`
 	ResolveLabel          string `json:"resolveLabel"`
+	ClusterName           string `json:"clusterName"`
 	EnabledLabelWhitelist bool   `json:"enabledLabelWhitelist"` // special case for Numberger customer (Until execution groups is supported by Integration Hub)
 }
 
@@ -77,6 +78,10 @@ func validateConnectorConfiguration(configuration ConnectorConfiguration) (bool,
 
 	if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
 		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+	}
+
+	if configuration.ResolveStrategy == "label" && configuration.ClusterName == "" {
+		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
 	}
 
 	return true, nil
