@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -212,7 +213,7 @@ func main() {
 			log.Debugf("Not scanning resouce %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
 			continue
 		}
-		instances, err := dynClient.Resource(gvr).List(metav1.ListOptions{})
+		instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			log.Panic(err)
 		}
