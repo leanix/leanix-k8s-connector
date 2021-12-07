@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	clusterNameFlag                  string = "clustername"
 	enableCustomStorageFlag          string = "enable-custom-storage"
 	storageBackendFlag               string = "storage-backend"
 	azureAccountNameFlag             string = "azure-account-name"
@@ -236,6 +235,7 @@ func main() {
 		ConnectorID:         lxConnectorID,
 		ConnectorType:       lxConnectorType,
 		ProcessingDirection: lxConnectorProcessingDirection,
+		ProcessingMode:      "full",
 		LxVersion:           lxVersion,
 		LxWorkspace:         viper.GetString(lxWorkspaceFlag),
 		Description:         "Map Kubernetes objects to LeanIX Fact Sheets",
