@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	clusterNameFlag                  string = "clustername"
 	enableCustomStorageFlag          string = "enable-custom-storage"
 	storageBackendFlag               string = "storage-backend"
 	azureAccountNameFlag             string = "azure-account-name"
@@ -35,9 +34,6 @@ const (
 	azureContainerFlag               string = "azure-container"
 	localFilePathFlag                string = "local-file-path"
 	verboseFlag                      string = "verbose"
-	connectorIDFlag                  string = "connector-id"
-	connectorVersionFlag             string = "connector-version"
-	connectorProcessingModeFlag      string = "processing-mode"
 	integrationAPIDatasourceNameFlag string = "integration-api-datasourcename"
 	integrationAPIFqdnFlag           string = "integration-api-fqdn"
 	integrationAPITokenFlag          string = "integration-api-token"
@@ -51,6 +47,7 @@ const (
 	lxConnectorID                  string = "leanix-k8s-connector"
 	lxConnectorType                string = "leanix-vsm-connector"
 	lxConnectorProcessingDirection string = "inbound"
+	lxConnectorProcessingMode      string = "full"
 )
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
@@ -90,11 +87,9 @@ func main() {
 	log.Infof("LeanIX integration version: %s", lxVersion)
 	log.Infof("LeanIX connector id: %s", lxConnectorID)
 	log.Infof("LeanIX connector type: %s", lxConnectorType)
-	log.Infof("LeanIX connector version: %s", viper.GetString(connectorVersionFlag))
 	log.Infof("LeanIX connector processing direction: %s", lxConnectorProcessingDirection)
-	log.Infof("LeanIX connector processing mode: %s", viper.GetString(connectorProcessingModeFlag))
 	log.Infof("Target LeanIX workspace: %s", viper.GetString(lxWorkspaceFlag))
-	log.Infof("Target Kubernetes cluster name: %s", viper.GetString(clusterNameFlag))
+	log.Infof("Target Kubernetes cluster name: %s", startResponse.ConnectorConfiguration.ClusterName)
 
 	var config *restclient.Config
 	if viper.GetBool(localFlag) {
@@ -150,7 +145,7 @@ func main() {
 	log.Debug("Listing nodes done.")
 	log.Debug("Map nodes to Kubernetes object")
 	clusterKubernetesObject, err := mapper.MapNodes(
-		viper.GetString("clustername"),
+		startResponse.ConnectorConfiguration.ClusterName,
 		nodes,
 	)
 	if err != nil {
@@ -230,19 +225,18 @@ func main() {
 		}
 	}
 	customFields := mapper.CustomFields{
-		ConnectorInstance:     viper.GetString(connectorIDFlag),
 		BuildVersion:          version.VERSION,
 		ResolveStrategy:       startResponse.ConnectorConfiguration.ResolveStrategy,
 		ResolveLabel:          startResponse.ConnectorConfiguration.ResolveLabel,
+		ClusterName:           startResponse.ConnectorConfiguration.ClusterName,
 		EnabledLabelWhitelist: startResponse.ConnectorConfiguration.EnabledLabelWhitelist,
 	}
 
 	ldif := mapper.LDIF{
 		ConnectorID:         lxConnectorID,
 		ConnectorType:       lxConnectorType,
-		ConnectorVersion:    viper.GetString(connectorVersionFlag),
 		ProcessingDirection: lxConnectorProcessingDirection,
-		ProcessingMode:      viper.GetString(connectorProcessingModeFlag),
+		ProcessingMode:      lxConnectorProcessingMode,
 		LxVersion:           lxVersion,
 		LxWorkspace:         viper.GetString(lxWorkspaceFlag),
 		Description:         "Map Kubernetes objects to LeanIX Fact Sheets",
@@ -328,7 +322,6 @@ func ServerPreferredListableResources(d discovery.DiscoveryInterface) ([]*metav1
 }
 
 func parseFlags() error {
-	flag.String(clusterNameFlag, "", "unique name of the Kubernetes cluster")
 	flag.Bool(enableCustomStorageFlag, false, "Disable/enable custom storage backend option")
 	flag.String(storageBackendFlag, storage.FileStorage, fmt.Sprintf("storage where the %s file is placed (%s, %s)", storage.LdifFileName, storage.FileStorage, storage.AzureBlobStorage))
 	flag.String(azureAccountNameFlag, "", "Azure storage account name")
@@ -336,9 +329,6 @@ func parseFlags() error {
 	flag.String(azureContainerFlag, "", "Azure storage account container")
 	flag.String(localFilePathFlag, ".", "path to place the ldif file when using local file storage backend")
 	flag.Bool(verboseFlag, false, "verbose log output")
-	flag.String(connectorIDFlag, "", "unique id of the LeanIX Kubernetes connector")
-	flag.String(connectorVersionFlag, "1.0.0", "connector version defaults to 1.0.0 if not specified")
-	flag.String(connectorProcessingModeFlag, "partial", "processing mode defaults to partial if not specified")
 	flag.String(integrationAPIDatasourceNameFlag, "", "LeanIX Integration Hub Datasource name created on the workspace")
 	flag.String(integrationAPIFqdnFlag, "app.leanix.net", "LeanIX Instance FQDN")
 	flag.String(integrationAPITokenFlag, "", "LeanIX API token")
@@ -355,12 +345,6 @@ func parseFlags() error {
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	if viper.GetString(clusterNameFlag) == "" {
-		return fmt.Errorf("%s flag must be set", clusterNameFlag)
-	}
-	if viper.GetString(connectorIDFlag) == "" {
-		return fmt.Errorf("%s flag must be set", connectorIDFlag)
-	}
 	if viper.GetString(lxWorkspaceFlag) == "" {
 		return fmt.Errorf("%s flag must be set", lxWorkspaceFlag)
 	}
