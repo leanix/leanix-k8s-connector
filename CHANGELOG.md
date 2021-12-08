@@ -1,6 +1,9 @@
 # LeanIX Kubernetes Connector Changelog
 
 ## Release 2021-12-08 - 6.1.0
+* Breaking changes! Follow the below migration docs to upgrade from 6.0.3 to 6.1.0
+
+### Migration docs
 * `clustername` `connectorID` `connectorVersion` `processingMode` can not be set by helm parameters anymore.
 * The iHUB connector configuration for the k8s integration is extended to capture the 'clusterName'.
 
