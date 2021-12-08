@@ -13,6 +13,7 @@ type CustomFields struct {
 	BuildVersion          string `json:"buildVersion,omitempty"`
 	ResolveStrategy       string `json:"resolveStrategy,omitempty"`
 	ResolveLabel          string `json:"resolveLabel,omitempty"`
+	ClusterName           string `json:"clusterName,omitempty"`
 	EnabledLabelWhitelist bool   `json:"enabledLabelWhitelist"`
 }
 
