@@ -2536,7 +2536,7 @@
 		},
 		"visibleIf": [
 			{
-				"featureFlags": [""]
+				"featureFlags": ["integration.integrationapi", "integration.vsm.k8s"]
 			}
 		],
 		"readOnly": true,
