@@ -2534,11 +2534,6 @@
 		"dataProvider": {
 			"url": "${header.customFields.resultUrl}"
 		},
-		"visibleIf": [
-			{
-				"featureFlags": [""]
-			}
-		],
 		"readOnly": true,
 		"processingThreads": 1,
 		"logLdifUrl": true,
