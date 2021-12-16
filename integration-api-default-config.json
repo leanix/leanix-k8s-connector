@@ -728,7 +728,13 @@
 						},
 						"values": [
 							{
+								"expr": "${lx.factsheet.name}"
+							},
+							{
 								"expr": "${integration.valueOfForEach}"
+							},
+							{
+								"expr": "${integration.valueOfForEach}(Copy ${integration.now.getYear()}-${integration.now.getMonthValue()<10?'0':''}${integration.now.getMonthValue()}-${integration.now.getDayOfMonth()<10?'0':''}${integration.now.getDayOfMonth()} ${integration.now.getHour()<10?'0':''}${integration.now.getHour()}:${integration.now.getMinute()<10?'0':''}${integration.now.getMinute()})"
 							}
 						]
 					},
@@ -776,6 +782,9 @@
 							},
 							{
 								"expr": "${data.metadata.namespace}:${data.metadata.name}"
+							},
+							{
+								"expr": "${data.metadata.namespace}:${data.metadata.name}(Copy ${integration.now.getYear()}-${integration.now.getMonthValue()<10?'0':''}${integration.now.getMonthValue()}-${integration.now.getDayOfMonth()<10?'0':''}${integration.now.getDayOfMonth()} ${integration.now.getHour()<10?'0':''}${integration.now.getHour()}:${integration.now.getMinute()<10?'0':''}${integration.now.getMinute()})"
 							}
 						]
 					},
