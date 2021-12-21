@@ -12,6 +12,10 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         spec:
           {{- if .Values.rbac }}
           serviceAccountName: leanix-k8s-connector
