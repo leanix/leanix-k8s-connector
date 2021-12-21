@@ -6,6 +6,25 @@
 		"connectorVersion": "1.0.0",
 		"processingDirection": "inbound",
 		"processingMode": "full",
+		"deletionScope": {
+			"factSheets": [
+				{
+					"scope": {
+						"ids": [],
+						"facetFilters": [
+							{
+								"keys": [
+									"Deployment"
+								],
+								"facetKey": "FactSheetTypes",
+								"operator": "OR"
+							}
+						]
+					},
+					"advanced": "${lx.factsheet.kubernetesId.matches('^([a-zA-Z0123456789]+:){2,}(.*)$')}"
+				}
+			]
+		},
 		"processors": [
 			{
 				"processorType": "inboundFactSheet",
