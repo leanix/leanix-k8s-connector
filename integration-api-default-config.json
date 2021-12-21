@@ -21,7 +21,22 @@
 							}
 						]
 					},
-					"advanced": "${lx.factsheet.kubernetesId.matches('^([a-zA-Z0123456789]+:){2,}(.*)$')}"
+					"advanced": "${lx.factsheet.kubernetesId.matches('^([a-zA-Z0123456789-_]+:){2,}(.*)$')}"
+				},
+				{
+					"scope": {
+						"ids": [],
+						"facetFilters": [
+							{
+								"keys": [
+									"Deployment"
+								],
+								"facetKey": "FactSheetTypes",
+								"operator": "OR"
+							}
+						]
+					},
+					"advanced": "${lx.factsheet.kubernetesId.matches('^([a-zA-Z0123456789_#-]+-){2,}(.*)$')}"
 				}
 			]
 		},
@@ -186,7 +201,7 @@
 				"identifier": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -514,7 +529,7 @@
 				"identifier": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -967,7 +982,7 @@
 				},
 				"factSheets": {
 					"external": {
-						"ids": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
+						"ids": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
 						"type": {
 							"expr": "kubernetesId"
 						}
@@ -1242,7 +1257,7 @@
 				},
 				"factSheets": {
 					"external": {
-						"ids": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
+						"ids": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
 						"type": {
 							"expr": "kubernetesId"
 						}
@@ -1292,7 +1307,7 @@
 				},
 				"factSheets": {
 					"external": {
-						"ids": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
+						"ids": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
 						"type": {
 							"expr": "kubernetesId"
 						}
@@ -1332,7 +1347,7 @@
 				},
 				"factSheets": {
 					"external": {
-						"ids": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
+						"ids": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
 						"type": {
 							"expr": "kubernetesId"
 						}
@@ -1721,7 +1736,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -1754,7 +1769,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -1786,7 +1801,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -1819,7 +1834,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -1901,7 +1916,7 @@
 				"variables": [
 					{
 						"key": "deploymentForPV_${content.data.metadata.namespace}_${integration.valueOfForEach.persistentVolumeClaim.claimName}",
-						"value": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+						"value": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 					}
 				]
 			},
@@ -1964,7 +1979,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -2030,7 +2045,7 @@
 				"from": {
 					"external": {
 						"id": {
-							"expr": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+							"expr": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 						},
 						"type": {
 							"expr": "kubernetesId"
@@ -2452,7 +2467,7 @@
 				"variables": [
 					{
 						"key": "cronJobIdForUid_${content.id}",
-						"value": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+						"value": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 					}
 				]
 			},
@@ -2468,7 +2483,7 @@
 				"variables": [
 					{
 						"key": "deplIdForUid_${content.id}",
-						"value": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+						"value": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 					}
 				]
 			},
@@ -2484,7 +2499,7 @@
 				"variables": [
 					{
 						"key": "statefulSetIdForUid_${content.id}",
-						"value": "${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
+						"value": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}"
 					}
 				]
 			},
@@ -2499,7 +2514,7 @@
 				},
 				"variables": [
 				{
-					"key": "deploymentForLabelName_${variables['cluster'].get().concat('-').concat(data.metadata.namespace).concat('-').concat(data.metadata.name).concat('-').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
+					"key": "deploymentForLabelName_${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
 					"value": "${integration.valueOfForEach.concat(':').concat(data.metadata.name).concat(':').concat(data.metadata.labels['app.kubernetes.io/version'])}"
 				}
 				]
