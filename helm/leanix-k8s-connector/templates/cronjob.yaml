@@ -12,6 +12,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          annotations:
+            "sidecar.istio.io/inject": "false"
         spec:
           {{- if .Values.rbac }}
           serviceAccountName: leanix-k8s-connector
