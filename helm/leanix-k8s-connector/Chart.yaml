@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: "6.1.0"
 description: Retrieves information from Kubernetes cluster
 name: leanix-k8s-connector
-version: 6.1.0
+version: 6.2.0
