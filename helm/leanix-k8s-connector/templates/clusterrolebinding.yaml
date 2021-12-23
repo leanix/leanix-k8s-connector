@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: leanix-k8s-connector
+  name: leanix-k8s-connector-{{ .Release.Name }}
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
 roleRef:
@@ -17,7 +17,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: leanix-k8s-connector-view
+  name: leanix-k8s-connector-view-{{ .Release.Name }}
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
 roleRef:
@@ -26,6 +26,6 @@ roleRef:
   name: view
 subjects:
 - kind: ServiceAccount
-  name: leanix-k8s-connector
+  name: leanix-k8s-connector-{{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 {{- end -}}
