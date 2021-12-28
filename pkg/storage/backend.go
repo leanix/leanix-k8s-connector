@@ -13,7 +13,7 @@ const (
 	// LdifFileName is a constant for the file name used to store the ldif content
 	LdifFileName string = "kubernetes-"
 	// LdifFileExtension is a constant for Ldif file extension
-	LdifFileExtension string = ".ldf"
+	LdifFileExtension string = ".ldf.json"
 	// LogFileName is a constant for the file name used to store the log output
 	LogFileName string = "leanix-k8s-connector-"
 	// LogFileExtension is a constant for Log file extension
