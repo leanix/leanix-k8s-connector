@@ -56,21 +56,34 @@ func main() {
 	stdoutLogger, debugLogBuffer := initLogger()
 	err := parseFlags()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	enableVerbose(stdoutLogger, viper.GetBool(verboseFlag))
 
+	// use the current context in kubeconfig
+	startResponse, err := kubernetesScan(debugLogBuffer)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Info("Uploading connector logs to iHub")
+	_, err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+func kubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartResponse, err error) {
 	log.Info("----------Attempting to Self Start via Integration Hub----------")
 
 	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Info("Integration Hub authentication successful.")
 	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
 	if err != nil {
 		log.Info("Failed to start Integration Hub. Terminating..")
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	log.Info("Getting connector config...")
@@ -95,13 +108,13 @@ func main() {
 	if viper.GetBool(localFlag) {
 		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	} else {
-		// use the current context in kubeconfig
+
 		config, err = restclient.InClusterConfig()
 		if err != nil {
-			log.Fatalf("Failed to load kube config. Running in Kubernetes?\n%s", err)
+			log.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
 		}
 	}
 
@@ -109,29 +122,29 @@ func main() {
 
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	dynClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	log.Debug("Get blacklist namespaces list...")
 	blacklistedNamespacesList := viper.GetStringSlice(blacklistNamespacesFlag)
 	blacklistedNamespaces, err := kubernetesAPI.Namespaces(blacklistedNamespacesList)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Debug("Getting blacklist namespaces list done.")
 	log.Infof("Namespace blacklist: %v", reflect.ValueOf(blacklistedNamespaces).MapKeys())
 
 	resourcesList, err := ServerPreferredListableResources(kubernetesAPI.Client.Discovery())
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	groupVersionResources, err := discovery.GroupVersionResources(resourcesList)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
 	}
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
 	if err != nil {
@@ -140,7 +153,7 @@ func main() {
 	log.Debug("Listing nodes...")
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Debug("Listing nodes done.")
 	log.Debug("Map nodes to Kubernetes object")
@@ -149,7 +162,7 @@ func main() {
 		nodes,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
@@ -210,7 +223,7 @@ func main() {
 		}
 		instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
-			log.Panic(err)
+			log.Error(err)
 		}
 		for _, i := range instances.Items {
 			if _, ok := blacklistedNamespaces[i.GetNamespace()]; ok {
@@ -252,7 +265,7 @@ func main() {
 	ldifByte, err := storage.Marshal(ldif)
 	if err != nil {
 		_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to marshal ldif")
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	if viper.GetBool(enableCustomStorageFlag) {
@@ -273,21 +286,15 @@ func main() {
 		uploader, err := storage.NewBackend(viper.GetString("storage-backend"), &azureOpts, &localFileOpts)
 		if err != nil {
 			_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
-			log.Fatal(err)
+			log.Error(err)
 		}
 		err = uploader.UploadLdif(ldifByte)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 			_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
 			if err != nil {
-				return
+				return nil, err
 			}
-		}
-
-		log.Info("Uploading log file to configured backend storage")
-		err = uploader.UploadLog(debugLogBuffer.Bytes())
-		if err != nil {
-			log.Fatal(err)
 		}
 
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
@@ -303,8 +310,8 @@ func main() {
 	if err != nil {
 		log.Debug("Failed to upload ldif to Integration Hub ldif SAS Url")
 		_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to Integration Hub ldif SAS Url")
-		log.Fatal(err)
-		return
+		log.Error(err)
+		return nil, err
 	}
 	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, leanix.FINISHED, "")
 	if err != nil {
@@ -312,6 +319,7 @@ func main() {
 	}
 	log.Debug("-----------End-----------")
 	log.Info("-----------End-----------")
+	return startResponse, err
 }
 
 func ServerPreferredListableResources(d discovery.DiscoveryInterface) ([]*metav1.APIResourceList, error) {
@@ -339,6 +347,7 @@ func parseFlags() error {
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 	// Check for config values in env vars
