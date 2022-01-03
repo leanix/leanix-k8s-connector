@@ -11,15 +11,19 @@ const (
 	// FileStorage is a constant for the file storage identifier
 	FileStorage string = "file"
 	// LdifFileName is a constant for the file name used to store the ldif content
-	LdifFileName string = "kubernetes.ldif"
+	LdifFileName string = "kubernetes-"
+	// LdifFileExtension is a constant for Ldif file extension
+	LdifFileExtension string = ".ldif.json"
 	// LogFileName is a constant for the file name used to store the log output
-	LogFileName string = "leanix-k8s-connector.log"
+	LogFileName string = "leanix-k8s-connector-"
+	// LogFileExtension is a constant for Log file extension
+	LogFileExtension string = ".log"
 )
 
 // Backend exposes a common interface for all storage mechanisms
 type Backend interface {
-	UploadLdif(ldif []byte) error
-	UploadLog(log []byte) error
+	UploadLdif(ldif []byte, fileName string) error
+	UploadLog(log []byte, fileName string) error
 }
 
 // NewBackend create a new storage backend for the given storage backend type

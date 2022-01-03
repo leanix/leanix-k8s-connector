@@ -275,7 +275,7 @@ func main() {
 			_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
 			log.Fatal(err)
 		}
-		err = uploader.UploadLdif(ldifByte)
+		err = uploader.UploadLdif(ldifByte, storage.LdifFileName+viper.GetString(lxWorkspaceFlag)+storage.LdifFileExtension)
 		if err != nil {
 			log.Fatal(err)
 			_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
@@ -285,7 +285,7 @@ func main() {
 		}
 
 		log.Info("Uploading log file to configured backend storage")
-		err = uploader.UploadLog(debugLogBuffer.Bytes())
+		err = uploader.UploadLog(debugLogBuffer.Bytes(), storage.LogFileName+viper.GetString(lxWorkspaceFlag)+storage.LogFileExtension)
 		if err != nil {
 			log.Fatal(err)
 		}
