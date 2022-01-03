@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ include "leanix-k8s-connector.fullname" . }}
+  name: {{ include "leanix-k8s-connector.fullname" . }}-{{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
@@ -18,7 +18,7 @@ spec:
             cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         spec:
           {{- if .Values.rbac }}
-          serviceAccountName: leanix-k8s-connector
+          serviceAccountName: leanix-k8s-connector-{{ .Release.Name }}
           {{- end }}
           containers:
           - name: connector

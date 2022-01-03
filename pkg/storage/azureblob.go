@@ -51,7 +51,7 @@ func NewAzureBlob(azureOpts *AzureBlobOpts) (*AzureContainer, error) {
 }
 
 // Upload uploads the LDIF file to azure blob storage
-func (u *AzureContainer) UploadLdif(ldif []byte) error {
+func (u *AzureContainer) UploadLdif(ldif []byte, LdifFileName string) error {
 	err := u.uploadFile(LdifFileName, ldif)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (u *AzureContainer) UploadLdif(ldif []byte) error {
 }
 
 // Upload uploads the log file to azure blob storage
-func (u *AzureContainer) UploadLog(log []byte) error {
+func (u *AzureContainer) UploadLog(log []byte, LogFileName string) error {
 	err := u.uploadFile(LogFileName, log)
 	if err != nil {
 		return err
