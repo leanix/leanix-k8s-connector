@@ -288,7 +288,7 @@ func kubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 			_, err = leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
 			log.Error(err)
 		}
-		err = uploader.UploadLdif(ldifByte)
+		err = uploader.UploadLdif(ldifByte, storage.LdifFileName+viper.GetString(lxWorkspaceFlag)+storage.LdifFileExtension)
 		if err != nil {
 			log.Error(err)
 			_, err := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))

@@ -1,5 +1,9 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-01-03 - 6.2.0
+* To ensure support for multiple helm release on same cluster, all the existing K8s workloads are suffixed with the Helm release name.
+* Support multiple workspace ID for same cluster via different helm releases
+
 ## Release 2021-12-08 - 6.1.0
 * Breaking changes! Follow the below migration docs to upgrade from 6.0.3 to 6.1.0
 
