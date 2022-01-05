@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-01-03 - 6.3.0
+* Connector Logs can be accessed in iHub (w.r.t specific dataSource name) `Show Log` button for troubleshooting and monitoring purpose.
+
 ## Release 2022-01-03 - 6.2.0
 * To ensure support for multiple helm release on same cluster, all the existing K8s workloads are suffixed with the Helm release name.
 * Support multiple workspace ID for same cluster via different helm releases

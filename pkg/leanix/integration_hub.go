@@ -17,6 +17,7 @@ type SelfStartResponse struct {
 	ConnectorConfiguration ConnectorConfiguration `json:"connectorConfiguration"`
 	LdifResultUrl          string                 `json:"ldifResultUrl"`
 	ProgressCallbackUrl    string                 `json:"progressCallbackUrl"`
+	ConnectorLoggingUrl    string                 `json:"connectorLoggingUrl"`
 }
 
 type ConnectorConfiguration struct {
@@ -80,7 +81,7 @@ func validateConnectorConfiguration(configuration ConnectorConfiguration) (bool,
 		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
 	}
 
-	if configuration.ResolveStrategy == "label" && configuration.ClusterName == "" {
+	if configuration.ClusterName == "" {
 		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
 	}
 
