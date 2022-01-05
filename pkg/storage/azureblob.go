@@ -88,14 +88,14 @@ func UploadFileToSasUrl(blobSasUrl url.URL, content []byte) error {
 	return nil
 }
 
-func UploadConnectorLog(connectorLoggingUrl string, logs []byte) (string, error) {
+func UploadConnectorLog(connectorLoggingUrl string, logs []byte) error {
 	parse, err := url.Parse(connectorLoggingUrl)
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = UploadFileToSasUrl(*parse, logs)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return "", nil
+	return nil
 }
