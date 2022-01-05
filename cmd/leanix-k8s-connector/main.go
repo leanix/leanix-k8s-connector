@@ -66,7 +66,7 @@ func main() {
 		log.Error(err)
 	}
 	log.Info("Uploading connector logs to iHub")
-	_, err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+	err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
 	if err != nil {
 		log.Error(err)
 	}
