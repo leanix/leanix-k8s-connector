@@ -553,7 +553,7 @@ Issue `kubectl delete jobs.batch leanix-k8s-connector-1563961200` and you should
 - This migration involves changes to make the helm configurations much simpler. The operator does not have to worry about such parameters while scanning the data source.
   - The following helm values can not be set as parameters anymore. Therefore, no need to use them either in helm commands or values.yaml.
     - `args.clustername` : The iHUB connector configuration for the k8s integration is extended to capture the 'clusterName'. 
-    - `args.connectorID`, `args.connectorVersion`, `args.processingMode` : Here these values are set by default and no need to set with helm commands or values.yaml 
+    - `args.connectorID`, `args.connectorVersion`, `args.processingMode` : Here these values are set by default and no need to set with helm commands or values.yaml 
 
 ### 4.0.0 to 5.0.0
 - New flag `enableCustomStorage` is introduced. This flags allows to disable the option to upload LDIF to custom storage backend. Disabling the flag will not affect the functionality of the connector.
@@ -578,6 +578,8 @@ e.g `--set args.storageBackend=file`
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2022-01-03  |       6.3.0       |        1.0.0        |       6.3.0        |        6.3.0        |
+|  2022-01-03  |       6.2.0       |        1.0.0        |       6.2.0        |        6.2.0        |
 |  2021-12-08  |       6.1.0       |        1.0.0        |       6.1.0        |        6.1.0        |
 |  2021-12-06  |       6.0.3       |        1.0.0        |       6.0.3        |        6.0.3        |
 |  2021-12-19  |       6.0.2       |        1.0.0        |       6.0.2        |        6.0.2        |
