@@ -61,7 +61,7 @@ func main() {
 	enableVerbose(stdoutLogger, viper.GetBool(verboseFlag))
 
 	// use the current context in kubeconfig
-	startResponse, err := kubernetesScan(debugLogBuffer)
+	startResponse, err := KubernetesScan(debugLogBuffer)
 	if err != nil {
 		log.Error(err)
 	}
@@ -72,7 +72,7 @@ func main() {
 	}
 }
 
-func kubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartResponse, err error) {
+func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartResponse, err error) {
 	log.Info("----------Attempting to Self Start via Integration Hub----------")
 
 	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
