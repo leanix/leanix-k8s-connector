@@ -1,5 +1,5 @@
 {	
-	"externalId": "cider-vsm-k8s-connector",
+	"externalId": "helios-vsm-k8s-connector",
 	"config": {
 		"connectorType": "leanix-vsm-connector",
 		"connectorId": "leanix-k8s-connector",
@@ -1346,67 +1346,6 @@
 					}
 				],
 				"enabled": true
-			},
-			{
-				"processorType": "inboundTag",
-				"processorName": "create_kubernetes_label_tag_CUSTOMER_SPECIFIC",
-				"processorDescription": "Create label white list tag for fact sheets created from Deployment k8s object CUSTOMER SPECIFIC (We could move this to outside execution groups)",
-				"filter": {
-					"advanced": "${header.customFields.enabledLabelWhitelist && content.type == 'Deployment' && (integration.keyOfForEach.equals('app.kubernetes.io/managed-by') or integration.keyOfForEach.startsWith('k8s.nuernberger.de/'))}"
-				},
-				"factSheets": {
-					"external": {
-						"ids": "${variables['cluster'].get().concat('/').concat(data.metadata.namespace).concat('/').concat(data.metadata.name).concat('/').concat(empty data.metadata.labels['app.kubernetes.io/version'] ? 'unknown' : data.metadata.labels['app.kubernetes.io/version'])}",
-						"type": {
-							"expr": "kubernetesId"
-						}
-					}
-				},
-				"run": 11,
-				"updates": [
-					{
-						"key": {
-							"expr": "name"
-						},
-						"values": [
-							{
-								"expr": "${integration.valueOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.name"
-						},
-						"values": [
-							{
-								"expr": "${integration.keyOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.shortName"
-						},
-						"values": [
-							{
-								"expr": "${integration.keyOfForEach}"
-							}
-						]
-					},
-					{
-						"key": {
-							"expr": "group.restrictToFactSheetTypes"
-						},
-						"values": [
-							{
-								"expr": "Deployment"
-							}
-						]
-					}
-				],
-				"enabled": true,
-				"forEach": "${data.metadata.labels}"
 			},
 			{
 				"processorType": "inboundTag",
