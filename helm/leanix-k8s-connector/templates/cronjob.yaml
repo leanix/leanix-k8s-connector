@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ include "leanix-k8s-connector.fullname" . }}-{{ .Release.Name }}
+  name: {{ include "leanix-k8s-connector.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "leanix-k8s-connector.labels" . | indent 4 }}
