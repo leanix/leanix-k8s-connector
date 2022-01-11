@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-01-10 - 6.3.1
+* All k8s workloads are now prefixed with the Helm release name instead of being suffixed to avoid length issues with kubernetes.
+
 ## Release 2022-01-03 - 6.3.0
 * Connector Logs can be accessed in iHub (w.r.t specific dataSource name) `Show Log` button for troubleshooting and monitoring purpose.
 
