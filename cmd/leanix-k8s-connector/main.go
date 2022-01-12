@@ -65,10 +65,14 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	log.Info("Uploading connector logs to iHub")
-	err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
-	if err != nil {
-		log.Error(err)
+	if startResponse.ConnectorLoggingUrl != "" {
+		log.Info("Uploading connector logs to iHub")
+		err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+		if err != nil {
+			log.Error(err)
+		}
+	} else {
+		log.Error("Uploading connector logs to iHub failed as 'connectorLoggingUrl' is not available.")
 	}
 }
 
@@ -83,8 +87,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
 	if err != nil {
 		log.Info("Failed to start Integration Hub. Terminating..")
-		log.Error(err)
-		return
+		return startResponse, err
 	}
 	log.Info("Getting connector config...")
 	if startResponse != nil {
