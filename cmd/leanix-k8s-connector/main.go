@@ -65,14 +65,10 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	if startResponse.ConnectorLoggingUrl != "" {
-		log.Info("Uploading connector logs to iHub")
-		err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
-		if err != nil {
-			log.Error(err)
-		}
-	} else {
-		log.Error("Uploading connector logs to iHub failed as 'connectorLoggingUrl' is not available.")
+	log.Debug("Uploading connector logs to iHub")
+	err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+	if err != nil {
+		log.Error(err)
 	}
 }
 

@@ -17,7 +17,7 @@ type SelfStartResponse struct {
 	ConnectorConfiguration ConnectorConfiguration `json:"connectorConfiguration"`
 	LdifResultUrl          string                 `json:"ldifResultUrl"`
 	ProgressCallbackUrl    string                 `json:"progressCallbackUrl"`
-	ConnectorLoggingUrl    string                 `json:"connectorLoggingUrl" `
+	ConnectorLoggingUrl    string                 `json:"connectorLoggingUrl"`
 }
 
 type ConnectorConfiguration struct {
@@ -65,40 +65,35 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	}
 	startResponse := SelfStartResponse{}
 	json.Unmarshal(responseData, &startResponse)
-	valid := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
-	if valid {
-		log.Info("Connector Configuration is validated")
-		return &startResponse, nil
-	} else {
+	error := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
+	if error != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
 		if err != nil {
-			log.Infof("Failed to update progress[%s] to Integration Hub", FAILED)
+			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
 		}
-		return &startResponse, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CHECK AND RE-RUN WITH VALID CONNECTOR DEFINITION")
+		return &startResponse, error
 	}
+	log.Info("Connector Configuration is validated")
+	return &startResponse, nil
 }
 
-func validateConnectorConfiguration(configuration ConnectorConfiguration) bool {
+func validateConnectorConfiguration(configuration ConnectorConfiguration) error {
 	if configuration.ResolveStrategy == "" {
-		log.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
-		return false
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
 	}
 
 	if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
-		log.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
-		return false
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
 	}
 
 	if configuration.ResolveStrategy == "label/namespace" && configuration.ResolveLabel == "" {
-		log.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CAN BE EITHER 'LABEL' OR 'NAMESPACE', ONLY ONE CAN BE SET")
-		return false
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CAN BE EITHER 'LABEL' OR 'NAMESPACE', ONLY ONE CAN BE SET")
 	}
 
 	if configuration.ClusterName == "" {
-		log.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
-		return false
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
 	}
-	return true
+	return nil
 }
 
 // UpdateProgress Updates progress to Integration Hub
