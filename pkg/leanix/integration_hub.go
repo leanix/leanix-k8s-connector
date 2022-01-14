@@ -86,10 +86,6 @@ func validateConnectorConfiguration(configuration ConnectorConfiguration) error 
 		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
 	}
 
-	if configuration.ResolveStrategy == "label/namespace" {
-		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CAN BE EITHER 'LABEL' OR 'NAMESPACE', ONLY ONE CAN BE SET")
-	}
-
 	if configuration.ClusterName == "" {
 		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
 	}
