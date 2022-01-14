@@ -14,7 +14,6 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
     - [Architecture](#architecture)
     - [Installation - Helm chart](#installation---helm-chart)
       - [Pre-release versions](#pre-release-versions)
-      - [Helm 2 requirements](#helm-2-requirements)
       - [Add LeanIX Kubernetes Connector Helm chart repository](#add-leanix-kubernetes-connector-helm-chart-repository)
       - [Starting Connector in k8s](#starting-connector-in-k8s)
       - [file storage backend](#file-storage-backend)
@@ -78,12 +77,6 @@ Before you can install the LeanIX Kubernetes Connector make sure that the follow
 #### **Pre-release versions**
 
 If you want to install pre-release versions of the LeanIX Kubernetes Connector, append the `helm` CLI commands with `--devel`.
-
-#### **Helm 2 requirements**
-
-On the server-side the Helm server component Tiller must be deployed into the Kubernetes cluster, when you are not using Helm 3.
-
-- [Installing Tiller](https://helm.sh/docs/using_helm/#installing-tiller)
 
 #### **Add LeanIX Kubernetes Connector Helm chart repository**
 
