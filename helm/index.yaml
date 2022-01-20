@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   leanix-k8s-connector:
   - apiVersion: v1
+    appVersion: 6.3.2
+    created: "2022-01-20T15:50:11.994812+01:00"
+    description: Retrieves information from Kubernetes cluster
+    digest: 918ec561f0ab03c5039144e7d151e447dac40ad1bace19435ae4be0c21ab6ad2
+    kubeVersion: '>= 1.19.0-0'
+    name: leanix-k8s-connector
+    urls:
+    - leanix-k8s-connector-6.3.2.tgz
+    version: 6.3.2
+  - apiVersion: v1
     appVersion: 6.3.1
-    created: "2022-01-11T13:56:28.257638+01:00"
+    created: "2022-01-20T15:50:11.990534+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: e4ff6114e41c6f7694be5ab006f64ae6620758774610fcbb41357feb71da547c
     kubeVersion: '>= 1.19.0-0'
@@ -13,7 +23,7 @@ entries:
     version: 6.3.1
   - apiVersion: v1
     appVersion: 6.3.0
-    created: "2022-01-11T13:56:28.256815+01:00"
+    created: "2022-01-20T15:50:11.989594+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 44973672d6054cd0660a94e71b23bf9cf472f27bc532133981af6f6055e87424
     kubeVersion: '>= 1.19.0-0'
@@ -23,7 +33,7 @@ entries:
     version: 6.3.0
   - apiVersion: v1
     appVersion: 6.2.0
-    created: "2022-01-11T13:56:28.255072+01:00"
+    created: "2022-01-20T15:50:11.988611+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 5774478e89bc749ba21ec7f2477bb348788f2bbf6e8b76956eee5c4739de9e46
     kubeVersion: '>= 1.19.0-0'
@@ -33,7 +43,7 @@ entries:
     version: 6.2.0
   - apiVersion: v1
     appVersion: 6.1.0
-    created: "2022-01-11T13:56:28.253718+01:00"
+    created: "2022-01-20T15:50:11.98794+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: eabf3e49a9d4a0722228cb24872e6dfcc7b9db6b764bc714a74c0941f0d3ea4f
     name: leanix-k8s-connector
@@ -42,7 +52,7 @@ entries:
     version: 6.1.0
   - apiVersion: v1
     appVersion: 6.0.3
-    created: "2022-01-11T13:56:28.252338+01:00"
+    created: "2022-01-20T15:50:11.987089+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 5f1be6a80fc173d45ca60f5da8937abc0fcb2cc14652d6149d9ff2e405568a71
     name: leanix-k8s-connector
@@ -51,7 +61,7 @@ entries:
     version: 6.0.3
   - apiVersion: v1
     appVersion: 6.0.2
-    created: "2022-01-11T13:56:28.251126+01:00"
+    created: "2022-01-20T15:50:11.985469+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: ccd112d1de601bfa796c4413ddc2b394f93ec4b66604338a736593168523b327
     name: leanix-k8s-connector
@@ -60,7 +70,7 @@ entries:
     version: 6.0.2
   - apiVersion: v1
     appVersion: 6.0.1
-    created: "2022-01-11T13:56:28.250061+01:00"
+    created: "2022-01-20T15:50:11.984088+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: f3b959e24bdbf55314fa6d0a05681ec41dd34b1493b026a3450bf147e62a4b1b
     name: leanix-k8s-connector
@@ -69,7 +79,7 @@ entries:
     version: 6.0.1
   - apiVersion: v1
     appVersion: 6.0.0
-    created: "2022-01-11T13:56:28.249035+01:00"
+    created: "2022-01-20T15:50:11.982122+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: c51f68b592c6f608a2f982e8c322280b8fc3aa4ac6ed0d823b2baf24b0877e6b
     name: leanix-k8s-connector
@@ -78,7 +88,7 @@ entries:
     version: 6.0.0
   - apiVersion: v1
     appVersion: 5.0.0
-    created: "2022-01-11T13:56:28.248228+01:00"
+    created: "2022-01-20T15:50:11.981207+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 549a753cf9875ca4eeaf5ecb5c64e76149b30bb8e82eee821f6c81cca27c37cf
     name: leanix-k8s-connector
@@ -87,7 +97,7 @@ entries:
     version: 5.0.0
   - apiVersion: v1
     appVersion: 4.0.0
-    created: "2022-01-11T13:56:28.24642+01:00"
+    created: "2022-01-20T15:50:11.979753+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: adf5c8ef024857c4a0845a5c659f27bd7f21cdf568fff3445a192425c44fc9a8
     name: leanix-k8s-connector
@@ -96,7 +106,7 @@ entries:
     version: 4.0.0
   - apiVersion: v1
     appVersion: 3.0.0
-    created: "2022-01-11T13:56:28.24548+01:00"
+    created: "2022-01-20T15:50:11.978602+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 2927aebc215a1c5175e986135e36a10101e90fa69e7ab22a183049d086f7eddb
     name: leanix-k8s-connector
@@ -105,7 +115,7 @@ entries:
     version: 3.0.0
   - apiVersion: v1
     appVersion: 2.0.0
-    created: "2022-01-11T13:56:28.243658+01:00"
+    created: "2022-01-20T15:50:11.97724+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 3481723d2374757038495117518c47f634054408ccbd55112a6260d5a15e18c9
     name: leanix-k8s-connector
@@ -114,7 +124,7 @@ entries:
     version: 2.0.0
   - apiVersion: v1
     appVersion: 2.0.0-beta7
-    created: "2022-01-11T13:56:28.238266+01:00"
+    created: "2022-01-20T15:50:11.976073+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: 0ade89d01236286f11ebf70290e2c4c82740fac11ec755be9dddd2375c74246f
     name: leanix-k8s-connector
@@ -123,11 +133,11 @@ entries:
     version: 2.0.0-beta7
   - apiVersion: v1
     appVersion: 1.1.0
-    created: "2022-01-11T13:56:28.236062+01:00"
+    created: "2022-01-20T15:50:11.975278+01:00"
     description: Retrieves information from Kubernetes cluster
     digest: aa3ee10eefe30e61e37058762b031bdee11cb9dd67afecdf6e831335d5c16e0f
     name: leanix-k8s-connector
     urls:
     - leanix-k8s-connector-1.0.0.tgz
     version: 1.0.0
-generated: "2022-01-11T13:56:28.231982+01:00"
+generated: "2022-01-20T15:50:11.971746+01:00"
