@@ -44,7 +44,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s", datasource, fqdn)
+	log.Infof("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s\n", datasource, fqdn)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -65,27 +65,31 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	}
 	startResponse := SelfStartResponse{}
 	json.Unmarshal(responseData, &startResponse)
-	_, err = validateConnectorConfiguration(startResponse.ConnectorConfiguration)
-	if err != nil {
-		return nil, err
+	error := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
+	if error != nil {
+		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
+		if err != nil {
+			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
+		}
+		return &startResponse, error
 	}
+	log.Info("Connector Configuration is validated")
 	return &startResponse, nil
 }
 
-func validateConnectorConfiguration(configuration ConnectorConfiguration) (bool, error) {
+func validateConnectorConfiguration(configuration ConnectorConfiguration) error {
 	if configuration.ResolveStrategy == "" {
-		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
 	}
 
 	if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
-		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
 	}
 
 	if configuration.ClusterName == "" {
-		return false, fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
+		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: CLUSTER NAME CANNOT BE EMPTY")
 	}
-
-	return true, nil
+	return nil
 }
 
 // UpdateProgress Updates progress to Integration Hub
@@ -105,7 +109,7 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 		return status, err
 	}
 	if resp.StatusCode != 200 {
-		err := fmt.Errorf("Integration Hub connector status[%s] could not be updated: %s\n", status, resp.Status)
+		err := fmt.Errorf("Integration Hub connector status[%s] could not be updated %s\n", status, resp.Status)
 		return status, err
 	}
 	return status, nil
