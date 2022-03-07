@@ -12,6 +12,7 @@ import (
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/leanix"
 	"github.com/leanix/leanix-k8s-connector/pkg/mapper"
+	"github.com/leanix/leanix-k8s-connector/pkg/newmapper"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/leanix/leanix-k8s-connector/pkg/version"
 	flag "github.com/spf13/pflag"
@@ -40,14 +41,7 @@ const (
 	blacklistNamespacesFlag          string = "blacklist-namespaces"
 	lxWorkspaceFlag                  string = "lx-workspace"
 	localFlag                        string = "local"
-)
-
-const (
-	lxVersion                      string = "1.0.0"
-	lxConnectorID                  string = "leanix-k8s-connector"
-	lxConnectorType                string = "leanix-vsm-connector"
-	lxConnectorProcessingDirection string = "inbound"
-	lxConnectorProcessingMode      string = "full"
+	kubeConfigPathFlag               string = "kube-config-path"
 )
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
@@ -96,16 +90,20 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 	log.Info("----------Start----------")
 	log.Infof("LeanIX Kubernetes connector build version: %s", version.VERSION)
-	log.Infof("LeanIX integration version: %s", lxVersion)
-	log.Infof("LeanIX connector id: %s", lxConnectorID)
-	log.Infof("LeanIX connector type: %s", lxConnectorType)
-	log.Infof("LeanIX connector processing direction: %s", lxConnectorProcessingDirection)
+	log.Infof("LeanIX integration version: %s", startResponse.BindingKey.LXVersion)
+	log.Infof("LeanIX connector id: %s", startResponse.BindingKey.ConnectorId)
+	log.Infof("LeanIX connector type: %s", startResponse.BindingKey.ConnectorType)
+	log.Infof("LeanIX connector processing direction: %s", startResponse.BindingKey.ProcessingDirection)
 	log.Infof("Target LeanIX workspace: %s", viper.GetString(lxWorkspaceFlag))
 	log.Infof("Target Kubernetes cluster name: %s", startResponse.ConnectorConfiguration.ClusterName)
 
 	var config *restclient.Config
 	if viper.GetBool(localFlag) {
-		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+		if viper.GetString(kubeConfigPathFlag) != "" {
+			config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(viper.GetString(kubeConfigPathFlag)))
+		} else {
+			config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -117,126 +115,136 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 			return nil, err
 		}
 	}
-
 	log.Debugf("Kubernetes master from config: %s", config.Host)
-
-	kubernetesAPI, err := kubernetes.NewAPI(config)
-	if err != nil {
-		return nil, err
-	}
-	dynClient, err := dynamic.NewForConfig(config)
-	if err != nil {
-		log.Error(err)
-	}
-
-	log.Debug("Get blacklist namespaces list...")
-	blacklistedNamespacesList := viper.GetStringSlice(blacklistNamespacesFlag)
-	blacklistedNamespaces, err := kubernetesAPI.Namespaces(blacklistedNamespacesList)
-	if err != nil {
-		return nil, err
-	}
-	log.Debug("Getting blacklist namespaces list done.")
-	log.Infof("Namespace blacklist: %v", reflect.ValueOf(blacklistedNamespaces).MapKeys())
-
-	resourcesList, err := ServerPreferredListableResources(kubernetesAPI.Client.Discovery())
-	if err != nil {
-		return nil, err
-	}
-	groupVersionResources, err := discovery.GroupVersionResources(resourcesList)
-	if err != nil {
-		return nil, err
-	}
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
-	if err != nil {
-		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
-	}
-	log.Debug("Listing nodes...")
-	nodes, err := kubernetesAPI.Nodes()
-	if err != nil {
-		return nil, err
-	}
-	log.Debug("Listing nodes done.")
-	log.Debug("Map nodes to Kubernetes object")
-	clusterKubernetesObject, err := mapper.MapNodes(
-		startResponse.ConnectorConfiguration.ClusterName,
-		nodes,
-	)
-	if err != nil {
-		return nil, err
-	}
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
-	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
-	if err != nil {
-		log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
-	}
-	resourceGroupWhitelist := map[string]map[string]interface{}{
-		"": map[string]interface{}{
-			"serviceaccounts":        struct{}{},
-			"services":               struct{}{},
-			"nodes":                  struct{}{},
-			"pods":                   struct{}{},
-			"namespaces":             struct{}{},
-			"configmaps":             struct{}{},
-			"persistentvolumes":      struct{}{},
-			"persistentvolumeclaims": struct{}{},
-			"replicationcontrollers": struct{}{},
-		},
-		"apps": map[string]interface{}{
-			"deployments":  struct{}{},
-			"statefulsets": struct{}{},
-			"daemonsets":   struct{}{},
-			"replicasets":  struct{}{},
-		},
-		"apiextensions.k8s.io": map[string]interface{}{
-			"customresourcedefinitions": struct{}{},
-		},
-		"rbac.authorization.k8s.io": map[string]interface{}{
-			"clusterrolebindings": struct{}{},
-			"rolebindings":        struct{}{},
-			"clusterroles":        struct{}{},
-			"roles":               struct{}{},
-		},
-		"networking.k8s.io": map[string]interface{}{
-			"ingresses":       struct{}{},
-			"networkpolicies": struct{}{},
-		},
-		"autoscaling": map[string]interface{}{
-			"horizontalpodautoscalers": struct{}{},
-		},
-		"policy": map[string]interface{}{
-			"podsecuritypolicies": struct{}{},
-		},
-		"storage.k8s.io": map[string]interface{}{
-			"storageclasses": struct{}{},
-		},
-		"batch": map[string]interface{}{
-			"cronjobs": struct{}{},
-			"jobs":     struct{}{},
-		},
-	}
-
-	for gvr := range groupVersionResources {
-		if _, ok := resourceGroupWhitelist[gvr.Group][gvr.Resource]; !ok {
-			log.Debugf("Not scanning resouce %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
-			continue
-		}
-		instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})
+	if startResponse.BindingKey.ConnectorId == "leanix-k8s-v3-connector" {
+		log.Info("Using new k8s-v3 mapper")
+		mappedObject, err := newmapper.ScanWorker(startResponse.ConnectorConfiguration.ClusterName, config)
+		kubernetesObjects = append(kubernetesObjects, mappedObject...)
 		if err != nil {
 			return nil, err
 		}
-		for _, i := range instances.Items {
-			if _, ok := blacklistedNamespaces[i.GetNamespace()]; ok {
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with new version done. Preparing ldif")
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
+	} else {
+		log.Info("Using old k8s mapper")
+		kubernetesAPI, err := kubernetes.NewAPI(config)
+		if err != nil {
+			return nil, err
+		}
+		dynClient, err := dynamic.NewForConfig(config)
+		if err != nil {
+			log.Error(err)
+		}
+
+		log.Debug("Get blacklist namespaces list...")
+		blacklistedNamespacesList := viper.GetStringSlice(blacklistNamespacesFlag)
+		blacklistedNamespaces, err := kubernetesAPI.BlackListNamespaces(blacklistedNamespacesList)
+		if err != nil {
+			return nil, err
+		}
+		log.Debug("Getting blacklist namespaces list done.")
+		log.Infof("Namespace blacklist: %v", reflect.ValueOf(blacklistedNamespaces).MapKeys())
+
+		resourcesList, err := ServerPreferredListableResources(kubernetesAPI.Client.Discovery())
+		if err != nil {
+			return nil, err
+		}
+		groupVersionResources, err := discovery.GroupVersionResources(resourcesList)
+		if err != nil {
+			return nil, err
+		}
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
+		log.Debug("Listing nodes...")
+		nodes, err := kubernetesAPI.Nodes()
+		if err != nil {
+			return nil, err
+		}
+		log.Debug("Listing nodes done.")
+		log.Debug("Map nodes to Kubernetes object")
+		clusterKubernetesObject, err := mapper.MapNodes(
+			startResponse.ConnectorConfiguration.ClusterName,
+			nodes,
+		)
+		if err != nil {
+			return nil, err
+		}
+		kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
+		if err != nil {
+			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		}
+		resourceGroupWhitelist := map[string]map[string]interface{}{
+			"": map[string]interface{}{
+				"serviceaccounts":        struct{}{},
+				"services":               struct{}{},
+				"nodes":                  struct{}{},
+				"pods":                   struct{}{},
+				"namespaces":             struct{}{},
+				"configmaps":             struct{}{},
+				"persistentvolumes":      struct{}{},
+				"persistentvolumeclaims": struct{}{},
+				"replicationcontrollers": struct{}{},
+			},
+			"apps": map[string]interface{}{
+				"deployments":  struct{}{},
+				"statefulsets": struct{}{},
+				"daemonsets":   struct{}{},
+				"replicasets":  struct{}{},
+			},
+			"apiextensions.k8s.io": map[string]interface{}{
+				"customresourcedefinitions": struct{}{},
+			},
+			"rbac.authorization.k8s.io": map[string]interface{}{
+				"clusterrolebindings": struct{}{},
+				"rolebindings":        struct{}{},
+				"clusterroles":        struct{}{},
+				"roles":               struct{}{},
+			},
+			"networking.k8s.io": map[string]interface{}{
+				"ingresses":       struct{}{},
+				"networkpolicies": struct{}{},
+			},
+			"autoscaling": map[string]interface{}{
+				"horizontalpodautoscalers": struct{}{},
+			},
+			"storage.k8s.io": map[string]interface{}{
+				"storageclasses": struct{}{},
+			},
+			"batch": {
+				"cronjobs": struct{}{},
+				"jobs":     struct{}{},
+			},
+		}
+
+		for gvr := range groupVersionResources {
+			if _, ok := resourceGroupWhitelist[gvr.Group][gvr.Resource]; !ok {
+				log.Debugf("Not scanning resouce %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
 				continue
 			}
-			nko := mapper.KubernetesObject{
-				Type: i.GetKind(),
-				ID:   string(i.GetUID()),
-				Data: i.Object,
+			instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})
+			if err != nil {
+				return nil, err
 			}
-			kubernetesObjects = append(kubernetesObjects, nko)
+			for _, i := range instances.Items {
+				if _, ok := blacklistedNamespaces[i.GetNamespace()]; ok {
+					continue
+				}
+				nko := mapper.KubernetesObject{
+					Type: i.GetKind(),
+					ID:   string(i.GetUID()),
+					Data: i.Object,
+				}
+				kubernetesObjects = append(kubernetesObjects, nko)
+			}
 		}
 	}
+
 	customFields := mapper.CustomFields{
 		BuildVersion:          version.VERSION,
 		ResolveStrategy:       startResponse.ConnectorConfiguration.ResolveStrategy,
@@ -246,11 +254,11 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	}
 
 	ldif := mapper.LDIF{
-		ConnectorID:         lxConnectorID,
-		ConnectorType:       lxConnectorType,
-		ProcessingDirection: lxConnectorProcessingDirection,
-		ProcessingMode:      lxConnectorProcessingMode,
-		LxVersion:           lxVersion,
+		ConnectorID:         startResponse.BindingKey.ConnectorId,
+		ConnectorType:       startResponse.BindingKey.ConnectorType,
+		ProcessingDirection: startResponse.BindingKey.ProcessingDirection,
+		ProcessingMode:      startResponse.BindingKey.ProcessingMode,
+		LxVersion:           startResponse.BindingKey.LXVersion,
 		LxWorkspace:         viper.GetString(lxWorkspaceFlag),
 		Description:         "Map Kubernetes objects to LeanIX Fact Sheets",
 		CustomFields:        customFields,
@@ -344,6 +352,7 @@ func parseFlags() error {
 	flag.StringSlice(blacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
 	flag.String(lxWorkspaceFlag, "", "name of the LeanIX workspace the data is sent to")
 	flag.Bool(localFlag, false, "use local kubeconfig from home folder")
+	flag.String(kubeConfigPathFlag, "", "path to kubeconfig file")
 	flag.Parse()
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)
