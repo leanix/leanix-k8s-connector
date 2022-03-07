@@ -174,7 +174,6 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 		if err != nil {
 			return nil, err
 		}
-		kubernetesObjects := make([]mapper.KubernetesObject, 0)
 		kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
 		if err != nil {
