@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-03-07 - 6.3.3
+* Increased logging and added more precise log messages
+
 ## Release 2022-01-20 - 6.3.2
 * Error messages can be captured and accessed via connector logs in iHub, if the connector configuration is not correct.
 
