@@ -11,7 +11,7 @@ numberOfReviewers: 0
 # A list of reviewers to be added to pull requests (GitHub user name)
 reviewers:
   - DennisBerthold-leanix
-  - timmeeyerLeanIX
+  - timmeyerLeanIX
   - daniellesarmiento
   - AlperCezibarakLeanix
   - rajeshmohanty-leanix

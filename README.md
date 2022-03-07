@@ -1,4 +1,5 @@
 # LeanIX Kubernetes Connector
+[![Go Report Card](https://goreportcard.com/badge/github.com/leanix/leanix-k8s-connector)](https://goreportcard.com/report/github.com/leanix/leanix-k8s-connector)
 
 **Note**: This document is intended solely for developers. VSM users should follow the [LeanIX VSM docs](https://docs-mi.leanix.net/docs/kubernetes).
 
@@ -571,6 +572,7 @@ e.g `--set args.storageBackend=file`
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2022-03-07  |       6.3.3       |        1.0.0        |       6.3.3        |        6.3.3        |
 |  2022-01-20  |       6.3.2       |        1.0.0        |       6.3.2        |        6.3.2        |
 |  2022-01-10  |       6.3.1       |        1.0.0        |       6.3.1        |        6.3.1        |
 |  2022-01-03  |       6.3.0       |        1.0.0        |       6.3.0        |        6.3.0        |
