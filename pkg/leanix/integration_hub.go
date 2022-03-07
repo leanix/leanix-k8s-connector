@@ -14,10 +14,19 @@ import (
 
 type SelfStartResponse struct {
 	RunId                  string                 `json:"runId"`
+	BindingKey             BindingKey             `json:"bindingKey"`
 	ConnectorConfiguration ConnectorConfiguration `json:"connectorConfiguration"`
 	LdifResultUrl          string                 `json:"ldifResultUrl"`
 	ProgressCallbackUrl    string                 `json:"progressCallbackUrl"`
 	ConnectorLoggingUrl    string                 `json:"connectorLoggingUrl"`
+}
+
+type BindingKey struct {
+	ConnectorType       string `json:"connectorType"`
+	ConnectorId         string `json:"connectorId"`
+	ProcessingDirection string `json:"processingDirection"`
+	ProcessingMode      string `json:"processingMode"`
+	LXVersion           string `json:"lxVersion"`
 }
 
 type ConnectorConfiguration struct {
@@ -65,16 +74,49 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	}
 	startResponse := SelfStartResponse{}
 	json.Unmarshal(responseData, &startResponse)
-	error := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
-	if error != nil {
+	errorBinding := validateBindingKey(startResponse.BindingKey)
+	if errorBinding != nil {
+		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID BINDING KEY: ABORTING IHUB RUN.")
+		if err != nil {
+			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
+		}
+		return &startResponse, errorBinding
+	}
+	errorConfig := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
+	if errorConfig != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
 		if err != nil {
 			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
 		}
-		return &startResponse, error
+		return &startResponse, errorConfig
 	}
 	log.Info("Connector Configuration is validated")
+	log.Info("Binding Key is validated")
 	return &startResponse, nil
+}
+
+func validateBindingKey(bindingKey BindingKey) error {
+	if bindingKey.ConnectorType == "" {
+		return fmt.Errorf("INVALID BINDING KEY: CONNECTOR TYPE CANNOT BE EMPTY")
+	}
+
+	if bindingKey.ConnectorId == "" {
+		return fmt.Errorf("INVALID BINDING KEY: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+	}
+
+	if bindingKey.ProcessingDirection == "" {
+		return fmt.Errorf("INVALID BINDING KEY: PROCESSING DIRECTION CANNOT BE EMPTY")
+	}
+
+	if bindingKey.ProcessingMode == "" {
+		return fmt.Errorf("INVALID BINDING KEY: PROCESSING MODE CANNOT BE EMPTY")
+	}
+
+	if bindingKey.LXVersion == "" {
+		return fmt.Errorf("INVALID BINDING KEY: LXVERSION CANNOT BE EMPTY")
+	}
+
+	return nil
 }
 
 func validateConnectorConfiguration(configuration ConnectorConfiguration) error {
