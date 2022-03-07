@@ -51,6 +51,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
+		log.Infof("SelfStartRun: Error while starting run for datasource: %s", datasourceRunUrl)
 		return nil, err
 	}
 	log.Infof("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s\n", datasource, fqdn)
@@ -86,7 +87,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	if errorConfig != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
 		if err != nil {
-			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
+			log.Errorf("SelfStartRun: Failed to update progress[%s] to Integration Hub", FAILED)
 		}
 		return &startResponse, errorConfig
 	}

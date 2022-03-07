@@ -120,16 +120,16 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	if startResponse.BindingKey.ConnectorId == "leanix-k8s-v3-connector" {
 		log.Info("Using new k8s-v3 mapper")
 		mappedObject, err := newmapper.ScanWorker(startResponse.ConnectorConfiguration.ClusterName, config)
-		kubernetesObjects = append(kubernetesObjects, mappedObject...)
 		if err != nil {
 			return nil, err
 		}
-		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with new version done. Preparing ldif")
+		kubernetesObjects = append(kubernetesObjects, mappedObject...)
+
+		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with new version done. Preparing ldif.")
 		if err != nil {
 			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
 	} else {
-		log.Info("Using old k8s mapper")
 		kubernetesAPI, err := kubernetes.NewAPI(config)
 		if err != nil {
 			return nil, err
@@ -158,7 +158,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 		}
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
 		if err != nil {
-			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+			log.Infof("KubernetesScan: Before scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
 		log.Debug("Listing nodes...")
 		nodes, err := kubernetesAPI.Nodes()
@@ -174,10 +174,11 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 		if err != nil {
 			return nil, err
 		}
+		kubernetesObjects := make([]mapper.KubernetesObject, 0)
 		kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
 		if err != nil {
-			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+			log.Infof("KubernetesScan: After Scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
 		resourceGroupWhitelist := map[string]map[string]interface{}{
 			"": map[string]interface{}{
@@ -213,10 +214,13 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 			"autoscaling": map[string]interface{}{
 				"horizontalpodautoscalers": struct{}{},
 			},
+			"policy": map[string]interface{}{
+				"podsecuritypolicies": struct{}{},
+			},
 			"storage.k8s.io": map[string]interface{}{
 				"storageclasses": struct{}{},
 			},
-			"batch": {
+			"batch": map[string]interface{}{
 				"cronjobs": struct{}{},
 				"jobs":     struct{}{},
 			},
@@ -224,7 +228,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 		for gvr := range groupVersionResources {
 			if _, ok := resourceGroupWhitelist[gvr.Group][gvr.Resource]; !ok {
-				log.Debugf("Not scanning resouce %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
+				log.Debugf("Not scanning resource %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
 				continue
 			}
 			instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})
