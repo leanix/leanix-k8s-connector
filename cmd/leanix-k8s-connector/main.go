@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	log.Debug("Uploading connector logs to iHub")
+	log.Info("Uploading connector logs to iHub")
 	err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
 	if err != nil {
 		log.Error(err)
@@ -76,7 +76,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	log.Info("Integration Hub authentication successful.")
 	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
 	if err != nil {
-		log.Info("Failed to start Integration Hub. Terminating..")
+		log.Info("Main: Failed to start Integration Hub. Terminating..")
 		return startResponse, err
 	}
 	log.Info("Getting connector config...")
@@ -84,7 +84,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 		log.Infof("Successfully self started via Integration Hub. Progress call back - %s", startResponse.ProgressCallbackUrl)
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully self started via Integration Hub. Connector is in progress")
 		if err != nil {
-			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+			log.Infof("KubernetesScan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
 	}
 
@@ -127,7 +127,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with new version done. Preparing ldif.")
 		if err != nil {
-			log.Infof("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+			log.Infof("New Kubernetes Scan: After Mapping: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 		}
 	} else {
 		kubernetesAPI, err := kubernetes.NewAPI(config)
@@ -270,7 +270,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully collected required kubernetes data.")
 	if err != nil {
-		log.Infof("Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		log.Infof("KubernetesScan: After mapping: Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS)
 	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
