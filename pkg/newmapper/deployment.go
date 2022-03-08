@@ -59,8 +59,7 @@ func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObje
 	deploymentId := deployment.Namespace + ":" + deployment.Name + "-" + deploymentVersionShort + "-" + deployment.ClusterName
 	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name + " in " + deployment.ClusterName
 	deploymentData["longName"] = deployment.Namespace + ":" + deployment.Name + " (" + deploymentVersion + ")" + " in " + deployment.ClusterName
-	deploymentData["category"] = "k8sDeployment"
-	deploymentData["k8sDeploymentType"] = "deployment"
+	deploymentData["category"] = "deployment"
 	deploymentData["clusterName"] = deployment.ClusterName
 	deploymentData["version"] = version
 	deploymentData["image"] = deploymentImage

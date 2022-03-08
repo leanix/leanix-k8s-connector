@@ -67,7 +67,7 @@ func TestMapDeployments(t *testing.T) {
 	assert.NoError(t, err)
 	md := mapDeployment.Data.(map[string]interface{})
 
-	assert.Equal(t, "deployment-1-namespace:test-deployment-1 (unknown version) in test-cluster", md["name"])
+	assert.Equal(t, "deployment-1-namespace:test-deployment-1 in test-cluster", md["name"])
 	assert.Equal(t, "deployment-1-namespace", md["namespace"])
 	assert.Equal(t, "test-cluster", md["clusterName"])
 	assert.Equal(t, map[string]string{"beta.kubernetes.io/instance-type": "Standard_D8s_v3", "failure-domain.beta.kubernetes.io/region": "westeurope", "failure-domain.beta.kubernetes.io/zone": "2", "name": "nodepool-2"}, md["labels"])
