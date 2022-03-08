@@ -121,7 +121,7 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	if startResponse.BindingKey.ConnectorId == "leanix-k8s-v3-connector" {
 		log.Info("Using new k8s-v3 mapper")
-		mappedObject, err := newmapper.ScanWorker(startResponse.ConnectorConfiguration.ClusterName, config)
+		mappedObject, err := newmapper.ScanKubernetes(startResponse.ConnectorConfiguration.ClusterName, config)
 		if err != nil {
 			return nil, err
 		}

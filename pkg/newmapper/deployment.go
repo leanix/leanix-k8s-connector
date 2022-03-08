@@ -16,10 +16,6 @@ func GetDeployments(clusterName string, namespaces *corev1.NamespaceList, kubern
 		if err != nil {
 			return nil, err
 		}
-
-		if err != nil {
-			return nil, err
-		}
 		mappedDeployments, err := MapDeployments(clusterName, deployments)
 		if err != nil {
 			return nil, err

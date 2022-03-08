@@ -6,7 +6,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func ScanWorker(clusterName string, config *rest.Config) ([]mapper.KubernetesObject, error) {
+func ScanKubernetes(clusterName string, config *rest.Config) ([]mapper.KubernetesObject, error) {
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
 		return nil, err
