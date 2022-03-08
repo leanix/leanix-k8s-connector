@@ -63,7 +63,7 @@ func TestMapDeployments(t *testing.T) {
 			ReadyReplicas: 1,
 		},
 	}
-	mapDeployment, err := DataMapping(deployment)
+	mapDeployment, err := DeploymentDataMapping(deployment)
 	assert.NoError(t, err)
 	md := mapDeployment.Data.(map[string]interface{})
 

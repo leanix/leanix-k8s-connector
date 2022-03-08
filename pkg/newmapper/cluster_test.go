@@ -63,5 +63,5 @@ func TestAggregateNodes(t *testing.T) {
 
 	assert.Equal(t, 2, nodeAggregate["nodesCount"])
 	assert.ElementsMatch(t, []string{"v1.11.5"}, nodeAggregate["k8sVersion"])
-	assert.ElementsMatch(t, []string{"Ubuntu 16.04.5 LTS"}, nodeAggregate["osImage"])
+	assert.Equal(t, "Ubuntu 16.04.5 LTS", nodeAggregate["osImage"])
 }

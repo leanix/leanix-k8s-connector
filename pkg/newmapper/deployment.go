@@ -34,7 +34,7 @@ func MapDeployments(clusterName string, deployments *appsvs.DeploymentList) ([]m
 	var groupDeployments []mapper.KubernetesObject
 	for _, deployment := range deployments.Items {
 		deployment.ClusterName = clusterName
-		mappedDeployment, err := DataMapping(deployment)
+		mappedDeployment, err := DeploymentDataMapping(deployment)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func MapDeployments(clusterName string, deployments *appsvs.DeploymentList) ([]m
 }
 
 //create a data object that contains name, labels, deploymentime, namespace, version and image of the deployment and returns as KubernetesObject
-func DataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
+func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
 	var deploymentData map[string]interface{}
 	deploymentData = make(map[string]interface{})
 	var version string

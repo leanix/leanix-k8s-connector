@@ -1,6 +1,8 @@
 package newmapper
 
 import (
+	"strings"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/mapper"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
@@ -39,9 +41,10 @@ func AggregrateNodes(nodes *corev1.NodeList) (map[string]interface{}, error) {
 	for _, n := range items {
 		k8sVersion.Add(n.Status.NodeInfo.KubeletVersion)
 		osImage.Add(n.Status.NodeInfo.OSImage)
+
 	}
 	nodeAggregate["k8sVersion"] = k8sVersion.Items()
 	nodeAggregate["nodesCount"] = len(items)
-	nodeAggregate["osImage"] = osImage.Items()
+	nodeAggregate["osImage"] = strings.Join(osImage.Items(), ", ")
 	return nodeAggregate, nil
 }
