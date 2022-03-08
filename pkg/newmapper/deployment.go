@@ -1,6 +1,7 @@
 package newmapper
 
 import (
+	"strings"
 	"time"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
@@ -54,19 +55,20 @@ func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObje
 		deploymentVersion = "unknown version"
 		deploymentVersionShort = "unknown"
 	}
+	deploymentImage := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[0]
 	deploymentId := deployment.ClusterName + "/" + deployment.Namespace + "/" + deployment.Name + "/" + deploymentVersionShort
 	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name + " (" + deploymentVersion + ")" + " in " + deployment.ClusterName
 	deploymentData["category"] = "deployment"
 	deploymentData["clusterName"] = deployment.ClusterName
 	deploymentData["version"] = version
-	deploymentData["image"] = deployment.Spec.Template.Spec.Containers[0].Image
+	deploymentData["image"] = deploymentImage
 	deploymentData["deploymentTime"] = deployment.CreationTimestamp.UTC().Format(time.RFC3339)
 	deploymentData["k8sName"] = deployment.Name
 	deploymentData["namespace"] = deployment.Namespace
 	deploymentData["labels"] = deployment.ObjectMeta.Labels
 	deploymentData["annotations"] = deployment.ObjectMeta.Annotations
 	deploymentData["updateStrategy"] = deployment.Spec.Strategy.Type
-	deploymentData["k8sImage"] = deployment.Spec.Template.Spec.Containers[0].Image
+	deploymentData["k8sImage"] = deploymentImage
 	deploymentData["limits"] = deployment.Spec.Template.Spec.Containers[0].Resources.Limits
 	deploymentData["requests"] = deployment.Spec.Template.Spec.Containers[0].Resources.Requests
 	deploymentData["replicas"] = deployment.Status.Replicas
