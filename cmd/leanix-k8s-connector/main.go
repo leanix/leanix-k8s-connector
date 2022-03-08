@@ -72,6 +72,8 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
 	if err != nil {
 		log.Error(err)
+		log.Info("Failed to authenticate. Terminating..")
+		return nil, err
 	}
 	log.Info("Integration Hub authentication successful.")
 	startResponse, err := leanix.SelfStartRun(viper.GetString(integrationAPIFqdnFlag), accessToken, viper.GetString(integrationAPIDatasourceNameFlag))
