@@ -36,7 +36,6 @@ const (
 	blacklistNamespacesFlag          string = "blacklist-namespaces"
 	lxWorkspaceFlag                  string = "lx-workspace"
 	localFlag                        string = "local"
-	kubeConfigPathFlag               string = "kube-config-path"
 )
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
@@ -96,16 +95,11 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 	var config *restclient.Config
 	if viper.GetBool(localFlag) {
-		if viper.GetString(kubeConfigPathFlag) != "" {
-			config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(viper.GetString(kubeConfigPathFlag)))
-		} else {
-			config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
-		}
+		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
 		if err != nil {
 			return nil, err
 		}
 	} else {
-
 		config, err = restclient.InClusterConfig()
 		if err != nil {
 			log.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
@@ -240,7 +234,6 @@ func parseFlags() error {
 	flag.StringSlice(blacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
 	flag.String(lxWorkspaceFlag, "", "name of the LeanIX workspace the data is sent to")
 	flag.Bool(localFlag, false, "use local kubeconfig from home folder")
-	flag.String(kubeConfigPathFlag, "", "path to kubeconfig file")
 	flag.Parse()
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)
