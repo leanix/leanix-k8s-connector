@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-03-09 - 6.4.0
+* Added beta version access to in development k8s-connector version. Version usage is configured in the k8s integration page in the workspace.
+
 ## Release 2022-03-07 - 6.3.3
 * Increased logging and added more precise log messages
 
