@@ -6,6 +6,7 @@ VERSION_LATEST := 6.latest
 FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 
 IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
+IMAGE_LATEST := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION_LATEST)
 FULL_IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(FULL_VERSION)
 LATEST := $(DOCKER_NAMESPACE)/$(PROJECT):latest
 GOOS ?= linux
@@ -31,7 +32,7 @@ push:
 	docker push $(IMAGE)
 	docker push $(FULL_IMAGE)
 	docker push $(LATEST)
-	docker push $(VERSION_LATEST)
+	docker push $(IMAGE_LATEST)
 
 test:
 	go test ./pkg/...
