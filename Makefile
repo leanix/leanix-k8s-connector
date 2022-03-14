@@ -26,7 +26,7 @@ version:
 	@echo $(VERSION)
 
 image:
-	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(VERSION_LATEST) .
+	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(IMAGE_LATEST) .
 
 push:
 	docker push $(IMAGE)
