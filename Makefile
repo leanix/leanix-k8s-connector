@@ -32,7 +32,7 @@ push:
 	docker push $(IMAGE)
 	docker push $(FULL_IMAGE)
 	docker push $(LATEST)
-	docker push $(VERSION_LATEST)
+	docker push $(IMAGE_LATEST)
 
 test:
 	go test ./pkg/...
