@@ -29,6 +29,7 @@ spec:
               runAsGroup: {{ .Values.securityContext.groupId | default 65534 }}
               allowPrivilegeEscalation: false
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: "{{ .Values.image.pullPolicy }}"
             env:
             - name: LX_WORKSPACE
               value: "{{ .Values.args.lxWorkspace }}"
