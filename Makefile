@@ -2,6 +2,7 @@ PROJECT ?= leanix-k8s-connector
 DOCKER_NAMESPACE ?= leanixacrpublic.azurecr.io
 
 VERSION := 6.4.0
+VERSION_LATEST := 6.latest
 FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 
 IMAGE := $(DOCKER_NAMESPACE)/$(PROJECT):$(VERSION)
@@ -24,12 +25,13 @@ version:
 	@echo $(VERSION)
 
 image:
-	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) .
+	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(VERSION_LATEST) .
 
 push:
 	docker push $(IMAGE)
 	docker push $(FULL_IMAGE)
 	docker push $(LATEST)
+	docker push $(VERSION_LATEST)
 
 test:
 	go test ./pkg/...
