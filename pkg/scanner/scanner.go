@@ -47,7 +47,7 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 	}
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
 	if err != nil {
-		log.Infof("KubernetesScan: Before scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+		log.Errorf("KubernetesScan: Before scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
 	}
 	log.Debug("Listing nodes...")
 	nodes, err := kubernetesAPI.Nodes()
@@ -65,9 +65,10 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 	}
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
-	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
-	if err != nil {
-		log.Infof("KubernetesScan: After Scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS)
+	_, statusErr := leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
+	if statusErr != nil {
+		log.Errorf("KubernetesScan: After Scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, statusErr)
+
 	}
 	resourceGroupWhitelist := map[string]map[string]interface{}{
 		"": map[string]interface{}{
@@ -136,7 +137,7 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 			kubernetesObjects = append(kubernetesObjects, nko)
 		}
 	}
-	return kubernetesObjects, err
+	return kubernetesObjects, nil
 }
 
 func ServerPreferredListableResources(d discovery.DiscoveryInterface) ([]*metav1.APIResourceList, error) {
