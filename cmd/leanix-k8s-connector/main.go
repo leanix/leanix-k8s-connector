@@ -53,10 +53,14 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	log.Info("Uploading connector logs to iHub")
-	err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
-	if err != nil {
-		log.Error(err)
+	if startResponse != nil {
+		log.Info("Uploading connector logs to iHub")
+		err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+		if err != nil {
+			log.Error(err)
+		}
+	} else {
+		log.Error("Invalid response from integration hub. Can't upload logs.")
 	}
 }
 
