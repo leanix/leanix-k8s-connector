@@ -144,15 +144,21 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 	}{Message: message, Status: status, ProgressOrigin: "CONNECTOR"}
 	marshal, err := json.Marshal(body)
 	if err != nil {
-		fmt.Printf("Failed to marshal the request body")
+		log.Errorf("UpdateProgress: Failed to marshal the request body: '%s'", err)
 		return status, err
 	}
+	log.Debugf("UpdateProgress: callback url: '%s', body: '%s'", progressCallbackUrl, body)
 	resp, err := http.Post(progressCallbackUrl, "application/json", bytes.NewReader(marshal))
 	if err != nil {
 		return status, err
 	}
 	if resp.StatusCode != 200 {
-		err := fmt.Errorf("Integration Hub connector status[%s] could not be updated %s\n", status, resp.Status)
+		responseData, readErr := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if readErr != nil {
+			return status, readErr
+		}
+		err := fmt.Errorf("Integration Hub connector status[%s] could not be updated %s: '%s'\n", status, resp.Status, responseData)
 		return status, err
 	}
 	return status, nil
