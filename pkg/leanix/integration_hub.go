@@ -9,11 +9,8 @@ import (
 	"net/url"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
+	"github.com/leanix/leanix-k8s-connector/pkg/version"
 	"github.com/op/go-logging"
-)
-
-const (
-	CONNECTOR_VERSION string = "6.4.1"
 )
 
 type SelfStartResponse struct {
@@ -52,7 +49,7 @@ var log = logging.MustGetLogger("leanix-k8s-connector")
 func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStartResponse, error) {
 	datasourceRunUrl := fmt.Sprintf("https://%s/services/integration-hub/v1/datasources/%s/selfStart", fqdn, datasource)
 	req, err := http.NewRequest("POST", datasourceRunUrl, nil)
-	req.Header.Set("connector-version", CONNECTOR_VERSION)
+	req.Header.Set("connector-version", version.VERSION)
 	req.Header.Set("connector-name", "k8s-connector")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
