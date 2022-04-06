@@ -20,7 +20,7 @@ clean:
 	$(RM) bin/$(PROJECT)
 
 build:
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/$(PROJECT) -ldflags '-X $(shell go list -m)/pkg/version.VERSION=${FULL_VERSION} -extldflags "-static"' ./cmd/$(PROJECT)/main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/$(PROJECT) -ldflags '-X $(shell go list -m)/pkg/version.VERSION=${VERSION} -X $(shell go list -m)/pkg/version.FULL_VERSION=${FULL_VERSION} -extldflags "-static"' ./cmd/$(PROJECT)/main.go
 
 version:
 	@echo $(VERSION)
