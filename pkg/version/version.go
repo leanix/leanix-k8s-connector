@@ -16,6 +16,9 @@ limitations under the License.
 
 package version
 
-// VERSION is the app-global version string, which should be substituted with a
+// FULL_VERSION is the app-global version string, which should be substituted with a
 // real value during build.
+var FULL_VERSION = "UNKNOWN"
+
+// VERSION is the  semantic version string used for iHub or for any future usages.
 var VERSION = "UNKNOWN"
