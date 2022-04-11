@@ -90,7 +90,8 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 
 	log.Info("Getting connector config...")
 	log.Info("----------Start----------")
-	log.Infof("LeanIX Kubernetes connector build version: %s", version.VERSION)
+	log.Infof("LeanIX Kubernetes connector version: %s", version.VERSION)
+	log.Infof("LeanIX Kubernetes connector build version: %s", version.FULL_VERSION)
 	log.Infof("LeanIX integration version: %s", startResponse.BindingKey.LXVersion)
 	log.Infof("LeanIX connector id: %s", startResponse.BindingKey.ConnectorId)
 	log.Infof("LeanIX connector type: %s", startResponse.BindingKey.ConnectorType)
