@@ -12,7 +12,7 @@ import (
 func TestAggregateNodes(t *testing.T) {
 	nodes := &corev1.NodeList{
 		Items: []corev1.Node{
-			corev1.Node{
+			{
 				Status: corev1.NodeStatus{
 					NodeInfo: corev1.NodeSystemInfo{
 						Architecture:            "amd64",
@@ -34,7 +34,7 @@ func TestAggregateNodes(t *testing.T) {
 					},
 				},
 			},
-			corev1.Node{
+			{
 				Status: corev1.NodeStatus{
 					NodeInfo: corev1.NodeSystemInfo{
 						Architecture:            "amd64",
