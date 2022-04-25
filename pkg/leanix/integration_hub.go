@@ -86,7 +86,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 		}
 		return &startResponse, errorBinding
 	}
-	errorConfig := validateConnectorConfiguration(startResponse.ConnectorConfiguration)
+	errorConfig := validateConnectorConfiguration(startResponse.ConnectorConfiguration, startResponse.BindingKey.ConnectorId)
 	if errorConfig != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
 		if err != nil {
@@ -105,7 +105,7 @@ func validateBindingKey(bindingKey BindingKey) error {
 	}
 
 	if bindingKey.ConnectorId == "" {
-		return fmt.Errorf("INVALID BINDING KEY: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+		return fmt.Errorf("INVALID BINDING KEY: CONNECTOR ID CANNOT BE EMPTY")
 	}
 
 	if bindingKey.ProcessingDirection == "" {
@@ -123,13 +123,15 @@ func validateBindingKey(bindingKey BindingKey) error {
 	return nil
 }
 
-func validateConnectorConfiguration(configuration ConnectorConfiguration) error {
-	if configuration.ResolveStrategy == "" {
-		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
-	}
+func validateConnectorConfiguration(configuration ConnectorConfiguration, connectorId string) error {
+	if connectorId != "leanix-k8s-v3-connector" {
+		if configuration.ResolveStrategy == "" {
+			return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE STRATEGY CANNOT BE EMPTY")
+		}
 
-	if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
-		return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+		if configuration.ResolveStrategy == "label" && configuration.ResolveLabel == "" {
+			return fmt.Errorf("INVALID CONNECTOR CONFIGURATION: RESOLVE LABEL CANNOT BE EMPTY IF THE RESOLVE STRATEGY IS 'LABEL'")
+		}
 	}
 
 	if configuration.ClusterName == "" {
