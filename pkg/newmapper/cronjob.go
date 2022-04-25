@@ -59,7 +59,7 @@ func CronJobSoftwareArtifact(CronJob batchv1.CronJob) (*mapper.KubernetesObject,
 	}, nil
 }
 
-//create a data object that contains name, labels, CronJobime, namespace, version and image of the CronJob and returns as KubernetesObject
+//create a data object that contains name, labels, CronJobTime, namespace, version and image of the CronJob and returns as KubernetesObject
 func CronJobDataMapping(CronJob batchv1.CronJob) (*mapper.KubernetesObject, error) {
 	var CronJobData map[string]interface{}
 	CronJobData = make(map[string]interface{})
