@@ -32,6 +32,9 @@ func MapCronJobs(clusterName string, cronJobs *batchv1.CronJobList) ([]mapper.Ku
 	for _, cronJob := range cronJobs.Items {
 		cronJob.ClusterName = clusterName
 		cronJobArtifact, err := CronJobSoftwareArtifact(cronJob)
+		if err != nil {
+			return nil, err
+		}
 		mappedCronJob, err := CronJobDataMapping(cronJob)
 		if err != nil {
 			return nil, err

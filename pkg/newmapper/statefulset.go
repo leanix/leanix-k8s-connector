@@ -32,6 +32,9 @@ func MapStatefulSets(clusterName string, StatefulSets *appsv1.StatefulSetList) (
 	for _, StatefulSet := range StatefulSets.Items {
 		StatefulSet.ClusterName = clusterName
 		StatefulSetArtifact, err := StatefulSetSoftwareArtifact(StatefulSet)
+		if err != nil {
+			return nil, err
+		}
 		mappedStatefulSet, err := StatefulSetDataMapping(StatefulSet)
 		if err != nil {
 			return nil, err
