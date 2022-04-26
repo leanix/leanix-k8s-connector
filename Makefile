@@ -1,7 +1,7 @@
 PROJECT ?= leanix-k8s-connector
 DOCKER_NAMESPACE ?= leanixacrpublic.azurecr.io
 
-VERSION := 6.5.0
+VERSION := 6.5.1
 VERSION_LATEST := 6.latest
 FULL_VERSION := $(VERSION)-$(shell git describe --tags --always)
 
