@@ -25,7 +25,18 @@ func ScanKubernetes(clusterName string, config *rest.Config) ([]mapper.Kubernete
 	if err != nil {
 		return nil, err
 	}
+	cronJobs, err := GetCronJobs(clusterName, namespaces, kubernetesAPI)
+	if err != nil {
+		return nil, err
+	}
+	statefulSets, err := GetStatefulSets(clusterName, namespaces, kubernetesAPI)
+	if err != nil {
+		return nil, err
+	}
+
 	scannedObjects = append(scannedObjects, *cluster)
 	scannedObjects = append(scannedObjects, deployments...)
+	scannedObjects = append(scannedObjects, cronJobs...)
+	scannedObjects = append(scannedObjects, statefulSets...)
 	return scannedObjects, nil
 }
