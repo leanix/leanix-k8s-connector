@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-04-08 - 6.5.1
+* Added software Artifact mapping to beta version
+
 ## Release 2022-04-08 - 6.5.0
 * Upgraded to new iHub URL for self start runs.
 ## Release 2022-03-16 - 6.4.1
