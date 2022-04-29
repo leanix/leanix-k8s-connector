@@ -1,10 +1,14 @@
 # LeanIX Kubernetes Connector Changelog
 
-## Release 2022-04-08 - 6.5.1
+## Release 2022-04-29 - 6.5.2
 * Added software Artifact mapping to beta version
+
+## Release 2022-04-26 - 6.5.1
+* Update the base image for vulnerability fix. More details [here](https://security.snyk.io/vuln/SNYK-ALPINE313-BUSYBOX-2440609)
 
 ## Release 2022-04-08 - 6.5.0
 * Upgraded to new iHub URL for self start runs.
+
 ## Release 2022-03-16 - 6.4.1
 * Added error scopes to prevent crashes and also extended the logging for integration hub connection
 
