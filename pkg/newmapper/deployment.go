@@ -31,13 +31,29 @@ func MapDeployments(clusterName string, deployments *appsvs.DeploymentList) ([]m
 	var groupDeployments []mapper.KubernetesObject
 	for _, deployment := range deployments.Items {
 		deployment.ClusterName = clusterName
+		deploymentArtifact, err := DeploymentSoftwareArtifact(deployment)
 		mappedDeployment, err := DeploymentDataMapping(deployment)
 		if err != nil {
 			return nil, err
 		}
-		groupDeployments = append(groupDeployments, *mappedDeployment)
+		groupDeployments = append(groupDeployments, *mappedDeployment, *deploymentArtifact)
 	}
 	return groupDeployments, nil
+}
+
+func DeploymentSoftwareArtifact(Deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
+	var DeploymentData map[string]interface{}
+	DeploymentData = make(map[string]interface{})
+	DeploymentId := Deployment.Namespace + "_" + Deployment.Name
+	DeploymentData["clusterName"] = Deployment.ClusterName
+	DeploymentData["name"] = Deployment.Namespace + ":" + Deployment.Name
+	DeploymentData["category"] = "Microservice"
+
+	return &mapper.KubernetesObject{
+		ID:   DeploymentId,
+		Type: "Microservice",
+		Data: DeploymentData,
+	}, nil
 }
 
 //create a data object that contains name, labels, deploymentime, namespace, version and image of the deployment and returns as KubernetesObject
