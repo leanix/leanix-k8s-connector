@@ -90,6 +90,7 @@ func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObje
 	deploymentData["requests"] = deployment.Spec.Template.Spec.Containers[0].Resources.Requests
 	deploymentData["replicas"] = deployment.Status.Replicas
 	deploymentData["readyReplicas"] = deployment.Status.ReadyReplicas
+	deploymentData["softwareArtifact"] = deployment.Namespace + "_" + deployment.Name
 	return &mapper.KubernetesObject{
 		ID:   deploymentId,
 		Type: "Deployment",
