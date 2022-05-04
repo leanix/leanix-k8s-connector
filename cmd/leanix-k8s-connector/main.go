@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/leanix/leanix-k8s-connector/pkg/iris"
 	"github.com/leanix/leanix-k8s-connector/pkg/leanix"
 	"github.com/leanix/leanix-k8s-connector/pkg/mapper"
 	"github.com/leanix/leanix-k8s-connector/pkg/newmapper"
@@ -17,6 +18,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/op/go-logging"
+	"k8s.io/client-go/rest"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -47,24 +49,44 @@ func main() {
 		log.Error(err)
 	}
 	enableVerbose(stdoutLogger, viper.GetBool(verboseFlag))
-
-	// use the current context in kubeconfig
-	startResponse, err := KubernetesScan(debugLogBuffer)
-	if err != nil {
-		log.Error(err)
+	var config *restclient.Config
+	if viper.GetBool(localFlag) {
+		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+		if err != nil {
+			log.Errorf("Failed to load kube config. Running locally?\n%s", err)
+		}
+	} else {
+		config, err = restclient.InClusterConfig()
+		if err != nil {
+			log.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
+		}
 	}
-	if startResponse != nil {
-		log.Info("Uploading connector logs to iHub")
-		err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+	if viper.GetBool(localFlag) {
+		log.Info("Calling local vsm-iris service")
+		results, err := iris.ScanKubernetes(config, viper.GetString(lxWorkspaceFlag))
+		if err != nil {
+			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
+		}
+		fmt.Println(results)
+	} else {
+		// use the current context in kubeconfig
+		startResponse, err := KubernetesScan(debugLogBuffer, config)
 		if err != nil {
 			log.Error(err)
 		}
-	} else {
-		log.Error("Invalid response from integration hub. Can't upload logs.")
+		if startResponse != nil {
+			log.Info("Uploading connector logs to iHub")
+			err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			log.Error("Invalid response from integration hub. Can't upload logs.")
+		}
 	}
 }
 
-func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartResponse, err error) {
+func KubernetesScan(debugLogBuffer *bytes.Buffer, config *rest.Config) (response *leanix.SelfStartResponse, err error) {
 	log.Info("----------Attempting to Self Start via Integration Hub----------")
 
 	accessToken, err := leanix.Authenticate(viper.GetString(integrationAPIFqdnFlag), viper.GetString(integrationAPITokenFlag))
@@ -99,19 +121,6 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	log.Infof("Target LeanIX workspace: %s", viper.GetString(lxWorkspaceFlag))
 	log.Infof("Target Kubernetes cluster name: %s", startResponse.ConnectorConfiguration.ClusterName)
 
-	var config *restclient.Config
-	if viper.GetBool(localFlag) {
-		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		config, err = restclient.InClusterConfig()
-		if err != nil {
-			log.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
-			return nil, err
-		}
-	}
 	log.Debugf("Kubernetes master from config: %s", config.Host)
 	kubernetesObjects := make([]mapper.KubernetesObject, 0)
 	if startResponse.BindingKey.ConnectorId == "leanix-k8s-v3-connector" {
@@ -166,6 +175,10 @@ func KubernetesScan(debugLogBuffer *bytes.Buffer) (response *leanix.SelfStartRes
 	}
 	log.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
+	if err != nil {
+		return nil, err
+	}
+
 	if err != nil {
 		_, statusErr := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to marshal ldif")
 		if statusErr != nil {
