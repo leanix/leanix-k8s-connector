@@ -63,6 +63,7 @@ func main() {
 	}
 	if viper.GetBool(localFlag) {
 		log.Info("Calling local vsm-iris service")
+		iris.WatchKubernetes(config, viper.GetString(lxWorkspaceFlag))
 		results, err := iris.ScanKubernetes(config, viper.GetString(lxWorkspaceFlag))
 		if err != nil {
 			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
