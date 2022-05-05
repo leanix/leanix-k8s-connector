@@ -92,6 +92,7 @@ func StatefulSetDataMapping(StatefulSet appsv1.StatefulSet) (*mapper.KubernetesO
 	StatefulSetData["requests"] = StatefulSet.Spec.Template.Spec.Containers[0].Resources.Requests
 	StatefulSetData["replicas"] = StatefulSet.Status
 	StatefulSetData["readyReplicas"] = StatefulSet.Status
+	StatefulSetData["softwareArtifact"] = StatefulSet.Namespace + "_" + StatefulSet.Name
 	return &mapper.KubernetesObject{
 		ID:   StatefulSetId,
 		Type: "StatefulSet",

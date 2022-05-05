@@ -92,6 +92,7 @@ func CronJobDataMapping(CronJob batchv1.CronJob) (*mapper.KubernetesObject, erro
 	CronJobData["requests"] = CronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Requests
 	CronJobData["replicas"] = CronJob.Status
 	CronJobData["readyReplicas"] = CronJob.Status
+	CronJobData["softwareArtifact"] = CronJob.Namespace + "_" + CronJob.Name
 	return &mapper.KubernetesObject{
 		ID:   CronJobId,
 		Type: "CronJob",
