@@ -1,6 +1,6 @@
 # LeanIX Kubernetes Connector Changelog
 
-## Release 2022-04-29 - 6.5.3
+## Release 2022-05-05 - 6.5.3
 * Added relation between software artifacts and deployments
 
 ## Release 2022-04-29 - 6.5.2
