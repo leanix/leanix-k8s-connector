@@ -41,8 +41,15 @@ type DiscoveryItem struct {
 	Data    interface{} `json:"data"`
 }
 
-func ScanKubernetes(config *rest.Config, workspaceId string) ([]mapper.KubernetesObject, error) {
-	resp, err := http.Get("http://127.0.0.1:8080/k8sConnector/getConfiguration")
+func ScanKubernetes(config *rest.Config, workspaceId string, accessToken string) ([]mapper.KubernetesObject, error) {
+	configUrl := "http://localhost:8080/configurations/" + workspaceId + "/kubernetesConnector/1234"
+	req, err := http.NewRequest("GET", configUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	if err != nil {
+		log.Infof("SelfStartRun: Error while retrieving configuration from %s: %v", configUrl, err)
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +58,7 @@ func ScanKubernetes(config *rest.Config, workspaceId string) ([]mapper.Kubernete
 	if err != nil {
 		return nil, err
 	}
+	log.Infof("Configuration used: %s", responseData)
 	kubernetesConfig := kubernetesConfig{}
 	json.Unmarshal(responseData, &kubernetesConfig)
 	fmt.Println(kubernetesConfig)
@@ -74,12 +82,26 @@ func ScanKubernetes(config *rest.Config, workspaceId string) ([]mapper.Kubernete
 	if err != nil {
 		return nil, err
 	}
-	response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(scannedObjectsByte))
+	resultUrl := "http://127.0.0.1:8080/results"
+	postReq, err := http.NewRequest("POST", resultUrl, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(scannedObjectsByte))
+	if err != nil {
+		log.Infof("Post results request: Error while posting results: %s", resultUrl)
+		return nil, err
+	}
+	response, err := http.DefaultClient.Do(postReq)
 	if err != nil {
 		return nil, err
 	}
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected response code %d", response.StatusCode)
+
+		return nil, err
+	}
+	if response.StatusCode == 200 {
+		log.Info(response)
+		return nil, nil
 	}
 	return nil, nil
 }

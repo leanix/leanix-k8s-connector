@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-test/deep"
+	"github.com/op/go-logging"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -17,7 +17,9 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchKubernetes(config *rest.Config, workspaceId string) (string, error) {
+var log = logging.MustGetLogger("leanix-k8s-connector")
+
+func WatchKubernetes(config *rest.Config, workspaceId string, accessToken string) (string, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Panic(err.Error())
@@ -54,9 +56,9 @@ func onAdd(obj interface{}) {
 	}
 	response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
 	if err != nil {
-		log.Println(err)
+		log.Info(err)
 	}
-	log.Println(response)
+	log.Info(response)
 
 }
 func onUpdate(oldObj interface{}, newObj interface{}) {
@@ -74,9 +76,9 @@ func onUpdate(oldObj interface{}, newObj interface{}) {
 		}
 		response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
 		if err != nil {
-			log.Println(err)
+			log.Info(err)
 		}
-		log.Println(response)
+		log.Info(response)
 	}
 
 }
@@ -92,7 +94,7 @@ func onDelete(obj interface{}) {
 	}
 	response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
 	if err != nil {
-		log.Println(err)
+		log.Info(err)
 	}
-	log.Println(response)
+	log.Info(response)
 }

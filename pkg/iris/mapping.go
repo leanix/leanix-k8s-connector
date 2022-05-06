@@ -36,9 +36,9 @@ func MapDeployments(clusterName string, workspaceId string, deployments *appsv1.
 			Subject: "deployment/" + deployment.Name,
 			Data:    deployment,
 		}
-		var DeploymentData map[string]interface{}
+		var DeploymentData = make(map[string]interface{})
 
-		DeploymentData["clusterName"] = deployment.ClusterName
+		DeploymentData["clusterName"] = clusterName
 		DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
 		DeploymentData["category"] = "Microservice"
 		softwareArtifactItem := DiscoveryItem{
@@ -55,7 +55,7 @@ func MapDeployments(clusterName string, workspaceId string, deployments *appsv1.
 	return deploymentDiscoveryItems, nil
 }
 
-func MapSoftwareArtifact(clusterName string, workspaceId string, deployment *appsv1.Deployment) (DiscoveryItem, error) {
+func MapSoftwareArtifacts(clusterName string, workspaceId string, deployment *appsv1.Deployment) (DiscoveryItem, error) {
 	var DeploymentData map[string]interface{}
 	DeploymentData["clusterName"] = clusterName
 	DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
