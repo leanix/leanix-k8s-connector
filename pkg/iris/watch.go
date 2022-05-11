@@ -1,10 +1,8 @@
 package iris
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/go-test/deep"
 	"github.com/op/go-logging"
@@ -54,11 +52,7 @@ func onAdd(obj interface{}) {
 	if err != nil {
 		log.Panic(err.Error())
 	}
-	response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
-	if err != nil {
-		log.Info(err)
-	}
-	log.Info(response)
+	PostResults(deploymentBytes)
 
 }
 func onUpdate(oldObj interface{}, newObj interface{}) {
@@ -74,11 +68,7 @@ func onUpdate(oldObj interface{}, newObj interface{}) {
 		if err != nil {
 			log.Panic(err.Error())
 		}
-		response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
-		if err != nil {
-			log.Info(err)
-		}
-		log.Info(response)
+		PostResults(deploymentBytes)
 	}
 
 }
@@ -92,9 +82,5 @@ func onDelete(obj interface{}) {
 	if err != nil {
 		log.Panic(err.Error())
 	}
-	response, err := http.Post("http://127.0.0.1:8080/k8sConnector/postResults", "application/json", bytes.NewBuffer(deploymentBytes))
-	if err != nil {
-		log.Info(err)
-	}
-	log.Info(response)
+	PostResults(deploymentBytes)
 }

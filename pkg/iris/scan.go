@@ -1,9 +1,7 @@
 package iris
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -22,10 +20,10 @@ type kubernetesConfig struct {
 /* {
 	"id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
 	"scope": "workspace/123e4567-e89b-12d3-a456-426614174000",
-	"type": "leanix.vsm.item-discovered.deployment",
+	"type": "leanix.vsm.item-discovered.softwareArtifact",
 	"source": "kubernetes/some-cluster",
 	"time": "2019-11-18T15:13:39.4589254Z",
-	"subject": "deployment/deployment-name",
+	"subject": "softwareArtifact/app1",
 	"data": {
 		"key": "value",
 	}
@@ -42,7 +40,7 @@ type DiscoveryItem struct {
 }
 
 func ScanKubernetes(config *rest.Config, workspaceId string, accessToken string) ([]mapper.KubernetesObject, error) {
-	configUrl := "http://localhost:8080/configurations/" + workspaceId + "/kubernetesConnector/1234"
+	configUrl := "http://localhost:8080/configurations/fc89066b-1f04-4ece-94b8-25f968f29540/fc89066b-1f04-4ece-94b8-25f968f29540"
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
@@ -61,7 +59,6 @@ func ScanKubernetes(config *rest.Config, workspaceId string, accessToken string)
 	log.Infof("Configuration used: %s", responseData)
 	kubernetesConfig := kubernetesConfig{}
 	json.Unmarshal(responseData, &kubernetesConfig)
-	fmt.Println(kubernetesConfig)
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
 		return nil, err
@@ -82,26 +79,9 @@ func ScanKubernetes(config *rest.Config, workspaceId string, accessToken string)
 	if err != nil {
 		return nil, err
 	}
-	resultUrl := "http://127.0.0.1:8080/results"
-	postReq, err := http.NewRequest("POST", resultUrl, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(scannedObjectsByte))
-	if err != nil {
-		log.Infof("Post results request: Error while posting results: %s", resultUrl)
-		return nil, err
-	}
-	response, err := http.DefaultClient.Do(postReq)
+	PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return nil, err
-	}
-	if response.StatusCode != 200 {
-
-		return nil, err
-	}
-	if response.StatusCode == 200 {
-		log.Info(response)
-		return nil, nil
 	}
 	return nil, nil
 }
