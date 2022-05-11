@@ -38,6 +38,8 @@ const (
 	blacklistNamespacesFlag          string = "blacklist-namespaces"
 	lxWorkspaceFlag                  string = "lx-workspace"
 	localFlag                        string = "local"
+	irisFlag                         string = "iris"
+	configurationNameFlag            string = "configuration-name"
 )
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
@@ -66,16 +68,10 @@ func main() {
 		log.Error(err)
 		log.Info("Failed to authenticate. Terminating..")
 	}
-	if viper.GetBool(localFlag) {
-		if false {
-			log.Info("Calling local vsm-iris service")
-			//iris.WatchKubernetes(config, viper.GetString(lxWorkspaceFlag))
-		} else {
-			results, err := iris.ScanKubernetes(config, viper.GetString(lxWorkspaceFlag), accessToken)
-			if err != nil {
-				log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
-			}
-			fmt.Println(results)
+	if viper.GetBool(irisFlag) {
+		err := iris.ScanKubernetes(config, viper.GetString(lxWorkspaceFlag), viper.GetString(configurationNameFlag), accessToken)
+		if err != nil {
+			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}
 	} else {
 		// use the current context in kubeconfig
@@ -267,6 +263,8 @@ func parseFlags() error {
 	flag.StringSlice(blacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
 	flag.String(lxWorkspaceFlag, "", "name of the LeanIX workspace the data is sent to")
 	flag.Bool(localFlag, false, "use local kubeconfig from home folder")
+	flag.Bool(irisFlag, false, "send kubernetes events to vsm-iris service instead of ihub")
+	flag.String(configurationNameFlag, "", "Leanix configuration name created on the workspace")
 	flag.Parse()
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)
@@ -297,6 +295,12 @@ func parseFlags() error {
 				return fmt.Errorf("%s flag must be set", azureContainerFlag)
 			}
 		}
+	}
+	if viper.GetBool(irisFlag) {
+		if viper.GetString(configurationNameFlag) == "" {
+			return fmt.Errorf("%s flag must be set", configurationNameFlag)
+		}
+		return nil
 	}
 	if viper.GetString(integrationAPIDatasourceNameFlag) == "" {
 		return fmt.Errorf("%s flag must be set", integrationAPIDatasourceNameFlag)

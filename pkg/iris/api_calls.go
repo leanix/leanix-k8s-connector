@@ -7,6 +7,26 @@ import (
 	"net/http"
 )
 
+func GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
+	configUrl := "http://localhost:8080/configurations/kubernetesConnector/" + configurationName
+	req, err := http.NewRequest("GET", configUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	if err != nil {
+		log.Infof("SelfStartRun: Error while retrieving configuration from %s: %v", configUrl, err)
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return responseData, nil
+}
+
 func PostResults(results []byte, accessToken string) (string, error) {
 	resultUrl := "http://localhost:8080/results"
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
@@ -30,5 +50,5 @@ func PostResults(results []byte, accessToken string) (string, error) {
 		err := fmt.Errorf("Posting results status[%s]could not be processed: '%s'\n", resp.Status, responseData)
 		return "", err
 	}
-	return "", nil
+	return "Events posted successfully", nil
 }

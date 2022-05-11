@@ -2,19 +2,17 @@ package iris
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
-	"github.com/leanix/leanix-k8s-connector/pkg/mapper"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
+	"github.com/op/go-logging"
 	"k8s.io/client-go/rest"
 )
 
 type kubernetesConfig struct {
-	ID       string `json:"id"`
-	Schedule string `json:"schedule"`
-	Cluster  string `json:"cluster"`
+	ID                    string   `json:"id"`
+	Cluster               string   `json:"cluster"`
+	BlackListedNamespaces []string `json:"blacklistedNamespaces"`
 }
 
 /* {
@@ -39,49 +37,39 @@ type DiscoveryItem struct {
 	Data    interface{} `json:"data"`
 }
 
-func ScanKubernetes(config *rest.Config, workspaceId string, accessToken string) ([]mapper.KubernetesObject, error) {
-	configUrl := "http://localhost:8080/configurations/fc89066b-1f04-4ece-94b8-25f968f29540/fc89066b-1f04-4ece-94b8-25f968f29540"
-	req, err := http.NewRequest("GET", configUrl, nil)
-	req.Header.Set("Authorization", "Bearer "+accessToken)
+var log = logging.MustGetLogger("leanix-k8s-connector")
+
+func ScanKubernetes(config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
+	configuration, err := GetConfiguration(configurationName, accessToken)
 	if err != nil {
-		log.Infof("SelfStartRun: Error while retrieving configuration from %s: %v", configUrl, err)
-		return nil, err
+		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	responseData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	log.Infof("Configuration used: %s", responseData)
+	log.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
-	json.Unmarshal(responseData, &kubernetesConfig)
+	json.Unmarshal(configuration, &kubernetesConfig)
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var blacklistedNamespacesList []string
 	var scannedObjects []DiscoveryItem
-	namespaces, err := kubernetesAPI.Namespaces(blacklistedNamespacesList)
+	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	deployments, err := GetDeployments(kubernetesConfig.Cluster, workspaceId, namespaces, kubernetesAPI)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	PostResults(scannedObjectsByte, accessToken)
+	result, err := PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return nil, nil
+	log.Info(result)
+	return nil
 }

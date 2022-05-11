@@ -30,7 +30,7 @@ func MapDeployments(clusterName string, workspaceId string, deployments *appsv1.
 		deploymentItem := DiscoveryItem{
 			ID:      deployment.Namespace + ":" + deployment.Name + "-" + deployment.ClusterName,
 			Scope:   "workspace/" + workspaceId,
-			Type:    "leanix.vsm.item-discovered.deployment",
+			Type:    "leanix.vsm.item-discovered.runtimeObject",
 			Source:  "kubernetes/" + clusterName,
 			Time:    deployment.CreationTimestamp.String(),
 			Subject: "deployment/" + deployment.Name,
@@ -40,11 +40,11 @@ func MapDeployments(clusterName string, workspaceId string, deployments *appsv1.
 
 		DeploymentData["clusterName"] = clusterName
 		DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
-		DeploymentData["category"] = "Microservice"
+		DeploymentData["type"] = "namespaceBased"
 		softwareArtifactItem := DiscoveryItem{
 			ID:      deployment.Namespace + "_" + deployment.Name,
 			Scope:   "workspace/" + workspaceId,
-			Type:    "leanix.vsm.item-discovered.softwareArtifact",
+			Type:    "leanix.vsm.item-discovered.kubernetesService",
 			Source:  "kubernetes/" + clusterName,
 			Time:    deployment.CreationTimestamp.String(),
 			Subject: "softwareArtifact/" + deployment.Name,
@@ -53,38 +53,4 @@ func MapDeployments(clusterName string, workspaceId string, deployments *appsv1.
 		deploymentDiscoveryItems = append(deploymentDiscoveryItems, deploymentItem, softwareArtifactItem)
 	}
 	return deploymentDiscoveryItems, nil
-}
-
-func MapSoftwareArtifacts(clusterName string, workspaceId string, deployment *appsv1.Deployment) (DiscoveryItem, error) {
-	var DeploymentData map[string]interface{}
-	DeploymentData["clusterName"] = clusterName
-	DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
-	DeploymentData["category"] = "Microservice"
-	deploymentItem := DiscoveryItem{
-		ID:      deployment.Namespace + ":" + deployment.Name,
-		Scope:   "workspace/" + workspaceId,
-		Type:    "leanix.vsm.item-discovered.softwareArtifact",
-		Source:  "kubernetes/" + clusterName,
-		Time:    deployment.CreationTimestamp.String(),
-		Subject: "softwareArtifact/" + deployment.Name,
-		Data:    DeploymentData,
-	}
-	return deploymentItem, nil
-}
-
-func MapDeleteSoftwareArtifact(clusterName string, workspaceId string, deployment *appsv1.Deployment) (DiscoveryItem, error) {
-	var DeploymentData map[string]interface{}
-	DeploymentData["clusterName"] = clusterName
-	DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
-	DeploymentData["category"] = "Microservice"
-	deploymentItem := DiscoveryItem{
-		ID:      deployment.Namespace + ":" + deployment.Name,
-		Scope:   "workspace/" + workspaceId,
-		Type:    "leanix.vsm.item-deleted.softwareArtifact",
-		Source:  "kubernetes/" + clusterName,
-		Time:    deployment.CreationTimestamp.String(),
-		Subject: "softwareArtifact/" + deployment.Name,
-		Data:    DeploymentData,
-	}
-	return deploymentItem, nil
 }
