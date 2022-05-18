@@ -55,9 +55,9 @@ jobs:
 
       - name: Create/Update github tag for latest
         uses: rickstaa/action-create-tag@v1
-          with:
-            tag: ${{ github.event.inputs.latest_version }}
-            message: ${{ github.event.inputs.description }}
+        with:
+          tag: ${{ github.event.inputs.latest_version }}
+          message: ${{ github.event.inputs.description }}
 
       - name: GoReleaser Release
         uses: goreleaser/goreleaser-action@v2
