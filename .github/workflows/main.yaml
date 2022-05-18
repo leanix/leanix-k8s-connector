@@ -31,12 +31,5 @@ jobs:
       - name: Build and test
         run: |
           VERSION=$(make version)
-          make
-          make image
-          docker run leanixacrpublic.azurecr.io/leanix-k8s-connector:${VERSION} --help | grep "pflag: help requested"
-
-      - name: Docker login and push image to Docker Hub
-        if: github.ref=='refs/heads/master'
-        run: |
-          echo ${{ secrets.ACR_PUBLIC_PASSWORD }} | docker login -u ${{ secrets.ACR_PUBLIC_USERNAME }} --password-stdin ${{ secrets.ACR_PUBLIC_LOGIN }}
-          make push
+          make build
+          make test
