@@ -1,0 +1,33 @@
+before:
+  hooks:
+    - make clean
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w -X github.com/leanix/leanix-k8s-connector/pkg/version.FULL_VERSION={{.Summary}} -X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION={{.Version}}
+    main: ./cmd/leanix-k8s-connector
+    binary: leanix-k8s-connector
+dockers:
+  - image_templates:
+      - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Version }}"
+      - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Major }}-latest"
+    dockerfile: Dockerfile
+    skip_push: true
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      amd64: x86_64
+changelog:
+  skip: true
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
