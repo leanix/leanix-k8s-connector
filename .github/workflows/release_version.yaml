@@ -1,9 +1,6 @@
 name: Release tag version
 
 on:
-  push:
-    branches:
-      - feature/HEL-1891*
   workflow_dispatch:
     branches:
       - feature/*
@@ -52,6 +49,15 @@ jobs:
           username: ${{ env.ACR_USERNAME }}
           password: ${{ env.ACR_PASSWORD }}
 
+      - name: Validate version input
+        run: echo ${{ github.event.inputs.version }}
+
+      - name: Extract base version
+        run: |
+          IFS="."
+          read -ra base_version <<< "${github.event.inputs.version}"
+          echo "BASE_VERSION=$base_version" >> $GITHUB_ENV
+
       - name: Create github tag for semantic version
         uses: rickstaa/action-create-tag@v1
         with:
@@ -61,7 +67,7 @@ jobs:
       - name: Create/Update github tag for latest
         uses: rickstaa/action-create-tag@v1
         with:
-          tag: ${{ github.event.inputs.latest_version }}
+          tag: ${{ env.BASE_VERSION }}
           message: ${{ github.event.inputs.description }}
 
       - name: GoReleaser Release
