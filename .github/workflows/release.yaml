@@ -1,4 +1,4 @@
-name: Release version
+name: Release tag version
 
 on:
   workflow_dispatch:
