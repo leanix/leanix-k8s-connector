@@ -1,4 +1,4 @@
-name: leanix-k8s-connector
+name: Release version
 
 on:
   workflow_dispatch:
