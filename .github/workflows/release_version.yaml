@@ -1,6 +1,9 @@
 name: Release tag version
 
 on:
+  push:
+    branches:
+      - feature/HEL-1891*
   workflow_dispatch:
     branches:
       - feature/*
