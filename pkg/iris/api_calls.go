@@ -7,8 +7,10 @@ import (
 	"net/http"
 )
 
+const IRIS_URI string = "https://eu.leanix.net/services/vsm-iris/v1/"
+
 func GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
-	configUrl := "http://localhost:8080/configurations/kubernetesConnector/" + configurationName
+	configUrl := fmt.Sprintf(IRIS_URI+"configurations/kubernetesConnector/%s", configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
@@ -28,7 +30,7 @@ func GetConfiguration(configurationName string, accessToken string) ([]byte, err
 }
 
 func PostResults(results []byte, accessToken string) (string, error) {
-	resultUrl := "http://localhost:8080/results"
+	resultUrl := IRIS_URI + "results"
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
