@@ -55,7 +55,7 @@ jobs:
       - name: Extract base version
         run: |
           IFS="."
-          read -ra base_version <<< "$github.event.inputs.version"
+          read -ra base_version <<< ${github.event.inputs.version}
           echo "BASE_VERSION=$base_version" >> $GITHUB_ENV
 
       - name: Create github tag for semantic version
