@@ -2,6 +2,8 @@ name: Release tag version
 
 on:
   workflow_dispatch:
+    branches:
+      - feature/*
     inputs:
       version:
         required: true
