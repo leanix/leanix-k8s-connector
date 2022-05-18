@@ -54,7 +54,7 @@ jobs:
 
       - name: Extract base version
         env:
-          SEM_VERSION: ${github.event.inputs.version}
+          SEM_VERSION: ${{ github.event.inputs.version }}
         run: |
           IFS="."
           read -ra base_version <<< "$SEM_VERSION"
