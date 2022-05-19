@@ -61,7 +61,11 @@ jobs:
           echo "BASE_VERSION=$base_version" >> $GITHUB_ENV
 
       - name: Update helm repo
-        run: ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
+        working-directory: ./helm
+        run: |
+        pwd
+        ls -l
+        ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
