@@ -1,0 +1,125 @@
+project_name: leanix-k8s-connector
+release:
+  github:
+    owner: leanix
+    name: leanix-k8s-connector
+  name_template: '{{.Tag}}'
+scoop:
+  name: leanix-k8s-connector
+  commit_author:
+    name: goreleaserbot
+    email: bot@goreleaser.com
+  commit_msg_template: Scoop update for {{ .ProjectName }} version {{ .Tag }}
+  goamd64: v1
+builds:
+  - id: leanix-k8s-connector
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+    goarm:
+      - "6"
+    gomips:
+      - hardfloat
+    goamd64:
+      - v1
+    targets:
+      - linux_amd64_v1
+      - darwin_amd64_v1
+    dir: .
+    main: ./cmd/leanix-k8s-connector
+    binary: leanix-k8s-connector
+    env:
+      - CGO_ENABLED=0
+    builder: go
+    gobinary: go
+    command: build
+    ldflags:
+      - -s -w -X github.com/leanix/leanix-k8s-connector/pkg/version.FULL_VERSION={{.Summary}} -X github.com/leanix/leanix-k8s-connector/pkg/version.VERSION={{.Version}}
+archives:
+  - id: default
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
+    replacements:
+      amd64: x86_64
+      darwin: Darwin
+      linux: Linux
+    format: tar.gz
+    files:
+      - src: license*
+      - src: LICENSE*
+      - src: readme*
+      - src: README*
+      - src: changelog*
+      - src: CHANGELOG*
+snapshot:
+  name_template: '{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}'
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
+  algorithm: sha256
+dockers:
+  - goos: linux
+    goarch: amd64
+    goamd64: v1
+    dockerfile: Dockerfile
+    image_templates:
+      - leanixacr.azurecr.io/leanix-k8s-connector:{{ .Version }}
+      - leanixacr.azurecr.io/leanix-k8s-connector:{{ .Major }}.latest
+    use: docker
+changelog:
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+  sort: asc
+  skip: true
+dist: dist
+env_files:
+  github_token: ~/.config/goreleaser/github_token
+  gitlab_token: ~/.config/goreleaser/gitlab_token
+  gitea_token: ~/.config/goreleaser/gitea_token
+before:
+  hooks:
+    - make clean
+source:
+  name_template: '{{ .ProjectName }}-{{ .Version }}'
+  format: tar.gz
+gomod:
+  gobinary: go
+announce:
+  twitter:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+  reddit:
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    url_template: '{{ .ReleaseURL }}'
+  slack:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+    username: GoReleaser
+  discord:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+    author: GoReleaser
+    color: "3888754"
+    icon_url: https://goreleaser.com/static/avatar.png
+  teams:
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+    color: '#2D313E'
+    icon_url: https://goreleaser.com/static/avatar.png
+  smtp:
+    subject_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    body_template: 'You can view details from: {{ .ReleaseURL }}'
+  mattermost:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    username: GoReleaser
+  linkedin:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+  telegram:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'
+  webhook:
+    message_template: '{ "message": "{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}"}'
+    content_type: application/json; charset=utf-8
+github_urls:
+  download: https://github.com
+gitlab_urls:
+  download: https://gitlab.com
