@@ -94,13 +94,13 @@ jobs:
       - name: Revert local changes and update helm repo for pull request
         working-directory: ./helm
         run: |
-          git reset --hard
           ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
           title: Release helm chart ${{ github.event.inputs.version }}
+          path: /helm
           body:
           branch: version/${{ github.event.inputs.version }}
           delete-branch: true
