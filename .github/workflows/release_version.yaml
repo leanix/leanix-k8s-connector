@@ -100,7 +100,8 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           title: Release helm chart ${{ github.event.inputs.version }}
-          path: /helm
+          add-paths: |
+            helm/*
           body:
           branch: version/${{ github.event.inputs.version }}
           delete-branch: true
