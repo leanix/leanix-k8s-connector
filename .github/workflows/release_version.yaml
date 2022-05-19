@@ -70,8 +70,6 @@ jobs:
       - name: Create github tag for semantic version
         uses: rickstaa/action-create-tag@v1
         with:
-          # TODO remove force afterwards
-          force_push_tag: true
           tag: ${{ github.event.inputs.version }}
           message: ${{ github.event.inputs.description }}
 

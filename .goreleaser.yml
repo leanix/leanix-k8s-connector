@@ -18,7 +18,6 @@ dockers:
       - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Version }}"
       - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Major }}.latest"
     dockerfile: Dockerfile
-    skip_push: true
 archives:
   - replacements:
       darwin: Darwin
