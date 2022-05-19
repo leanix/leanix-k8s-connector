@@ -94,7 +94,7 @@ jobs:
       - name: Revert local changes and update helm repo for pull request
         working-directory: ./helm
         run: |
-          git restore .
+          git reset -hard
           ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
