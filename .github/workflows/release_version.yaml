@@ -64,7 +64,7 @@ jobs:
         working-directory: ./helm
         run: |
           pwd
-          ls -l
+          ls -l leanix-k8s-connector
           ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
