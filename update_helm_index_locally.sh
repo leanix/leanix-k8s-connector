@@ -1,12 +1,16 @@
 #!/bin/bash
 
-LATEST_BASE_VERSION=6
+SPECIFIC_VERSION=$1
+LATEST_BASE_VERSION=$2
 set -e
 
 cd ./helm
 
 # Creates or updates a new Helm chart package
 # Specific semantic version
+sed -i '' -E 's/(tag:).*/tag: '"$SPECIFIC_VERSION"'/g' ./leanix-k8s-connector/values.yaml
+sed -i '' -E 's/(version:).*/version: '"$SPECIFIC_VERSION"'/g' ./leanix-k8s-connector/Chart.yaml
+sed -i '' -E 's/(appVersion:).*/appVersion: '"\"$SPECIFIC_VERSION\""'/g' ./leanix-k8s-connector/Chart.yaml
 helm package ./leanix-k8s-connector
 
 # Latest version/chart
