@@ -60,58 +60,9 @@ jobs:
           read -ra base_version <<< "$SEM_VERSION"
           echo "BASE_VERSION=$base_version" >> $GITHUB_ENV
 
-      - name: Create github tag for semantic version
-        uses: rickstaa/action-create-tag@v1
-        with:
-          # TODO remove force afterwards
-          force_push_tag: true
-          tag: ${{ github.event.inputs.version }}
-          message: ${{ github.event.inputs.description }}
+      - name: Update helm repo
+        run: update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
-      - name: Create/Update github tag for latest
-        uses: rickstaa/action-create-tag@v1
-        with:
-          tag: ${{ env.BASE_VERSION }}.0.0-latest
-          message: ${{ github.event.inputs.description }}
-          force_push_tag: true
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
 
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.8.1
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.4.0
-        with:
-          charts_dir: '/helm'
-          charts_repo_url: 'https://raw.githubusercontent.com/leanix/leanix-k8s-connector/main'
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: GoReleaser Release
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          version: v1.9.0
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.event.inputs.version }}
-
-      - name: Send build / release success message
-        uses: archive/github-actions-slack@v1.0.0
-        with:
-          slack-bot-user-oauth-access-token: ${{ env.SLACK_TOKEN }}
-          slack-channel: '#team-helios-notifications'
-          slack-text: |
-            :thumbsup: ${{ github.repository }} successfully built / released for version ${{ github.ref }}
-            ${{ env.ACTION_URL }}
-
-      - name: Send build / release fail message
-        if: failure() && (startsWith(github.ref, 'refs/tags/') || github.ref=='refs/heads/main')
-        uses: archive/github-actions-slack@v1.0.0
-        with:
-          slack-bot-user-oauth-access-token: ${{ env.SLACK_TOKEN }}
-          slack-channel: '#team-helios-notifications'
-          slack-text: |
-            :thumbsdown: ${{ github.repository }} could not be built / released for version ${{ github.ref }}
-            ${{ env.ACTION_URL }}
