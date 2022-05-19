@@ -15,9 +15,11 @@ builds:
     binary: leanix-k8s-connector
 dockers:
   - image_templates:
-      - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Version }}"
-      - "leanixacr.azurecr.io/leanix-k8s-connector:{{ .Major }}.latest"
+      - "leanixacrpublic.azurecr.io/leanix-k8s-connector:{{ .Version }}"
+      - "leanixacrpublic.azurecr.io/leanix-k8s-connector:{{ .Major }}.latest"
     dockerfile: Dockerfile
+checksum:
+  disable :true
 archives:
   - replacements:
       darwin: Darwin
