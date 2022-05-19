@@ -91,11 +91,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_CURRENT_TAG: ${{ github.event.inputs.version }}
 
-      - name: Update helm repo
+      - name: Revert local changes and update helm repo for pull request
         working-directory: ./helm
         run: |
-          pwd
-          ls -l leanix-k8s-connector
+          git restore .
           ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
