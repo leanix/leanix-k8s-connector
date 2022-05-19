@@ -1,0 +1,2 @@
+134e989599808379660ec2987e9f5ab69b6bbd31dbffdd36bba809e74e66dda2  leanix-k8s-connector_8.9.1_Darwin_x86_64.tar.gz
+ae6d6b38cedf91344303035a6d76d1031767ceb8d090240634275d4a71ad7de4  leanix-k8s-connector_8.9.1_Linux_x86_64.tar.gz
