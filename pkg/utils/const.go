@@ -14,6 +14,6 @@ const (
 	BlacklistNamespacesFlag          string = "blacklist-namespaces"
 	LxWorkspaceFlag                  string = "lx-workspace"
 	LocalFlag                        string = "local"
-	IrisFlag                         string = "enable-v2-integration-api"
+	IrisFlag                         string = "enable-iris"
 	ConfigurationNameFlag            string = "configuration-name"
 )
