@@ -71,6 +71,7 @@ jobs:
         with:
           tag: ${{ env.BASE_VERSION }}.0.0-latest
           message: ${{ github.event.inputs.description }}
+          force_push_tag: true
 
       - name: GoReleaser Release
         uses: goreleaser/goreleaser-action@v2
