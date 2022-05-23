@@ -46,8 +46,8 @@ jobs:
         uses: azure/docker-login@v1
         with:
           login-server: 'leanixacrpublic.azurecr.io'
-          username: ${{ env.ACR_USERNAME }}
-          password: ${{ env.ACR_PASSWORD }}
+          username: ${{ env.ACR_PUBLIC_USERNAME }}
+          password: ${{ env.ACR_PUBLIC_PASSWORD }}
 
       - name: Validate version input
         run: echo ${{ github.event.inputs.version }}
