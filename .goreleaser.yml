@@ -19,7 +19,7 @@ dockers:
       - "leanixacrpublic.azurecr.io/leanix-k8s-connector:{{ .Major }}.latest"
     dockerfile: Dockerfile
 checksum:
-  disable :true
+  disable: true
 archives:
   - replacements:
       darwin: Darwin

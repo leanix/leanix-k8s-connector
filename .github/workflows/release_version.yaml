@@ -65,12 +65,6 @@ jobs:
         with:
           tag: ${{ github.event.inputs.version }}
           message: ${{ github.event.inputs.description }}
-      - name: Create/Update github tag for latest version
-        uses: rickstaa/action-create-tag@v1
-        with:
-          tag: ${{ env.BASE_VERSION }}.0.0-latest
-          message: ${{ github.event.inputs.description }}
-          force_push_tag: true
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
