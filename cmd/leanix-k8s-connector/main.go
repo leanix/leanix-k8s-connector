@@ -50,8 +50,15 @@ func main() {
 	if viper.GetBool(utils.IrisFlag) {
 		log.Info("Enabled new Integration API")
 
-		integration := iris.GetIrisIntegration()
-		err := iris.ScanKubernetes(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken, *integration)
+		irisScanner, err := iris.NewScanner(
+			"Iris Integration",
+			"https://eu.leanix.net/services/vsm-iris/v1/",
+		)
+		if err != nil {
+			log.Errorf("Failed to initiate iris scanner.\n%s", err)
+			return
+		}
+		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
 			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}

@@ -9,6 +9,25 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+type Scanner interface {
+	Scan(config *rest.Config, workspaceId string, configurationName string, accessToken string) error
+}
+
+type scanner struct {
+	Scanner
+	api API
+}
+
+func NewScanner(kind string, uri string) (Scanner, error) {
+	api, err := NewApi(kind, uri)
+	if err != nil {
+		return nil, err
+	}
+	return &scanner{
+		api: api,
+	}, nil
+}
+
 type kubernetesConfig struct {
 	ID                    string   `json:"id"`
 	Cluster               string   `json:"cluster"`
@@ -39,24 +58,30 @@ type DiscoveryItem struct {
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
 
-func ScanKubernetes(config *rest.Config, workspaceId string, configurationName string, accessToken string, integration IrisInt) error {
-	configuration, err := integration.GetConfiguration(configurationName, accessToken)
+func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
+	configuration, err := s.api.GetConfiguration(configurationName, accessToken)
 	if err != nil {
 		return err
 	}
 	log.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
-	json.Unmarshal(configuration, &kubernetesConfig)
+	err = json.Unmarshal(configuration, &kubernetesConfig)
+	if err != nil {
+		return err
+	}
+
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
 		return err
 	}
-	var scannedObjects []DiscoveryItem
-	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
+
+	mapper, err := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
 		return err
 	}
-	deployments, err := GetDeployments(kubernetesConfig.Cluster, workspaceId, namespaces, kubernetesAPI)
+
+	var scannedObjects []DiscoveryItem
+	deployments, err := mapper.GetDeployments()
 	if err != nil {
 		return err
 	}
@@ -66,7 +91,7 @@ func ScanKubernetes(config *rest.Config, workspaceId string, configurationName s
 	if err != nil {
 		return err
 	}
-	result, err := integration.PostResults(scannedObjectsByte, accessToken)
+	result, err := s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return err
 	}
