@@ -7,8 +7,7 @@ set -e
 # Creates or updates a new Helm chart package
 # Specific semantic version
 sed -i -E 's/(tag:).*/tag: '"$SPECIFIC_VERSION"'/g' leanix-k8s-connector/values.yaml
-sed -i -E 's/(version:).*/version: '"$SPECIFIC_VERSION"'/g' leanix-k8s-connector/Chart.yaml
-sed -i -E 's/(appVersion:).*/appVersion: '"\"$SPECIFIC_VERSION\""'/g' leanix-k8s-connector/Chart.yaml
+sed -i -E 's/(version:).*/version: '"$SPECIFIC_VERSION"'/g; s/(appVersion:).*/appVersion: '"\"$SPECIFIC_VERSION\""'/g' leanix-k8s-connector/Chart.yaml
 helm package leanix-k8s-connector
 
 # Latest version/chart
