@@ -5,12 +5,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/leanix"
 )
 
-const IRIS_URI string = "https://eu.leanix.net/services/vsm-iris/v1/"
+type IrisInt struct {
+	Client leanix.ClientInterface
+	kind   string
+	uri    string
+}
 
-func GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
-	configUrl := fmt.Sprintf(IRIS_URI+"configurations/kubernetesConnector/%s", configurationName)
+func GetIrisIntegration() *IrisInt {
+	var ci leanix.ClientInterface
+	return &IrisInt{
+		kind:   "Iris Integration",
+		uri:    "https://eu.leanix.net/services/vsm-iris/v1/",
+		Client: ci,
+	}
+}
+
+func (i IrisInt) GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
+	configUrl := fmt.Sprintf(i.uri+"configurations/kubernetesConnector/%s", configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
@@ -29,8 +44,8 @@ func GetConfiguration(configurationName string, accessToken string) ([]byte, err
 	return responseData, nil
 }
 
-func PostResults(results []byte, accessToken string) (string, error) {
-	resultUrl := IRIS_URI + "results"
+func (i IrisInt) PostResults(results []byte, accessToken string) (string, error) {
+	resultUrl := i.uri + "results"
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)

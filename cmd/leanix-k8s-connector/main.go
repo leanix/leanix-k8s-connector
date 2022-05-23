@@ -49,7 +49,9 @@ func main() {
 	}
 	if viper.GetBool(utils.IrisFlag) {
 		log.Info("Enabled new Integration API")
-		err := iris.ScanKubernetes(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
+
+		integration := iris.GetIrisIntegration()
+		err := iris.ScanKubernetes(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken, *integration)
 		if err != nil {
 			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}

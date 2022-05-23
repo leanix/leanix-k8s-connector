@@ -39,8 +39,8 @@ type DiscoveryItem struct {
 
 var log = logging.MustGetLogger("leanix-k8s-connector")
 
-func ScanKubernetes(config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
-	configuration, err := GetConfiguration(configurationName, accessToken)
+func ScanKubernetes(config *rest.Config, workspaceId string, configurationName string, accessToken string, integration IrisInt) error {
+	configuration, err := integration.GetConfiguration(configurationName, accessToken)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func ScanKubernetes(config *rest.Config, workspaceId string, configurationName s
 	if err != nil {
 		return err
 	}
-	result, err := PostResults(scannedObjectsByte, accessToken)
+	result, err := integration.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return err
 	}
