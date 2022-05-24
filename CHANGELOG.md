@@ -1,5 +1,7 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-05-19 - 6.7.0
+* enable support for Iris 
 ## Release 2022-05-05 - 6.6.0
 * Added relation between software artifacts and deployments
 

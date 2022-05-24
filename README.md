@@ -67,6 +67,16 @@ The `file` storage backend lets you use every storage that can be provided to Ku
 
 The `azureblob` storage backend leverages an Azure Storage account you must provide to store the `.ldif` and `.log` files.
 
+### Release process
+
+A release can be triggered on the main branch by selecting the "Release tag version" workflow and dispatching a workflow manually.
+The input is the new version number and a description of the release/ the changes. The workflow will:
+- create a github tag with the specified semantic version
+- build the go binary
+- build and push the docker image
+- create a github release
+- create a pull request with the updated helm chart and repo index
+
 ### Installation - Helm chart
 
 Before you can install the LeanIX Kubernetes Connector make sure that the following pre-requisites are fulfilled on your local workstation.
@@ -572,9 +582,10 @@ e.g `--set args.storageBackend=file`
 
 | Release date | Connector version | Integration version | Helm chart version | Container image tag |
 | :----------: | :---------------: | :-----------------: | :----------------: | :-----------------: |
+|  2022-05-05  |       6.7.0       |        1.0.0        |       6.7.0        |        6.7.0        |
 |  2022-05-05  |       6.6.0       |        1.0.0        |       6.6.0        |        6.6.2        |
 |  2022-04-29  |       6.5.2       |        1.0.0        |       6.5.2        |        6.5.2        |
-|  2022-04-26 |       6.5.1       |        1.0.0        |       6.5.1        |        6.5.1        |
+|  2022-04-26  |       6.5.1       |        1.0.0        |       6.5.1        |        6.5.1        |
 |  2022-04-08  |       6.5.0       |        1.0.0        |       6.5.0        |        6.5.0        |
 |  2022-03-16  |       6.4.1       |        1.0.0        |       6.4.1        |        6.4.1        |
 |  2022-03-09  |       6.4.0       |        1.0.0        |       6.4.0        |        6.4.0        |
