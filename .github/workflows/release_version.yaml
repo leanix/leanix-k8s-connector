@@ -96,6 +96,7 @@ jobs:
           body:
           branch: version/${{ github.event.inputs.version }}
           delete-branch: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Send build / release fail message
         if: failure() && (startsWith(github.ref, 'refs/tags/') || github.ref=='refs/heads/main')
