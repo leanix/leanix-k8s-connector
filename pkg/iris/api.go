@@ -45,7 +45,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 }
 
 func (a *api) PostResults(results []byte, accessToken string) (string, error) {
-	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/%s", a.uri, "results")
+	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/%s/results", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
