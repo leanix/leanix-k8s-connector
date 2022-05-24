@@ -25,7 +25,7 @@ func NewApi(kind string, uri string) (API, error) {
 }
 
 func (a *api) GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
-	configUrl := fmt.Sprintf(a.uri+"configurations/kubernetesConnector/%s", configurationName)
+	configUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
@@ -45,7 +45,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 }
 
 func (a *api) PostResults(results []byte, accessToken string) (string, error) {
-	resultUrl := a.uri + "results"
+	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/results", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
@@ -64,7 +64,7 @@ func (a *api) PostResults(results []byte, accessToken string) (string, error) {
 		if readErr != nil {
 			return "", readErr
 		}
-		err := fmt.Errorf("Posting results status[%s]could not be processed: '%s'\n", resp.Status, responseData)
+		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'\n", resp.Status, responseData)
 		return "", err
 	}
 	return "Events posted successfully", nil
