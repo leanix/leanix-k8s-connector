@@ -52,7 +52,7 @@ func main() {
 
 		irisScanner, err := iris.NewScanner(
 			"Iris Integration",
-			"https://eu.leanix.net/services/vsm-iris/v1/",
+			viper.GetString(utils.IntegrationAPIFqdnFlag),
 		)
 		if err != nil {
 			log.Errorf("Failed to initiate iris scanner.\n%s", err)
