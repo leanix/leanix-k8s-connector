@@ -14,7 +14,6 @@ type Scanner interface {
 }
 
 type scanner struct {
-	Scanner
 	api API
 }
 

@@ -11,7 +11,6 @@ type Mapper interface {
 }
 
 type mapper struct {
-	Mapper
 	KubernetesApi         *kubernetes.API
 	ClusterName           string
 	WorkspaceId           string

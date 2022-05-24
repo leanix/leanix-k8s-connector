@@ -13,7 +13,6 @@ type API interface {
 }
 
 type api struct {
-	API
 	kind string
 	uri  string
 }
