@@ -1,6 +1,8 @@
 package iris
 
 import (
+	"fmt"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -15,19 +17,21 @@ type mapper struct {
 	ClusterName           string
 	WorkspaceId           string
 	BlackListedNamespaces []string
+	runId                 string
 }
 
 func NewMapper(
 	kubernetesApi *kubernetes.API,
 	clusterName string,
 	workspaceId string,
-	blackListedNamespaces []string) (Mapper, error) {
+	blackListedNamespaces []string, runId string) (Mapper, error) {
 
 	return &mapper{
 		KubernetesApi:         kubernetesApi,
 		ClusterName:           clusterName,
 		WorkspaceId:           workspaceId,
 		BlackListedNamespaces: blackListedNamespaces,
+		runId:                 runId,
 	}, nil
 }
 
@@ -56,30 +60,25 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList) ([]Discovery
 	var deploymentDiscoveryItems []DiscoveryItem
 	for _, deployment := range deployments.Items {
 		deployment.ClusterName = m.ClusterName
-		deploymentItem := DiscoveryItem{
-			ID:      deployment.Namespace + ":" + deployment.Name + "-" + deployment.ClusterName,
-			Scope:   "workspace/" + m.WorkspaceId,
-			Type:    "leanix.vsm.item-discovered.runtimeObject",
-			Source:  "kubernetes/" + m.ClusterName,
-			Time:    deployment.CreationTimestamp.String(),
-			Subject: "deployment/" + deployment.Name,
-			Data:    deployment,
-		}
+		id := fmt.Sprintf("%s:%s-%s", deployment.Namespace, deployment.Name, deployment.ClusterName)
+		scope := fmt.Sprintf("workspace/%s", m.WorkspaceId)
+		Type := "leanix.vsm.item-discovered.runtimeObject"
+		Source := fmt.Sprintf("kubernetes/%s#%s", m.ClusterName, m.runId)
+		Time := deployment.CreationTimestamp.String()
+		Subject := fmt.Sprintf("deployment/%s", deployment.Name)
+		deploymentItem := GenerateDiscoveryItem(id, scope, Type, Source, Time, Subject, deployment)
+
 		var DeploymentData = make(map[string]interface{})
 
 		DeploymentData["clusterName"] = m.ClusterName
 		DeploymentData["name"] = deployment.Namespace + ":" + deployment.Name
 		DeploymentData["type"] = "namespaceBased"
-		softwareArtifactItem := DiscoveryItem{
-			ID:      deployment.Namespace + "_" + deployment.Name,
-			Scope:   "workspace/" + m.WorkspaceId,
-			Type:    "leanix.vsm.item-discovered.kubernetesService",
-			Source:  "kubernetes/" + m.ClusterName,
-			Time:    deployment.CreationTimestamp.String(),
-			Subject: "softwareArtifact/" + deployment.Name,
-			Data:    DeploymentData,
-		}
-		deploymentDiscoveryItems = append(deploymentDiscoveryItems, deploymentItem, softwareArtifactItem)
+
+		id = fmt.Sprintf("%s-%s", deployment.Namespace, deployment.Name)
+		Type = "leanix.vsm.item-discovered.kubernetesService"
+		Subject = fmt.Sprintf("softwareArtifact/%s", deployment.Name)
+		softwareArtifactItem := GenerateDiscoveryItem(id, scope, Type, Source, Time, Subject, DeploymentData)
+		deploymentDiscoveryItems = append(deploymentDiscoveryItems, *deploymentItem, *softwareArtifactItem)
 	}
 	return deploymentDiscoveryItems, nil
 }

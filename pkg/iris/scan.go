@@ -3,6 +3,7 @@ package iris
 import (
 	"encoding/json"
 
+	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/op/go-logging"
@@ -14,7 +15,8 @@ type Scanner interface {
 }
 
 type scanner struct {
-	api API
+	api   API
+	RunId string
 }
 
 func NewScanner(kind string, uri string) (Scanner, error) {
@@ -23,7 +25,8 @@ func NewScanner(kind string, uri string) (Scanner, error) {
 		return nil, err
 	}
 	return &scanner{
-		api: api,
+		api:   api,
+		RunId: uuid.New().String(),
 	}, nil
 }
 
@@ -45,16 +48,6 @@ type kubernetesConfig struct {
 	}
   } */
 
-type DiscoveryItem struct {
-	ID      string      `json:"id"`
-	Scope   string      `json:"scope"`
-	Type    string      `json:"type"`
-	Source  string      `json:"source"`
-	Time    string      `json:"time"`
-	Subject string      `json:"subject"`
-	Data    interface{} `json:"data"`
-}
-
 var log = logging.MustGetLogger("leanix-k8s-connector")
 
 func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
@@ -62,6 +55,7 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
+	log.Infof("Scan started for RunId: [%s]", s.RunId)
 	log.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
 	err = json.Unmarshal(configuration, &kubernetesConfig)
@@ -74,26 +68,31 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 		return err
 	}
 
-	mapper, err := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces)
+	mapper, err := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.RunId)
 	if err != nil {
+		log.Infof("Scan failed for RunId: [%s]", s.RunId)
 		return err
 	}
 
 	var scannedObjects []DiscoveryItem
 	deployments, err := mapper.GetDeployments()
 	if err != nil {
+		log.Infof("Scan failed for RunId: [%s]", s.RunId)
 		return err
 	}
 
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
+		log.Infof("Scan failed for RunId: [%s]", s.RunId)
 		return err
 	}
 	result, err := s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
+		log.Infof("Scan failed for RunId: [%s]", s.RunId)
 		return err
 	}
 	log.Info(result)
+	log.Infof("Scan Finished for RunId: [%s]", s.RunId)
 	return nil
 }
