@@ -29,7 +29,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
-		log.Errorf("SelfStartRun: Error while retrieving configuration from %s: %v", configurationName, err)
+		log.Errorf("Error while retrieving configuration from %s: %v", configurationName, err)
 		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
