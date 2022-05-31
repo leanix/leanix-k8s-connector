@@ -7,7 +7,7 @@ import (
 
 type Mapper interface {
 	GetDeployments() ([]DiscoveryItem, error)
-	MapDeployments(deployments *appsv1.DeploymentList) ([]DiscoveryItem, error)
+	MapDeployments(deployments *appsv1.DeploymentList) []DiscoveryItem
 }
 
 type mapper struct {
@@ -22,7 +22,8 @@ func NewMapper(
 	kubernetesApi *kubernetes.API,
 	clusterName string,
 	workspaceId string,
-	blackListedNamespaces []string, runId string) (Mapper, error) {
+	blackListedNamespaces []string,
+	runId string) Mapper {
 
 	return &mapper{
 		KubernetesApi:         kubernetesApi,
@@ -30,7 +31,7 @@ func NewMapper(
 		WorkspaceId:           workspaceId,
 		BlackListedNamespaces: blackListedNamespaces,
 		runId:                 runId,
-	}, nil
+	}
 }
 
 func (m *mapper) GetDeployments() ([]DiscoveryItem, error) {
@@ -40,26 +41,25 @@ func (m *mapper) GetDeployments() ([]DiscoveryItem, error) {
 	}
 	var allDiscoveryItems []DiscoveryItem
 	for _, namespace := range namespaces.Items {
+		log.Infof("Fetching Deployments for namespace [%s]", namespace.Name)
 		deployments, err := m.KubernetesApi.Deployments(namespace.Name)
 		if err != nil {
 			return nil, err
 		}
-		mappedDeployments, err := m.MapDeployments(deployments)
-		if err != nil {
-			return nil, err
-		}
+		log.Infof("mapping deployments for namespace [%s]", namespace.Name)
+		mappedDeployments := m.MapDeployments(deployments)
 		allDiscoveryItems = append(allDiscoveryItems, mappedDeployments...)
-
 	}
+	log.Info("Fetching deployments for namespaces completed")
 	return allDiscoveryItems, nil
 }
 
-func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList) ([]DiscoveryItem, error) {
+func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList) []DiscoveryItem {
 	var deploymentDiscoveryItems []DiscoveryItem
 	for _, deployment := range deployments.Items {
 		deploymentItem := NewDeploymentEvent(*m, deployment)
 		softwareArtifactItem := NewSoftwareArtifactEvent(*m, deployment)
 		deploymentDiscoveryItems = append(deploymentDiscoveryItems, *deploymentItem, *softwareArtifactItem)
 	}
-	return deploymentDiscoveryItems, nil
+	return deploymentDiscoveryItems
 }

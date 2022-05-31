@@ -48,16 +48,13 @@ func main() {
 		log.Info("Failed to authenticate. Terminating..")
 	}
 	if viper.GetBool(utils.IrisFlag) {
-		log.Info("Enabled new Integration API")
+		log.Info("Enabled Iris")
 
-		irisScanner, err := iris.NewScanner(
+		irisScanner := iris.NewScanner(
 			"Iris Integration",
 			viper.GetString(utils.IntegrationAPIFqdnFlag),
 		)
-		if err != nil {
-			log.Errorf("Failed to initiate iris scanner.\n%s", err)
-			return
-		}
+
 		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
 			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)

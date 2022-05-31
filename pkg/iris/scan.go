@@ -19,15 +19,12 @@ type scanner struct {
 	RunId string
 }
 
-func NewScanner(kind string, uri string) (Scanner, error) {
-	api, err := NewApi(kind, uri)
-	if err != nil {
-		return nil, err
-	}
+func NewScanner(kind string, uri string) Scanner {
+	api := NewApi(kind, uri)
 	return &scanner{
 		api:   api,
 		RunId: uuid.New().String(),
-	}, nil
+	}
 }
 
 type kubernetesConfig struct {
@@ -67,12 +64,8 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
-
-	mapper, err := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.RunId)
-	if err != nil {
-		log.Infof("Scan failed for RunId: [%s]", s.RunId)
-		return err
-	}
+	log.Info("Retrieved kubernetes config Successfully")
+	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.RunId)
 
 	var scannedObjects []DiscoveryItem
 	deployments, err := mapper.GetDeployments()
@@ -84,15 +77,14 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
-		log.Infof("Scan failed for RunId: [%s]", s.RunId)
+		log.Errorf("Scan failed for RunId[%s], with the reason", s.RunId, err)
 		return err
 	}
-	result, err := s.api.PostResults(scannedObjectsByte, accessToken)
+	err = s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
-		log.Infof("Scan failed for RunId: [%s]", s.RunId)
+		log.Errorf("Scan failed for RunId: [%s], with the reason %v", s.RunId, err)
 		return err
 	}
-	log.Info(result)
 	log.Infof("Scan Finished for RunId: [%s]", s.RunId)
 	return nil
 }
