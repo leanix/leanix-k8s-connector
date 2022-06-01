@@ -41,6 +41,9 @@ func (m *mapper) GetDeployments() ([]DiscoveryItem, error) {
 	}
 	var allDiscoveryItems []DiscoveryItem
 	for _, namespace := range namespaces.Items {
+		if blacklistedNS(namespace.Name, m.BlackListedNamespaces) {
+			continue
+		}
 		log.Infof("Fetching Deployments for namespace [%s]", namespace.Name)
 		deployments, err := m.KubernetesApi.Deployments(namespace.Name)
 		if err != nil {
@@ -62,4 +65,13 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList) []DiscoveryI
 		deploymentDiscoveryItems = append(deploymentDiscoveryItems, *deploymentItem, *softwareArtifactItem)
 	}
 	return deploymentDiscoveryItems
+}
+
+func blacklistedNS(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
