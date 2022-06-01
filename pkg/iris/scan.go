@@ -69,19 +69,19 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	var scannedObjects []DiscoveryItem
 	deployments, err := mapper.GetDeployments()
 	if err != nil {
-		log.Infof("Scan failed for RunId: [%s]", s.runId)
+		log.Errorf("Scan failed while fetching deployments. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
-		log.Errorf("Scan failed for RunId[%s], with the reason", s.runId, err)
+		log.Errorf("Scan failed while Unmarshalling results. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 	err = s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
-		log.Errorf("Scan failed for RunId: [%s], with the reason %v", s.runId, err)
+		log.Errorf("Scan failed while posting results. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 	log.Infof("Scan Finished for RunId: [%s]", s.runId)
