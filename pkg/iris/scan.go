@@ -14,17 +14,16 @@ type Scanner interface {
 }
 
 type scanner struct {
-	api API
+	api   API
+	runId string
 }
 
-func NewScanner(kind string, uri string) (Scanner, error) {
-	api, err := NewApi(kind, uri)
-	if err != nil {
-		return nil, err
-	}
+func NewScanner(kind string, uri string, runId string) Scanner {
+	api := NewApi(kind, uri)
 	return &scanner{
-		api: api,
-	}, nil
+		api:   api,
+		runId: runId,
+	}
 }
 
 type kubernetesConfig struct {
@@ -45,16 +44,6 @@ type kubernetesConfig struct {
 	}
   } */
 
-type DiscoveryItem struct {
-	ID      string      `json:"id"`
-	Scope   string      `json:"scope"`
-	Type    string      `json:"type"`
-	Source  string      `json:"source"`
-	Time    string      `json:"time"`
-	Subject string      `json:"subject"`
-	Data    interface{} `json:"data"`
-}
-
 var log = logging.MustGetLogger("leanix-k8s-connector")
 
 func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
@@ -62,6 +51,7 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
+	log.Infof("Scan started for RunId: [%s]", s.runId)
 	log.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
 	err = json.Unmarshal(configuration, &kubernetesConfig)
@@ -73,27 +63,27 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
-
-	mapper, err := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces)
-	if err != nil {
-		return err
-	}
+	log.Info("Retrieved kubernetes config Successfully")
+	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 
 	var scannedObjects []DiscoveryItem
 	deployments, err := mapper.GetDeployments()
 	if err != nil {
+		log.Errorf("Scan failed while fetching deployments. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
+		log.Errorf("Scan failed while Unmarshalling results. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
-	result, err := s.api.PostResults(scannedObjectsByte, accessToken)
+	err = s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
+		log.Errorf("Scan failed while posting results. RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
-	log.Info(result)
+	log.Infof("Scan Finished for RunId: [%s]", s.runId)
 	return nil
 }
