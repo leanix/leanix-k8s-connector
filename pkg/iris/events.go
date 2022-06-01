@@ -3,6 +3,7 @@ package iris
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -63,4 +64,16 @@ func NewSoftwareArtifactEvent(m mapper, deployment appsv1.Deployment) *Discovery
 		Subject: Subject,
 		Data:    deploymentData,
 	}
+}
+
+// struct to extend Log with RunId
+type Log struct {
+	// Root        *Logger
+	// Output      *Output
+	RunId       string
+	WorkspaceId string
+}
+
+func GenerateRunId() string {
+	return uuid.New().String()
 }

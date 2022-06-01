@@ -3,7 +3,6 @@ package iris
 import (
 	"encoding/json"
 
-	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/op/go-logging"
@@ -16,14 +15,14 @@ type Scanner interface {
 
 type scanner struct {
 	api   API
-	RunId string
+	runId string
 }
 
-func NewScanner(kind string, uri string) Scanner {
+func NewScanner(kind string, uri string, runId string) Scanner {
 	api := NewApi(kind, uri)
 	return &scanner{
 		api:   api,
-		RunId: uuid.New().String(),
+		runId: runId,
 	}
 }
 
@@ -52,7 +51,7 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
-	log.Infof("Scan started for RunId: [%s]", s.RunId)
+	log.Infof("Scan started for RunId: [%s]", s.runId)
 	log.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
 	err = json.Unmarshal(configuration, &kubernetesConfig)
@@ -65,26 +64,26 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 		return err
 	}
 	log.Info("Retrieved kubernetes config Successfully")
-	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.RunId)
+	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 
 	var scannedObjects []DiscoveryItem
 	deployments, err := mapper.GetDeployments()
 	if err != nil {
-		log.Infof("Scan failed for RunId: [%s]", s.RunId)
+		log.Infof("Scan failed for RunId: [%s]", s.runId)
 		return err
 	}
 
 	scannedObjects = append(scannedObjects, deployments...)
 	scannedObjectsByte, err := storage.Marshal(scannedObjects)
 	if err != nil {
-		log.Errorf("Scan failed for RunId[%s], with the reason", s.RunId, err)
+		log.Errorf("Scan failed for RunId[%s], with the reason", s.runId, err)
 		return err
 	}
 	err = s.api.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
-		log.Errorf("Scan failed for RunId: [%s], with the reason %v", s.RunId, err)
+		log.Errorf("Scan failed for RunId: [%s], with the reason %v", s.runId, err)
 		return err
 	}
-	log.Infof("Scan Finished for RunId: [%s]", s.RunId)
+	log.Infof("Scan Finished for RunId: [%s]", s.runId)
 	return nil
 }

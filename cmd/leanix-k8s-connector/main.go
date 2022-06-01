@@ -49,10 +49,10 @@ func main() {
 	}
 	if viper.GetBool(utils.IrisFlag) {
 		log.Info("Enabled Iris")
-
+		runId := iris.GenerateRunId()
 		irisScanner := iris.NewScanner(
 			"Iris Integration",
-			viper.GetString(utils.IntegrationAPIFqdnFlag),
+			viper.GetString(utils.IntegrationAPIFqdnFlag), runId,
 		)
 
 		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
