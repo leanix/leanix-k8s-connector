@@ -41,6 +41,7 @@ func (m *mapper) GetDeployments() ([]DiscoveryItem, error) {
 	}
 	var allDiscoveryItems []DiscoveryItem
 	for _, namespace := range namespaces.Items {
+		// complexity is O(mxn)
 		if blacklistedNS(namespace.Name, m.BlackListedNamespaces) {
 			continue
 		}
