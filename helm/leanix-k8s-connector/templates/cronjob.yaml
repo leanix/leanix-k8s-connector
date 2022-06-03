@@ -34,6 +34,8 @@ spec:
             env:
             - name: LX_WORKSPACE
               value: "{{ .Values.args.lxWorkspace }}"
+            - name: ENABLE_IRIS
+              value: "{{ .Values.args.enableIris }}"
             {{- if .Values.args.verbose }}
             - name: VERBOSE
               value: "true"
