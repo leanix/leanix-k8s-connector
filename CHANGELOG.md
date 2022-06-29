@@ -1,5 +1,7 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-06-29 - 6.8.3
+* Dependency updates
 ## Release 2022-05-19 - 6.7.0
 * enable support for Iris 
 ## Release 2022-05-05 - 6.6.0
