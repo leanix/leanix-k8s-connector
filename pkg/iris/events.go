@@ -24,8 +24,7 @@ type DiscoveryItem struct {
 
 func NewDeploymentEvent(m mapper, deployment appsv1.Deployment) *DiscoveryItem {
 
-	deployment.ClusterName = m.ClusterName
-	id := fmt.Sprintf("%s:%s-%s", deployment.Namespace, deployment.Name, deployment.ClusterName)
+	id := fmt.Sprintf("%s:%s-%s", deployment.Namespace, deployment.Name, m.ClusterName)
 	Subject := fmt.Sprintf("deployment/%s", deployment.Name)
 	scope := fmt.Sprintf("workspace/%s", m.WorkspaceId)
 	Source := fmt.Sprintf("kubernetes/%s#%s", m.ClusterName, m.runId)
@@ -49,7 +48,6 @@ func NewSoftwareArtifactEvent(m mapper, deployment appsv1.Deployment) *Discovery
 	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name
 	deploymentData["type"] = "namespaceBased"
 
-	deployment.ClusterName = m.ClusterName
 	id := fmt.Sprintf("%s-%s", deployment.Namespace, deployment.Name)
 	Subject := fmt.Sprintf("softwareArtifact/%s", deployment.Name)
 	scope := fmt.Sprintf("workspace/%s", m.WorkspaceId)

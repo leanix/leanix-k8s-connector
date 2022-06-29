@@ -30,12 +30,11 @@ func GetCronJobs(clusterName string, namespaces *corev1.NamespaceList, kubernete
 func MapCronJobs(clusterName string, cronJobs *batchv1.CronJobList) ([]mapper.KubernetesObject, error) {
 	var groupedCronJobs []mapper.KubernetesObject
 	for _, cronJob := range cronJobs.Items {
-		cronJob.ClusterName = clusterName
-		cronJobArtifact, err := CronJobSoftwareArtifact(cronJob)
+		cronJobArtifact, err := CronJobSoftwareArtifact(clusterName, cronJob)
 		if err != nil {
 			return nil, err
 		}
-		mappedCronJob, err := CronJobDataMapping(cronJob)
+		mappedCronJob, err := CronJobDataMapping(clusterName, cronJob)
 		if err != nil {
 			return nil, err
 		}
@@ -44,11 +43,11 @@ func MapCronJobs(clusterName string, cronJobs *batchv1.CronJobList) ([]mapper.Ku
 	return groupedCronJobs, nil
 }
 
-func CronJobSoftwareArtifact(CronJob batchv1.CronJob) (*mapper.KubernetesObject, error) {
+func CronJobSoftwareArtifact(clusterName string, CronJob batchv1.CronJob) (*mapper.KubernetesObject, error) {
 	var CronJobData map[string]interface{}
 	CronJobData = make(map[string]interface{})
 	CronJobId := CronJob.Namespace + "_" + CronJob.Name
-	CronJobData["clusterName"] = CronJob.ClusterName
+	CronJobData["clusterName"] = clusterName
 	CronJobData["name"] = CronJob.Namespace + ":" + CronJob.Name
 	CronJobData["category"] = "Microservice"
 
@@ -60,7 +59,7 @@ func CronJobSoftwareArtifact(CronJob batchv1.CronJob) (*mapper.KubernetesObject,
 }
 
 //create a data object that contains name, labels, CronJobTime, namespace, version and image of the CronJob and returns as KubernetesObject
-func CronJobDataMapping(CronJob batchv1.CronJob) (*mapper.KubernetesObject, error) {
+func CronJobDataMapping(clusterName string, CronJob batchv1.CronJob) (*mapper.KubernetesObject, error) {
 	var CronJobData map[string]interface{}
 	CronJobData = make(map[string]interface{})
 	var version string
@@ -75,11 +74,11 @@ func CronJobDataMapping(CronJob batchv1.CronJob) (*mapper.KubernetesObject, erro
 		CronJobVersionShort = "unknown"
 	}
 	CronJobImage := strings.Split(CronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image, ":")[0]
-	CronJobId := CronJob.Namespace + ":" + CronJob.Name + "-" + CronJobVersionShort + "-" + CronJob.ClusterName
-	CronJobData["name"] = CronJob.Namespace + ":" + CronJob.Name + " in " + CronJob.ClusterName
-	CronJobData["longName"] = CronJob.Namespace + ":" + CronJob.Name + " (" + CronJobVersion + ")" + " in " + CronJob.ClusterName
+	CronJobId := CronJob.Namespace + ":" + CronJob.Name + "-" + CronJobVersionShort + "-" + clusterName
+	CronJobData["name"] = CronJob.Namespace + ":" + CronJob.Name + " in " + clusterName
+	CronJobData["longName"] = CronJob.Namespace + ":" + CronJob.Name + " (" + CronJobVersion + ")" + " in " + clusterName
 	CronJobData["category"] = "CronJob"
-	CronJobData["clusterName"] = CronJob.ClusterName
+	CronJobData["clusterName"] = clusterName
 	CronJobData["version"] = version
 	CronJobData["image"] = CronJobImage
 	CronJobData["CronJobTime"] = CronJob.CreationTimestamp.UTC().Format(time.RFC3339)

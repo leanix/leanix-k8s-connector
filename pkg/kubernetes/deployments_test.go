@@ -18,7 +18,6 @@ func TestDeployments(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              "test-deployment-1",
 				Namespace:         "deployment-1-namespace",
-				ClusterName:       "test-cluster",
 				CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
 				Labels: map[string]string{
 					"name": "nodepool-2",
@@ -39,7 +38,6 @@ func TestDeployments(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              "test-deployment-2",
 				Namespace:         "deployment-1-namespace",
-				ClusterName:       "test-cluster",
 				CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
 				Labels: map[string]string{
 					"name": "nodepool-2",

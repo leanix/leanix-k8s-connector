@@ -30,9 +30,8 @@ func GetDeployments(clusterName string, namespaces *corev1.NamespaceList, kubern
 func MapDeployments(clusterName string, deployments *appsvs.DeploymentList) ([]mapper.KubernetesObject, error) {
 	var groupDeployments []mapper.KubernetesObject
 	for _, deployment := range deployments.Items {
-		deployment.ClusterName = clusterName
-		deploymentArtifact, err := DeploymentSoftwareArtifact(deployment)
-		mappedDeployment, err := DeploymentDataMapping(deployment)
+		deploymentArtifact, err := DeploymentSoftwareArtifact(clusterName, deployment)
+		mappedDeployment, err := DeploymentDataMapping(clusterName, deployment)
 		if err != nil {
 			return nil, err
 		}
@@ -41,11 +40,11 @@ func MapDeployments(clusterName string, deployments *appsvs.DeploymentList) ([]m
 	return groupDeployments, nil
 }
 
-func DeploymentSoftwareArtifact(Deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
+func DeploymentSoftwareArtifact(clusterName string, Deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
 	var DeploymentData map[string]interface{}
 	DeploymentData = make(map[string]interface{})
 	DeploymentId := Deployment.Namespace + "_" + Deployment.Name
-	DeploymentData["clusterName"] = Deployment.ClusterName
+	DeploymentData["clusterName"] = clusterName
 	DeploymentData["name"] = Deployment.Namespace + ":" + Deployment.Name
 	DeploymentData["category"] = "Microservice"
 
@@ -57,7 +56,7 @@ func DeploymentSoftwareArtifact(Deployment appsvs.Deployment) (*mapper.Kubernete
 }
 
 //create a data object that contains name, labels, deploymentime, namespace, version and image of the deployment and returns as KubernetesObject
-func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
+func DeploymentDataMapping(clusterName string, deployment appsvs.Deployment) (*mapper.KubernetesObject, error) {
 	var deploymentData map[string]interface{}
 	deploymentData = make(map[string]interface{})
 	var version string
@@ -72,11 +71,11 @@ func DeploymentDataMapping(deployment appsvs.Deployment) (*mapper.KubernetesObje
 		deploymentVersionShort = "unknown"
 	}
 	deploymentImage := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[0]
-	deploymentId := deployment.Namespace + ":" + deployment.Name + "-" + deploymentVersionShort + "-" + deployment.ClusterName
-	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name + " in " + deployment.ClusterName
-	deploymentData["longName"] = deployment.Namespace + ":" + deployment.Name + " (" + deploymentVersion + ")" + " in " + deployment.ClusterName
+	deploymentId := deployment.Namespace + ":" + deployment.Name + "-" + deploymentVersionShort + "-" + clusterName
+	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name + " in " + clusterName
+	deploymentData["longName"] = deployment.Namespace + ":" + deployment.Name + " (" + deploymentVersion + ")" + " in " + clusterName
 	deploymentData["category"] = "deployment"
-	deploymentData["clusterName"] = deployment.ClusterName
+	deploymentData["clusterName"] = clusterName
 	deploymentData["version"] = version
 	deploymentData["image"] = deploymentImage
 	deploymentData["deploymentTime"] = deployment.CreationTimestamp.UTC().Format(time.RFC3339)
