@@ -30,12 +30,11 @@ func GetStatefulSets(clusterName string, namespaces *corev1.NamespaceList, kuber
 func MapStatefulSets(clusterName string, StatefulSets *appsv1.StatefulSetList) ([]mapper.KubernetesObject, error) {
 	var groupedStatefulSets []mapper.KubernetesObject
 	for _, StatefulSet := range StatefulSets.Items {
-		StatefulSet.ClusterName = clusterName
-		StatefulSetArtifact, err := StatefulSetSoftwareArtifact(StatefulSet)
+		StatefulSetArtifact, err := StatefulSetSoftwareArtifact(clusterName, StatefulSet)
 		if err != nil {
 			return nil, err
 		}
-		mappedStatefulSet, err := StatefulSetDataMapping(StatefulSet)
+		mappedStatefulSet, err := StatefulSetDataMapping(clusterName, StatefulSet)
 		if err != nil {
 			return nil, err
 		}
@@ -44,11 +43,11 @@ func MapStatefulSets(clusterName string, StatefulSets *appsv1.StatefulSetList) (
 	return groupedStatefulSets, nil
 }
 
-func StatefulSetSoftwareArtifact(StatefulSet appsv1.StatefulSet) (*mapper.KubernetesObject, error) {
+func StatefulSetSoftwareArtifact(clusterName string, StatefulSet appsv1.StatefulSet) (*mapper.KubernetesObject, error) {
 	var StatefulSetData map[string]interface{}
 	StatefulSetData = make(map[string]interface{})
 	StatefulSetId := StatefulSet.Namespace + "_" + StatefulSet.Name
-	StatefulSetData["clusterName"] = StatefulSet.ClusterName
+	StatefulSetData["clusterName"] = clusterName
 	StatefulSetData["name"] = StatefulSet.Namespace + ":" + StatefulSet.Name
 	StatefulSetData["category"] = "Microservice"
 
@@ -60,7 +59,7 @@ func StatefulSetSoftwareArtifact(StatefulSet appsv1.StatefulSet) (*mapper.Kubern
 }
 
 //create a data object that contains name, labels, StatefulSetime, namespace, version and image of the StatefulSet and returns as KubernetesObject
-func StatefulSetDataMapping(StatefulSet appsv1.StatefulSet) (*mapper.KubernetesObject, error) {
+func StatefulSetDataMapping(clusterName string, StatefulSet appsv1.StatefulSet) (*mapper.KubernetesObject, error) {
 	var StatefulSetData map[string]interface{}
 	StatefulSetData = make(map[string]interface{})
 	var version string
@@ -75,11 +74,11 @@ func StatefulSetDataMapping(StatefulSet appsv1.StatefulSet) (*mapper.KubernetesO
 		StatefulSetVersionShort = "unknown"
 	}
 	StatefulSetImage := strings.Split(StatefulSet.Spec.Template.Spec.Containers[0].Image, ":")[0]
-	StatefulSetId := StatefulSet.Namespace + ":" + StatefulSet.Name + "-" + StatefulSetVersionShort + "-" + StatefulSet.ClusterName
-	StatefulSetData["name"] = StatefulSet.Namespace + ":" + StatefulSet.Name + " in " + StatefulSet.ClusterName
-	StatefulSetData["longName"] = StatefulSet.Namespace + ":" + StatefulSet.Name + " (" + StatefulSetVersion + ")" + " in " + StatefulSet.ClusterName
+	StatefulSetId := StatefulSet.Namespace + ":" + StatefulSet.Name + "-" + StatefulSetVersionShort + "-" + clusterName
+	StatefulSetData["name"] = StatefulSet.Namespace + ":" + StatefulSet.Name + " in " + clusterName
+	StatefulSetData["longName"] = StatefulSet.Namespace + ":" + StatefulSet.Name + " (" + StatefulSetVersion + ")" + " in " + clusterName
 	StatefulSetData["category"] = "StatefulSet"
-	StatefulSetData["clusterName"] = StatefulSet.ClusterName
+	StatefulSetData["clusterName"] = clusterName
 	StatefulSetData["version"] = version
 	StatefulSetData["image"] = StatefulSetImage
 	StatefulSetData["StatefulSetTime"] = StatefulSet.CreationTimestamp.UTC().Format(time.RFC3339)

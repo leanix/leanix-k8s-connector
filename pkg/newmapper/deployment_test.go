@@ -17,7 +17,6 @@ func TestMapDeployments(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "test-deployment-1",
 			Namespace:         "deployment-1-namespace",
-			ClusterName:       "test-cluster",
 			CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
 			Labels: map[string]string{
 				"name": "nodepool-2",
@@ -63,7 +62,7 @@ func TestMapDeployments(t *testing.T) {
 			ReadyReplicas: 1,
 		},
 	}
-	mapDeployment, err := DeploymentDataMapping(deployment)
+	mapDeployment, err := DeploymentDataMapping("test-cluster", deployment)
 	assert.NoError(t, err)
 	md := mapDeployment.Data.(map[string]interface{})
 
