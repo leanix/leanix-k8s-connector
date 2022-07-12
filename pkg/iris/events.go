@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -74,4 +75,35 @@ type Log struct {
 
 func GenerateRunId() string {
 	return uuid.New().String()
+}
+
+type EventBuilder interface {
+	Cluster(n *models.Namespace, d *models.Deployment) EventBuilder
+	Build() models.DiscoveryItem
+}
+
+type eventBuilder struct {
+	c models.Cluster
+	d models.Deployment
+	s models.Service
+	p models.Properties
+}
+
+func New() EventBuilder {
+	return &eventBuilder{}
+}
+
+func (eb *eventBuilder) Cluster(cluster models.Cluster, de models.Deployment) EventBuilder {
+	eb.c = cluster
+	eb.d = de
+	return eb
+}
+
+func (eb *eventBuilder) Build() *models.DiscoveryItem {
+	data := &models.Data{
+		Cluster: eb.c,
+	}
+	return &models.DiscoveryItem{
+		Data: *data,
+	}
 }
