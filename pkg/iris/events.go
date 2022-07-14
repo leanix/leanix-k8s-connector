@@ -97,8 +97,8 @@ func NewStatusEvent(configurationId string, runId string, workspaceId string, ru
 	Scope := fmt.Sprintf("workspace/%s", workspaceId)
 	Source := fmt.Sprintf("kubernetes/%s#%s", configurationId, runId)
 	Time := fmt.Sprintf(time.Now().Local().String())
-	Datacontenttype := fmt.Sprintf("application/json")
-	Dataschema := fmt.Sprintf("/vsm-iris/schemas/operation-item/v1")
+	DataContentType := fmt.Sprintf("application/json")
+	DataSchema := fmt.Sprintf("/vsm-iris/schemas/operation-item/v1")
 
 	var StatusData = make(map[string]interface{})
 	StatusData["status"] = runstatus
@@ -111,8 +111,8 @@ func NewStatusEvent(configurationId string, runId string, workspaceId string, ru
 		Source:          Source,
 		Time:            Time,
 		Subject:         Subject,
-		DataContentType: Datacontenttype,
-		DataSchema:      Dataschema,
+		DataContentType: DataContentType,
+		DataSchema:      DataSchema,
 		Data:            StatusData,
 	}
 }
