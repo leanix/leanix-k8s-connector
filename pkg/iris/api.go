@@ -10,6 +10,7 @@ import (
 type API interface {
 	GetConfiguration(configurationName string, accessToken string) ([]byte, error)
 	PostResults(results []byte, accessToken string) error
+	PostStatus(status []byte, accessToken string) error
 }
 
 type api struct {
@@ -68,5 +69,32 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 		return err
 	}
 	log.Infof("Event posted successfully [%s]", resp.Status)
+	return nil
+}
+
+func (a *api) PostStatus(status []byte, accessToken string) error {
+	resultUrl := fmt.Sprintf("http://localhost:8080/status")
+	postReq, err := http.NewRequest("POST", resultUrl, nil)
+	postReq.Header.Set("Content-Type", "application/json")
+	postReq.Header.Set("Authorization", "Bearer "+accessToken)
+	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(status))
+	if err != nil {
+		log.Errorf("Error while posting status: %v", err)
+		return err
+	}
+	resp, err := http.DefaultClient.Do(postReq)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		responseData, readErr := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if readErr != nil {
+			return readErr
+		}
+		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
+		return err
+	}
+	log.Infof("Status Event posted successfully [%s]", resp.Status)
 	return nil
 }

@@ -2,6 +2,7 @@ package iris
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
@@ -74,4 +75,44 @@ type Log struct {
 
 func GenerateRunId() string {
 	return uuid.New().String()
+}
+
+type StatusItem struct {
+	ID              string      `json:"id"`
+	Scope           string      `json:"scope"`
+	Type            string      `json:"type"`
+	Source          string      `json:"source"`
+	Time            string      `json:"time"`
+	DataContentType string      `json:"datacontenttype"`
+	DataSchema      string      `json:"dataschema"`
+	Subject         string      `json:"subject"`
+	Data            interface{} `json:"data"`
+}
+
+func NewStatusEvent(configurationId string, runId string, workspaceId string, runstatus string, message string) *StatusItem {
+
+	id := fmt.Sprintf("%s", runId)
+	Subject := fmt.Sprintf("Status")
+	Type := fmt.Sprintf("leanix.vsm.item-logged.status")
+	scope := fmt.Sprintf("workspace/%s", workspaceId)
+	Source := fmt.Sprintf("kubernetes/%s#%s", configurationId, runId)
+	Time := fmt.Sprintf(time.Now().Local().String())
+	datacontenttype := fmt.Sprintf("application/json")
+	dataschema := fmt.Sprintf("/vsm-iris/schemas/operation-item/v1")
+
+	var statusData = make(map[string]interface{})
+	statusData["status"] = runstatus
+	statusData["message"] = message
+
+	return &StatusItem{
+		ID:              id,
+		Scope:           scope,
+		Type:            Type,
+		Source:          Source,
+		Time:            Time,
+		Subject:         Subject,
+		DataContentType: datacontenttype,
+		DataSchema:      dataschema,
+		Data:            statusData,
+	}
 }
