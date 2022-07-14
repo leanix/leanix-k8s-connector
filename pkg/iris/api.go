@@ -73,7 +73,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 }
 
 func (a *api) PostStatus(status []byte, accessToken string) error {
-	resultUrl := fmt.Sprintf("http://localhost:8080/status")
+	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/status", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
