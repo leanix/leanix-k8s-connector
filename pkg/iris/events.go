@@ -1,69 +1,13 @@
 package iris
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 const (
-	typeAsK8sRuntime string = "leanix.vsm.item-discovered.runtimeObject"
-	typeAsK8sService string = "leanix.vsm.item-discovered.kubernetesService"
+	typeAsK8s string = "leanix.vsm.item-discovered.kubernetes"
 )
-
-type DiscoveryItem struct {
-	ID      string      `json:"id"`
-	Scope   string      `json:"scope"`
-	Type    string      `json:"type"`
-	Source  string      `json:"source"`
-	Time    string      `json:"time"`
-	Subject string      `json:"subject"`
-	Data    interface{} `json:"data"`
-}
-
-func NewDeploymentEvent(m mapper, deployment appsv1.Deployment) *DiscoveryItem {
-
-	id := fmt.Sprintf("%s:%s-%s", deployment.Namespace, deployment.Name, m.ClusterName)
-	Subject := fmt.Sprintf("deployment/%s", deployment.Name)
-	scope := fmt.Sprintf("workspace/%s", m.WorkspaceId)
-	Source := fmt.Sprintf("kubernetes/%s#%s", m.ClusterName, m.runId)
-	Time := deployment.CreationTimestamp.String()
-	return &DiscoveryItem{
-		ID:      id,
-		Scope:   scope,
-		Type:    typeAsK8sRuntime,
-		Source:  Source,
-		Time:    Time,
-		Subject: Subject,
-		Data:    deployment,
-	}
-}
-
-func NewSoftwareArtifactEvent(m mapper, deployment appsv1.Deployment) *DiscoveryItem {
-
-	var deploymentData = make(map[string]interface{})
-
-	deploymentData["clusterName"] = m.ClusterName
-	deploymentData["name"] = deployment.Namespace + ":" + deployment.Name
-	deploymentData["type"] = "namespaceBased"
-
-	id := fmt.Sprintf("%s-%s", deployment.Namespace, deployment.Name)
-	Subject := fmt.Sprintf("softwareArtifact/%s", deployment.Name)
-	scope := fmt.Sprintf("workspace/%s", m.WorkspaceId)
-	Source := fmt.Sprintf("kubernetes/%s#%s", m.ClusterName, m.runId)
-	Time := deployment.CreationTimestamp.String()
-	return &DiscoveryItem{
-		ID:      id,
-		Scope:   scope,
-		Type:    typeAsK8sService,
-		Source:  Source,
-		Time:    Time,
-		Subject: Subject,
-		Data:    deploymentData,
-	}
-}
 
 // struct to extend Log with RunId
 type Log struct {
@@ -78,32 +22,77 @@ func GenerateRunId() string {
 }
 
 type EventBuilder interface {
-	Cluster(n *models.Namespace, d *models.Deployment) EventBuilder
+	Cluster(cluster models.Cluster) EventBuilder
+	Id(id string) EventBuilder
+	Scope(scope string) EventBuilder
+	Type(eventType string) EventBuilder
+	Source(source string) EventBuilder
+	Time(time string) EventBuilder
+	Subject(subject string) EventBuilder
+
 	Build() models.DiscoveryItem
 }
 
 type eventBuilder struct {
-	c models.Cluster
-	d models.Deployment
-	s models.Service
-	p models.Properties
+	c         models.Cluster
+	id        string
+	scope     string
+	eventType string
+	source    string
+	time      string
+	subject   string
 }
 
 func New() EventBuilder {
 	return &eventBuilder{}
 }
 
-func (eb *eventBuilder) Cluster(cluster models.Cluster, de models.Deployment) EventBuilder {
+func (eb *eventBuilder) Cluster(cluster models.Cluster) EventBuilder {
 	eb.c = cluster
-	eb.d = de
 	return eb
 }
 
-func (eb *eventBuilder) Build() *models.DiscoveryItem {
+func (eb *eventBuilder) Id(id string) EventBuilder {
+	eb.id = id
+	return eb
+}
+
+func (eb *eventBuilder) Scope(scope string) EventBuilder {
+	eb.scope = scope
+	return eb
+}
+
+func (eb *eventBuilder) Type(eventType string) EventBuilder {
+	eb.eventType = eventType
+	return eb
+}
+
+func (eb *eventBuilder) Source(source string) EventBuilder {
+	eb.source = source
+	return eb
+}
+
+func (eb *eventBuilder) Time(time string) EventBuilder {
+	eb.time = time
+	return eb
+}
+
+func (eb *eventBuilder) Subject(subject string) EventBuilder {
+	eb.subject = subject
+	return eb
+}
+
+func (eb *eventBuilder) Build() models.DiscoveryItem {
 	data := &models.Data{
 		Cluster: eb.c,
 	}
-	return &models.DiscoveryItem{
-		Data: *data,
+	return models.DiscoveryItem{
+		ID:      eb.id,
+		Scope:   eb.scope,
+		Type:    eb.eventType,
+		Source:  eb.source,
+		Time:    eb.time,
+		Subject: eb.subject,
+		Data:    *data,
 	}
 }

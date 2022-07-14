@@ -1,7 +1,10 @@
 package iris
 
 import (
-	"encoding/json"
+	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"strconv"
+	time2 "time"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
@@ -53,11 +56,15 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	}
 	log.Infof("Scan started for RunId: [%s]", s.runId)
 	log.Infof("Configuration used: %s", configuration)
-	kubernetesConfig := kubernetesConfig{}
-	err = json.Unmarshal(configuration, &kubernetesConfig)
+	kubernetesConfig := kubernetesConfig{
+		ID:                    "",
+		Cluster:               "docker-desktop",
+		BlackListedNamespaces: []string{},
+	}
+	/*err = json.Unmarshal(configuration, &kubernetesConfig)
 	if err != nil {
 		return err
-	}
+	}*/
 
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
@@ -65,16 +72,76 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	}
 	log.Info("Retrieved kubernetes config Successfully")
 	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
+	var scannedServices []models.DiscoveryItem
 
-	var scannedObjects []DiscoveryItem
-	deployments, err := mapper.GetDeployments()
+	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
-		log.Errorf("Scan failed while fetching deployments. RunId: [%s], with reason %v", s.runId, err)
+		return err
+	}
+	// Aggregate cluster information for the event
+	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, kubernetesAPI)
+	if err != nil {
 		return err
 	}
 
-	scannedObjects = append(scannedObjects, deployments...)
-	scannedObjectsByte, err := storage.Marshal(scannedObjects)
+	// Metadata for the event
+	scope := fmt.Sprintf("workspace/%s", workspaceId)
+	source := fmt.Sprintf("kubernetes/%s#%s", clusterDTO.name, s.runId)
+
+	for _, namespace := range namespaces.Items {
+		deploymentsPerService := map[string][]models.Deployment{}
+		// collect all deployments
+		deployments, err := mapper.GetDeployments(namespace.Name, kubernetesAPI)
+		if err != nil {
+			return err
+		}
+		// collect all cronjobs
+
+		// Group deployments, cronjobs and jobs by software artifact and create an event
+		for _, deployment := range deployments {
+			if _, ok := deploymentsPerService[deployment.Name]; !ok {
+				deploymentsPerService[deployment.Name] = make([]models.Deployment, 0)
+			}
+			// Key is service/softwareArtifact name, value is the list of deployments connected to it
+			deploymentsPerService[deployment.Name] = append(deploymentsPerService[deployment.Name], deployment)
+		}
+
+		// create kubernetes event for every software artifact
+		for service, deploymentList := range deploymentsPerService {
+
+			result := models.Cluster{
+				Namespace: models.Namespace{
+					Name: namespace.Name,
+				},
+				Deployments: deploymentList,
+				Name:        clusterDTO.name,
+				Os:          clusterDTO.osImage,
+				K8sVersion:  clusterDTO.k8sVersion,
+				NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
+			}
+
+			// Metadata for the event
+			id := fmt.Sprintf("%s-%s", namespace.Name, service)
+			subject := fmt.Sprintf("softwareArtifact/%s", service)
+			time := time2.Now().Format(time2.RFC3339)
+
+			// Build service/softwareArtifact event
+			serviceEvent := New().
+				Id(id).
+				Source(source).
+				Subject(subject).
+				Type(typeAsK8s).
+				Scope(scope).
+				Time(time).
+				Cluster(result).
+				Build()
+
+			scannedServices = append(scannedServices, serviceEvent)
+		}
+
+	}
+
+	scannedObjectsByte, err := storage.Marshal(scannedServices)
 	if err != nil {
 		log.Errorf("Scan failed while Unmarshalling results. RunId: [%s], with reason %v", s.runId, err)
 		return err
