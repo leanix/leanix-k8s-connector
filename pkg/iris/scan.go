@@ -2,6 +2,7 @@ package iris
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"strconv"
 	time2 "time"
@@ -74,12 +75,12 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 	var scannedServices []models.DiscoveryItem
 
-	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
+	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, kubernetesAPI)
 	if err != nil {
 		return err
 	}
 	// Aggregate cluster information for the event
-	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, kubernetesAPI)
+	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 			}
 
 			// Metadata for the event
-			id := fmt.Sprintf("%s-%s", namespace.Name, service)
+			id := fmt.Sprintf("%s", uuid.New().String())
 			subject := fmt.Sprintf("softwareArtifact/%s", service)
 			time := time2.Now().Format(time2.RFC3339)
 
