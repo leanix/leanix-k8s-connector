@@ -4,6 +4,7 @@ import (
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strconv"
@@ -92,12 +93,7 @@ func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API)
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
-		for _, service := range services.Items {
-			if reflect.DeepEqual(service.Spec.Selector, deployment.Spec.Selector.MatchLabels) {
-				deploymentService = service.Name
-				break
-			}
-		}
+		deploymentService = ResolveServiceForDeployment(services, deployment)
 
 		limitCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceCPU]
 		limitMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceMemory]
@@ -128,4 +124,24 @@ func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API)
 	}
 
 	return allDeployments, nil
+}
+
+func ResolveServiceForDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {
+	deploymentService := ""
+	for _, service := range services.Items {
+		sharedLabelsDeployment := map[string]string{}
+		sharedLabelsService := map[string]string{}
+		for label, _ := range service.Spec.Selector {
+			if _, ok := deployment.Spec.Selector.MatchLabels[label]; ok {
+				sharedLabelsDeployment[label] = deployment.Spec.Selector.MatchLabels[label]
+				sharedLabelsService[label] = service.Spec.Selector[label]
+			}
+		}
+
+		if reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsService) {
+			deploymentService = service.Name
+			break
+		}
+	}
+	return deploymentService
 }
