@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"net/http"
 	"strconv"
 	time2 "time"
 
@@ -24,7 +25,7 @@ type scanner struct {
 }
 
 func NewScanner(kind string, uri string, runId string) Scanner {
-	api := NewApi(kind, uri)
+	api := NewApi(http.DefaultClient, kind, uri)
 	return &scanner{
 		api:   api,
 		runId: runId,
