@@ -4,6 +4,8 @@ import (
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
+	v1 "k8s.io/api/core/v1"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -86,19 +88,22 @@ func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API)
 	if err != nil {
 		return nil, err
 	}
-	allServices := set.NewStringSet()
-	for _, service := range services.Items {
-		allServices.Add(service.Name)
-	}
+
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
-		if allServices.Contains(deployment.Name) {
-			deploymentService = deployment.Name
+		// Check if any service has the exact same selector labels and use this as the service related to the deployment
+		for _, service := range services.Items {
+			if reflect.DeepEqual(service.Spec.Selector, deployment.Spec.Selector.MatchLabels) {
+				deploymentService = service.Name
+				break
+			}
 		}
-		limitCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Limits["cpu"]
-		limitMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Limits["memory"]
-		requestCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]
-		requestMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]
+
+		limitCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceCPU]
+		limitMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceMemory]
+		requestCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Requests[v1.ResourceCPU]
+		requestMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Requests[v1.ResourceMemory]
+
 		mappedDeployment := models.Deployment{
 			Service: models.Service{
 				Name: deploymentService,
