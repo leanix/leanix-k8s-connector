@@ -95,11 +95,6 @@ func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API)
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
 		deploymentService = ResolveServiceForDeployment(services, deployment)
 
-		limitCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceCPU]
-		limitMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Limits[v1.ResourceMemory]
-		requestCpu := deployment.Spec.Template.Spec.Containers[0].Resources.Requests[v1.ResourceCPU]
-		requestMemory := deployment.Spec.Template.Spec.Containers[0].Resources.Requests[v1.ResourceMemory]
-
 		mappedDeployment := models.Deployment{
 			Service: models.Service{
 				Name: deploymentService,
@@ -110,20 +105,33 @@ func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API)
 			Properties: models.Properties{
 				UpdateStrategy: string(deployment.Spec.Strategy.Type),
 				Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
-				K8sLimits: models.K8sLimits{
-					Cpu:    limitCpu.String(),
-					Memory: limitMemory.String(),
-				},
-				K8sRequests: models.K8sRequests{
-					Cpu:    requestCpu.String(),
-					Memory: requestMemory.String(),
-				},
+				K8sLimits:      CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
+				K8sRequests:    CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
 			},
 		}
 		allDeployments = append(allDeployments, mappedDeployment)
 	}
 
 	return allDeployments, nil
+}
+
+func CreateK8sResources(resourceList v1.ResourceList) models.K8sResources {
+	cpu := resourceList[v1.ResourceCPU]
+	cpuString := ""
+	if !cpu.IsZero() {
+		cpuString = cpu.String()
+	}
+
+	memory := resourceList[v1.ResourceMemory]
+	memoryString := ""
+	if !memory.IsZero() {
+		memoryString = memory.String()
+	}
+
+	return models.K8sResources{
+		Cpu:    cpuString,
+		Memory: memoryString,
+	}
 }
 
 func ResolveServiceForDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {

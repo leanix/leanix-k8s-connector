@@ -1,6 +1,7 @@
 package iris
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
@@ -57,15 +58,11 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	}
 	log.Infof("Scan started for RunId: [%s]", s.runId)
 	log.Infof("Configuration used: %s", configuration)
-	kubernetesConfig := kubernetesConfig{
-		ID:                    "",
-		Cluster:               "docker-desktop",
-		BlackListedNamespaces: []string{},
-	}
-	/*err = json.Unmarshal(configuration, &kubernetesConfig)
+	kubernetesConfig := kubernetesConfig{}
+	err = json.Unmarshal(configuration, &kubernetesConfig)
 	if err != nil {
 		return err
-	}*/
+	}
 
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
@@ -90,7 +87,7 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	source := fmt.Sprintf("kubernetes/%s#%s", clusterDTO.name, s.runId)
 
 	for _, namespace := range namespaces.Items {
-		deploymentsPerService := map[string][]models.Deployment{}
+		deploymentsPerSoftwareArtifact := map[string][]models.Deployment{}
 		// collect all deployments
 		deployments, err := mapper.GetDeployments(namespace.Name, kubernetesAPI)
 		if err != nil {
@@ -100,15 +97,15 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 
 		// Group deployments, cronjobs and jobs by software artifact and create an event
 		for _, deployment := range deployments {
-			if _, ok := deploymentsPerService[deployment.Name]; !ok {
-				deploymentsPerService[deployment.Name] = make([]models.Deployment, 0)
+			if _, ok := deploymentsPerSoftwareArtifact[deployment.Name]; !ok {
+				deploymentsPerSoftwareArtifact[deployment.Name] = make([]models.Deployment, 0)
 			}
 			// Key is service/softwareArtifact name, value is the list of deployments connected to it
-			deploymentsPerService[deployment.Name] = append(deploymentsPerService[deployment.Name], deployment)
+			deploymentsPerSoftwareArtifact[deployment.Name] = append(deploymentsPerSoftwareArtifact[deployment.Name], deployment)
 		}
 
 		// create kubernetes event for every software artifact
-		for service, deploymentList := range deploymentsPerService {
+		for service, deploymentList := range deploymentsPerSoftwareArtifact {
 
 			result := models.Cluster{
 				Namespace: models.Namespace{

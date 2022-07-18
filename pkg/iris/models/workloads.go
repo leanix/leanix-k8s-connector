@@ -17,18 +17,13 @@ type Service struct {
 // properties  for workloads
 
 type Properties struct {
-	UpdateStrategy string `json:"updateStrategy"`
-	Replicas       string `json:"replicas"`
-	K8sLimits      `json:"k8sLimits"`
-	K8sRequests    `json:"k8sRequests"`
+	UpdateStrategy string       `json:"updateStrategy"`
+	Replicas       string       `json:"replicas"`
+	K8sLimits      K8sResources `json:"k8sLimits"`
+	K8sRequests    K8sResources `json:"k8sRequests"`
 }
 
-type K8sLimits struct {
-	Cpu    string `json:"cpu"`
-	Memory string `"json:"memory"`
-}
-
-type K8sRequests struct {
+type K8sResources struct {
 	Cpu    string `json:"cpu"`
 	Memory string `json:"memory"`
 }
