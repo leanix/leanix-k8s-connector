@@ -110,9 +110,10 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 		deployments, err := kubernetesAPI.Deployments(namespace.Name)
 		if err != nil {
 			err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, FAILED, err.Error())
-		if err != nil {
-			log.Errorf("Scan failed while posting status. RunId: [%s], with reason %v", s.runId, err)
-		}return err
+			if err != nil {
+				log.Errorf("Scan failed while posting status. RunId: [%s], with reason %v", s.runId, err)
+			}
+			return err
 		}
 
 		services, err := kubernetesAPI.Services(namespace.Name)
