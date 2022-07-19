@@ -185,7 +185,8 @@ func TestGetCluster(t *testing.T) {
 
 	assert.Equal(t, "test-cluster", result.name)
 	assert.Equal(t, 2, result.nodesCount)
-	assert.Equal(t, "def, abc", result.k8sVersion)
+	assert.Contains(t, result.k8sVersion, "def")
+	assert.Contains(t, result.k8sVersion, "abc")
 	assert.Equal(t, "123, 456", result.osImage)
 
 }

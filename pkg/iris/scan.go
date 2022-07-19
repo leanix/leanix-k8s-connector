@@ -1,9 +1,9 @@
 package iris
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"net/http"
 	"strconv"
@@ -92,7 +92,6 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	source := fmt.Sprintf("kubernetes/%s#%s", clusterDTO.name, s.runId)
 
 	for _, namespace := range namespaces.Items {
-		deploymentsPerSoftwareArtifact := map[string][]models.Deployment{}
 		// collect all deployments
 		deployments, err := kubernetesAPI.Deployments(namespace.Name)
 		if err != nil {
@@ -110,32 +109,24 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 
 		// collect all cronjobs
 
-		// Group deployments, cronjobs and jobs by software artifact and create an event
-		for _, deployment := range mappedDeployments {
-			if _, ok := deploymentsPerSoftwareArtifact[deployment.Name]; !ok {
-				deploymentsPerSoftwareArtifact[deployment.Name] = make([]models.Deployment, 0)
-			}
-			// Key is service/softwareArtifact name, value is the list of deployments connected to it
-			deploymentsPerSoftwareArtifact[deployment.Name] = append(deploymentsPerSoftwareArtifact[deployment.Name], deployment)
-		}
-
 		// create kubernetes event for every software artifact
-		for service, deploymentList := range deploymentsPerSoftwareArtifact {
+		for _, deployment := range mappedDeployments {
 
 			result := models.Cluster{
 				Namespace: models.Namespace{
 					Name: namespace.Name,
 				},
-				Deployments: deploymentList,
-				Name:        clusterDTO.name,
-				Os:          clusterDTO.osImage,
-				K8sVersion:  clusterDTO.k8sVersion,
-				NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
+				Deployment: deployment,
+				Name:       clusterDTO.name,
+				Os:         clusterDTO.osImage,
+				K8sVersion: clusterDTO.k8sVersion,
+				NoOfNodes:  strconv.Itoa(clusterDTO.nodesCount),
 			}
 
 			// Metadata for the event
-			id := fmt.Sprintf("%s", uuid.New().String())
-			subject := fmt.Sprintf("softwareArtifact/%s", service)
+
+			id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", namespace.Name, deployment.Name))))
+			subject := fmt.Sprintf("workload/%s", deployment.Name)
 			time := time2.Now().Format(time2.RFC3339)
 
 			// Build service/softwareArtifact event
