@@ -13,7 +13,7 @@ import (
 )
 
 type Mapper interface {
-	GetCluster(clusterName string, nodes *v1.NodeList) (*ClusterDTO, error)
+	GetCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
 	GetDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
 }
 
@@ -50,11 +50,11 @@ type ClusterDTO struct {
 
 // GetCluster MapNodes maps a list of nodes and a given cluster name into a KubernetesObject.
 // In the process it aggregates the information from muliple nodes into one cluster object.
-func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (*ClusterDTO, error) {
+func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error) {
 
 	items := nodes.Items
 	if len(items) == 0 {
-		return &ClusterDTO{
+		return ClusterDTO{
 			name: clusterName,
 		}, nil
 	}
@@ -66,7 +66,7 @@ func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (*ClusterDTO
 		osImage.Add(n.Status.NodeInfo.OSImage)
 
 	}
-	return &ClusterDTO{
+	return ClusterDTO{
 		name:       clusterName,
 		k8sVersion: strings.Join(k8sVersion.Items(), ", "),
 		nodesCount: len(items),
