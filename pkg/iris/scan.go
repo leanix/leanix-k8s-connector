@@ -73,7 +73,11 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 	var scannedServices []models.DiscoveryItem
 
-	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, kubernetesAPI)
+	nodes, err := kubernetesAPI.Nodes()
+	if err != nil {
+		return err
+	}
+	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, nodes)
 	if err != nil {
 		return err
 	}
@@ -90,14 +94,24 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	for _, namespace := range namespaces.Items {
 		deploymentsPerSoftwareArtifact := map[string][]models.Deployment{}
 		// collect all deployments
-		deployments, err := mapper.GetDeployments(namespace.Name, kubernetesAPI)
+		deployments, err := kubernetesAPI.Deployments(namespace.Name)
 		if err != nil {
 			return err
 		}
+
+		services, err := kubernetesAPI.Services(namespace.Name)
+		if err != nil {
+			return err
+		}
+		mappedDeployments, err := mapper.GetDeployments(deployments, services)
+		if err != nil {
+			return err
+		}
+
 		// collect all cronjobs
 
 		// Group deployments, cronjobs and jobs by software artifact and create an event
-		for _, deployment := range deployments {
+		for _, deployment := range mappedDeployments {
 			if _, ok := deploymentsPerSoftwareArtifact[deployment.Name]; !ok {
 				deploymentsPerSoftwareArtifact[deployment.Name] = make([]models.Deployment, 0)
 			}

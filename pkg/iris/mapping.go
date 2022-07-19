@@ -13,8 +13,8 @@ import (
 )
 
 type Mapper interface {
-	GetCluster(clusterName string, kubernetesAPI *kubernetes.API) (*ClusterDTO, error)
-	GetDeployments(namespace string, kubernetesAPI *kubernetes.API) ([]models.Deployment, error)
+	GetCluster(clusterName string, nodes *v1.NodeList) (*ClusterDTO, error)
+	GetDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
 }
 
 type mapper struct {
@@ -48,14 +48,10 @@ type ClusterDTO struct {
 	osImage    string
 }
 
-// MapNodes maps a list of nodes and a given cluster name into a KubernetesObject.
+// GetCluster MapNodes maps a list of nodes and a given cluster name into a KubernetesObject.
 // In the process it aggregates the information from muliple nodes into one cluster object.
-func (m *mapper) GetCluster(clusterName string, kubernetesAPI *kubernetes.API) (*ClusterDTO, error) {
+func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (*ClusterDTO, error) {
 
-	nodes, err := kubernetesAPI.Nodes()
-	if err != nil {
-		return nil, err
-	}
 	items := nodes.Items
 	if len(items) == 0 {
 		return &ClusterDTO{
@@ -78,17 +74,8 @@ func (m *mapper) GetCluster(clusterName string, kubernetesAPI *kubernetes.API) (
 	}, nil
 }
 
-func (m *mapper) GetDeployments(namespace string, kubernetesAPI *kubernetes.API) ([]models.Deployment, error) {
+func (m *mapper) GetDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
 	var allDeployments []models.Deployment
-	deployments, err := kubernetesAPI.Deployments(namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	services, err := kubernetesAPI.Services(namespace)
-	if err != nil {
-		return nil, err
-	}
 
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
@@ -146,7 +133,7 @@ func ResolveServiceForDeployment(services *v1.ServiceList, deployment appsv1.Dep
 			}
 		}
 
-		if reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsService) {
+		if len(sharedLabelsDeployment) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsService) {
 			deploymentService = service.Name
 			break
 		}
