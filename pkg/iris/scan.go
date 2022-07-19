@@ -33,6 +33,7 @@ type kubernetesConfig struct {
 }
 
 const (
+	STARTED     string = "STARTED"
 	IN_PROGRESS string = "IN_PROGRESS"
 	FAILED      string = "FAILED"
 	SUCCESSFUL  string = "SUCCESSFUL"
@@ -64,7 +65,10 @@ func (s *scanner) Scan(config *rest.Config, workspaceId string, configurationNam
 	if err != nil {
 		return err
 	}
-
+	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, STARTED, "Started Kubernetes Scan")
+	if err != nil {
+		log.Errorf("Scan failed while posting status. RunId: [%s], with reason %v", s.runId, err)
+	}
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
 		return err

@@ -91,14 +91,14 @@ type StatusItem struct {
 
 func NewStatusEvent(configurationId string, runId string, workspaceId string, runstatus string, message string) *StatusItem {
 
-	Id := fmt.Sprintf("%s", runId)
-	Subject := fmt.Sprintf("Status")
+	Id := fmt.Sprintf("%s", configurationId)
+	Subject := fmt.Sprintf(runstatus)
 	Type := fmt.Sprintf("leanix.vsm.item-logged.status")
 	Scope := fmt.Sprintf("workspace/%s", workspaceId)
 	Source := fmt.Sprintf("kubernetes/%s#%s", configurationId, runId)
 	Time := fmt.Sprintf(time.Now().Local().String())
 	DataContentType := fmt.Sprintf("application/json")
-	DataSchema := fmt.Sprintf("/vsm-iris/schemas/operation-item/v1")
+	DataSchema := fmt.Sprintf("/vsm-iris/schemas/feedback-items/v1")
 
 	var StatusData = make(map[string]interface{})
 	StatusData["status"] = runstatus
