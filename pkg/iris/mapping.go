@@ -81,25 +81,28 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1
 		deploymentService := ""
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
 		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
-
-		mappedDeployment := models.Deployment{
-			Service: models.Service{
-				Name: deploymentService,
-			},
-			Name:      deployment.Name,
-			Labels:    deployment.ObjectMeta.Labels,
-			Timestamp: deployment.CreationTimestamp.UTC().Format(time.RFC3339),
-			Properties: models.Properties{
-				UpdateStrategy: string(deployment.Spec.Strategy.Type),
-				Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
-				K8sLimits:      CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
-				K8sRequests:    CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
-			},
-		}
-		allDeployments = append(allDeployments, mappedDeployment)
+		allDeployments = append(allDeployments, m.CreateDeployment(deploymentService, deployment))
 	}
 
 	return allDeployments, nil
+}
+
+func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
+	mappedDeployment := models.Deployment{
+		Service: models.Service{
+			Name: deploymentService,
+		},
+		Name:      deployment.Name,
+		Labels:    deployment.ObjectMeta.Labels,
+		Timestamp: deployment.CreationTimestamp.UTC().Format(time.RFC3339),
+		Properties: models.Properties{
+			UpdateStrategy: string(deployment.Spec.Strategy.Type),
+			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
+			K8sLimits:      CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
+			K8sRequests:    CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
+		},
+	}
+	return mappedDeployment
 }
 
 func CreateK8sResources(resourceList v1.ResourceList) models.K8sResources {
