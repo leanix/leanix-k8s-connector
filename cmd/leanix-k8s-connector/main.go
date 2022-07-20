@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,7 +56,7 @@ func main() {
 			viper.GetString(utils.IntegrationAPIFqdnFlag), runId,
 		)
 
-		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
+		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
 			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}

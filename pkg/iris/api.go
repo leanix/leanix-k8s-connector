@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type API interface {
@@ -14,30 +15,40 @@ type API interface {
 }
 
 type api struct {
-	kind string
-	uri  string
+	client *http.Client
+	kind   string
+	uri    string
 }
 
-func NewApi(kind string, uri string) API {
+func NewApi(client *http.Client, kind string, uri string) API {
+	protocol := ""
+	if !strings.Contains(uri, "http") {
+		protocol = "https://"
+	}
 	return &api{
-		kind: kind,
-		uri:  uri,
+		client: client,
+		kind:   kind,
+		uri:    fmt.Sprintf("%s%s", protocol, uri),
 	}
 }
 
 func (a *api) GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
-	configUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
+	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
-	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
-		log.Errorf("Error while retrieving configuration from %s: %v", configurationName, err)
+		log.Errorf("Error while creating request to retrieve configuration from %s: %v", configurationName, err)
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Execute request
+	resp, err := a.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	// Read response
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -46,16 +57,18 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 }
 
 func (a *api) PostResults(results []byte, accessToken string) error {
-	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/results", a.uri)
+	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/results", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
+	if err != nil {
+		log.Errorf("Error creating request to post results results: %v", err)
+		return err
+	}
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
 	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(results))
-	if err != nil {
-		log.Errorf("Error while posting results: %v", err)
-		return err
-	}
-	resp, err := http.DefaultClient.Do(postReq)
+
+	// Execute request
+	resp, err := a.client.Do(postReq)
 	if err != nil {
 		return err
 	}
@@ -73,7 +86,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 }
 
 func (a *api) PostStatus(status []byte, accessToken string) error {
-	resultUrl := fmt.Sprintf("https://%s/services/vsm-iris/v1/status", a.uri)
+	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/status", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
