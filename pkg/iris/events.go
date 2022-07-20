@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	typeAsK8s string = "leanix.vsm.item-discovered.kubernetes"
+	typeAsK8sNamespace string = "leanix.vsm.item-discovered.kubernetes.namespace"
 )
 
 // struct to extend Log with RunId

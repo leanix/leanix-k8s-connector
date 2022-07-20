@@ -155,11 +155,9 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, err
 		}
 
-		// create kubernetes event for every software artifact
-		for _, deployment := range mappedDeployments {
-			discoveryEvent := s.CreateDiscoveryEvent(namespace, deployment, &cluster, source, scope)
-			events = append(events, discoveryEvent)
-		}
+		// create kubernetes event for namespace
+		discoveryEvent := s.CreateDiscoveryEvent(namespace, mappedDeployments, &cluster, source, scope)
+		events = append(events, discoveryEvent)
 	}
 
 	return events, nil
@@ -174,22 +172,22 @@ func (s scanner) LogAndShareError(message string, status string, err error, id s
 	return err
 }
 
-func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployment models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
+func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
 	result := models.Cluster{
 		Namespace: models.Namespace{
 			Name: namespace.Name,
 		},
-		Deployment: deployment,
-		Name:       clusterDTO.name,
-		Os:         clusterDTO.osImage,
-		K8sVersion: clusterDTO.k8sVersion,
-		NoOfNodes:  strconv.Itoa(clusterDTO.nodesCount),
+		Deployments: deployments,
+		Name:        clusterDTO.name,
+		Os:          clusterDTO.osImage,
+		K8sVersion:  clusterDTO.k8sVersion,
+		NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
 	}
 
 	// Metadata for the event
 
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", namespace.Name, deployment.Name))))
-	subject := fmt.Sprintf("workload/%s", deployment.Name)
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
+	subject := fmt.Sprintf("namespace/%s", namespace.Name)
 	time := time2.Now().Format(time2.RFC3339)
 
 	// Build service/softwareArtifact event
@@ -197,7 +195,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployment mo
 		Id(id).
 		Source(source).
 		Subject(subject).
-		Type(typeAsK8s).
+		Type(typeAsK8sNamespace).
 		Scope(scope).
 		Time(time).
 		Cluster(result).
