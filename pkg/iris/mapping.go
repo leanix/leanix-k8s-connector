@@ -13,8 +13,8 @@ import (
 )
 
 type Mapper interface {
-	GetCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
-	GetDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
+	MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
+	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
 }
 
 type mapper struct {
@@ -50,7 +50,7 @@ type ClusterDTO struct {
 
 // GetCluster MapNodes maps a list of nodes and a given cluster name into a KubernetesObject.
 // In the process it aggregates the information from muliple nodes into one cluster object.
-func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error) {
+func (m *mapper) MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error) {
 
 	items := nodes.Items
 	if len(items) == 0 {
@@ -74,13 +74,13 @@ func (m *mapper) GetCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO,
 	}, nil
 }
 
-func (m *mapper) GetDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
+func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
 	var allDeployments []models.Deployment
 
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
-		deploymentService = ResolveServiceForDeployment(services, deployment)
+		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
 
 		mappedDeployment := models.Deployment{
 			Service: models.Service{
@@ -121,7 +121,7 @@ func CreateK8sResources(resourceList v1.ResourceList) models.K8sResources {
 	}
 }
 
-func ResolveServiceForDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {
+func ResolveK8sServiceForK8sDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {
 	deploymentService := ""
 	for _, service := range services.Items {
 		sharedLabelsDeployment := map[string]string{}

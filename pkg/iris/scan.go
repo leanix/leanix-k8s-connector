@@ -99,7 +99,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason %v", FAILED, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	clusterDTO, err := mapper.GetCluster(kubernetesConfig.Cluster, nodes)
+	clusterDTO, err := mapper.MapCluster(kubernetesConfig.Cluster, nodes)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason %v", FAILED, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
@@ -150,7 +150,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, err
 		}
 
-		mappedDeployments, err := mapper.GetDeployments(deployments, services)
+		mappedDeployments, err := mapper.MapDeployments(deployments, services)
 		if err != nil {
 			return nil, err
 		}
@@ -191,7 +191,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	time := time2.Now().Format(time2.RFC3339)
 
 	// Build service/softwareArtifact event
-	serviceEvent := New().
+	discoveryEvent := New().
 		Id(id).
 		Source(source).
 		Subject(subject).
@@ -200,7 +200,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		Time(time).
 		Cluster(result).
 		Build()
-	return serviceEvent
+	return discoveryEvent
 }
 
 func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken string, status string, message string) error {

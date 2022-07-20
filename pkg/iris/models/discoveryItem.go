@@ -14,9 +14,4 @@ type Data struct {
 	Cluster Cluster `json:"cluster"`
 }
 
-// type DiscoveryItem interface {
-// 	GetDiscoveryItem() DiscoveryItem
-// 	CreateDiscoveryItem() error
-// }
-
 //Interface functions can go here

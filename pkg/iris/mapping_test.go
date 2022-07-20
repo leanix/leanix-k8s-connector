@@ -113,7 +113,7 @@ func TestMapDeployments(t *testing.T) {
 		},
 	}
 	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.GetDeployments(&dummyDeployments, &dummyServices)
+	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
 
@@ -179,7 +179,7 @@ func TestGetCluster(t *testing.T) {
 	}
 
 	mapper := NewMapper(&kubernetes.API{}, "test-cluster", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.GetCluster("test-cluster", &dummyNodes)
+	result, err := mapper.MapCluster("test-cluster", &dummyNodes)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
 
@@ -287,7 +287,7 @@ func TestResolveServiceForDeployment_Success(t *testing.T) {
 			ReadyReplicas: 1,
 		},
 	}
-	result := ResolveServiceForDeployment(&dummyServices, dummyDeployment)
+	result := ResolveK8sServiceForK8sDeployment(&dummyServices, dummyDeployment)
 	assert.NotEmpty(t, result)
 	assert.Equal(t, "test-service-1", result)
 }
@@ -387,7 +387,7 @@ func TestResolveServiceForDeployment_NoCommonLabels(t *testing.T) {
 			ReadyReplicas: 1,
 		},
 	}
-	result := ResolveServiceForDeployment(&dummyServices, dummyDeployment)
+	result := ResolveK8sServiceForK8sDeployment(&dummyServices, dummyDeployment)
 	assert.Equal(t, "", result)
 }
 
@@ -487,6 +487,6 @@ func TestResolveServiceForDeployment_DifferentLabelValues(t *testing.T) {
 			ReadyReplicas: 1,
 		},
 	}
-	result := ResolveServiceForDeployment(&dummyServices, dummyDeployment)
+	result := ResolveK8sServiceForK8sDeployment(&dummyServices, dummyDeployment)
 	assert.Equal(t, "", result)
 }
