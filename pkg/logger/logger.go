@@ -46,7 +46,7 @@ func Info(message string) {
 }
 
 func Infof(format string, arguments ...interface{}) {
-	zapLog.Info(fmt.Sprintf(format, arguments))
+	zapLog.Info(fmt.Sprintf(format, arguments...))
 }
 
 func Debug(message string, fields ...zap.Field) {
@@ -54,7 +54,7 @@ func Debug(message string, fields ...zap.Field) {
 }
 
 func Debugf(message string, arguments ...interface{}) {
-	zapLog.Debug(fmt.Sprintf(message, arguments))
+	zapLog.Debug(fmt.Sprintf(message, arguments...))
 }
 
 func Error(message string, err error) {
@@ -62,7 +62,7 @@ func Error(message string, err error) {
 }
 
 func Errorf(message string, arguments ...interface{}) {
-	zapLog.Error(fmt.Sprintf(message, arguments))
+	zapLog.Error(fmt.Sprintf(message, arguments...))
 }
 
 func Fatal(message string, fields ...zap.Field) {
