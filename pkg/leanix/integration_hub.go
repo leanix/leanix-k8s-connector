@@ -11,7 +11,6 @@ import (
 
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/leanix/leanix-k8s-connector/pkg/version"
-	"github.com/op/go-logging"
 )
 
 type SelfStartResponse struct {
@@ -43,8 +42,6 @@ const (
 	FAILED      string = "FAILED"
 	FINISHED    string = "FINISHED"
 )
-
-var log = logging.MustGetLogger("leanix-k8s-connector")
 
 // SelfStartRun initiates the Integration Hub run and response with id
 func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStartResponse, error) {

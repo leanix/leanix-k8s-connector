@@ -11,11 +11,7 @@ import (
 	"github.com/leanix/leanix-k8s-connector/pkg/version"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/rest"
-
-	"github.com/op/go-logging"
 )
-
-var log = logging.MustGetLogger("leanix-k8s-connector")
 
 func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.SelfStartResponse, err error) {
 	logger.Info("----------Attempting to Self Start via Integration Hub----------")
