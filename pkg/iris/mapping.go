@@ -2,6 +2,7 @@ package iris
 
 import (
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -45,16 +46,16 @@ func (m *mapper) GetDeployments() ([]DiscoveryItem, error) {
 		if blacklistedNS(namespace.Name, m.BlackListedNamespaces) {
 			continue
 		}
-		log.Infof("Fetching Deployments for namespace [%s]", namespace.Name)
+		logger.Infof("Fetching Deployments for namespace [%s]", namespace.Name)
 		deployments, err := m.KubernetesApi.Deployments(namespace.Name)
 		if err != nil {
 			return nil, err
 		}
-		log.Infof("mapping deployments for namespace [%s]", namespace.Name)
+		logger.Infof("mapping deployments for namespace [%s]", namespace.Name)
 		mappedDeployments := m.MapDeployments(deployments)
 		allDiscoveryItems = append(allDiscoveryItems, mappedDeployments...)
 	}
-	log.Info("Fetching deployments for namespaces completed")
+	logger.Info("Fetching deployments for namespaces completed")
 	return allDiscoveryItems, nil
 }
 

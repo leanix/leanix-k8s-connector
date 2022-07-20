@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -54,10 +55,10 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
-		log.Infof("SelfStartRun: Error while starting run for datasource: %s", datasourceRunUrl)
+		logger.Infof("SelfStartRun: Error while starting run for datasource: %s", datasourceRunUrl)
 		return nil, err
 	}
-	log.Infof("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s\n", datasource, fqdn)
+	logger.Infof("Initiating connection to Integration Hub API with dataSource name: %s with region value: %s\n", datasource, fqdn)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 		if readErr != nil {
 			return nil, readErr
 		}
-		log.Errorf("Integration Hub run failed with error message: %s\n ", responseData)
+		logger.Errorf("Integration Hub run failed with error message: %s\n ", responseData)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -82,7 +83,7 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	if errorBinding != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID BINDING KEY: ABORTING IHUB RUN.")
 		if err != nil {
-			log.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
+			logger.Errorf("Failed to update progress[%s] to Integration Hub", FAILED)
 		}
 		return &startResponse, errorBinding
 	}
@@ -90,12 +91,12 @@ func SelfStartRun(fqdn string, accessToken string, datasource string) (*SelfStar
 	if errorConfig != nil {
 		_, err = UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "INVALID CONNECTOR CONFIGURATION: ABORTING IHUB RUN.")
 		if err != nil {
-			log.Errorf("SelfStartRun: Failed to update progress[%s] to Integration Hub", FAILED)
+			logger.Errorf("SelfStartRun: Failed to update progress[%s] to Integration Hub", FAILED)
 		}
 		return &startResponse, errorConfig
 	}
-	log.Info("Connector Configuration is validated")
-	log.Info("Binding Key is validated")
+	logger.Info("Connector Configuration is validated")
+	logger.Info("Binding Key is validated")
 	return &startResponse, nil
 }
 
@@ -149,10 +150,10 @@ func UpdateProgress(progressCallbackUrl string, status string, message string) (
 	}{Message: message, Status: status, ProgressOrigin: "CONNECTOR"}
 	marshal, err := json.Marshal(body)
 	if err != nil {
-		log.Errorf("UpdateProgress: Failed to marshal the request body: '%s'", err)
+		logger.Errorf("UpdateProgress: Failed to marshal the request body: '%s'", err)
 		return status, err
 	}
-	log.Debugf("UpdateProgress: callback url: '%s', body: '%s'", progressCallbackUrl, body)
+	logger.Errorf("UpdateProgress: callback url: '%s', body: '%s'", progressCallbackUrl, body)
 	resp, err := http.Post(progressCallbackUrl, "application/json", bytes.NewReader(marshal))
 	if err != nil {
 		return status, err

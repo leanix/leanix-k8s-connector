@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"os"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"path/filepath"
 	"strings"
 
@@ -15,40 +14,37 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/op/go-logging"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 )
 
-var log = logging.MustGetLogger("leanix-k8s-connector")
-
 func main() {
-	stdoutLogger, debugLogBuffer := initLogger()
+	debugLogBuffer := logger.Init()
 	err := parseFlags()
 	if err != nil {
-		log.Error(err)
+		logger.Error("Error occurred when parsing flags.", err)
 	}
-	enableVerbose(stdoutLogger, viper.GetBool(utils.VerboseFlag))
+
 	var config *restclient.Config
 	if viper.GetBool(utils.LocalFlag) {
 		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
 		if err != nil {
-			log.Errorf("Failed to load kube config. Running locally?\n%s", err)
+			logger.Error("Failed to load kube config. Running locally?\n%s", err)
 		}
 	} else {
 		config, err = restclient.InClusterConfig()
 		if err != nil {
-			log.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
+			logger.Error("Failed to load kube config. Running in Kubernetes?\n%s", err)
 		}
 	}
 	accessToken, err := leanix.Authenticate(viper.GetString(utils.IntegrationAPIFqdnFlag), viper.GetString(utils.IntegrationAPITokenFlag))
 	if err != nil {
-		log.Error(err)
-		log.Info("Failed to authenticate. Terminating..")
+		logger.Error("Error occurred when authenticating.", err)
+		logger.Info("Failed to authenticate. Terminating..")
 	}
 	if viper.GetBool(utils.IrisFlag) {
-		log.Info("Enabled Iris")
+		logger.Info("Enabled Iris")
 		runId := iris.GenerateRunId()
 		irisScanner := iris.NewScanner(
 			"Iris Integration",
@@ -57,22 +53,27 @@ func main() {
 
 		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
-			log.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
+			logger.Error("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}
 	} else {
 		// use the current context in kubeconfig
-		startResponse, err := ihub.KubernetesScan(debugLogBuffer, config, viper.GetViper())
+		startResponse, err := ihub.KubernetesScan(config, viper.GetViper())
 		if err != nil {
-			log.Error(err)
+			logger.Error("Error occurred when processing kubeconfig", err)
 		}
 		if startResponse != nil {
-			log.Info("Uploading connector logs to iHub")
+			logger.Info("Uploading connector logs to iHub")
+			err := logger.Sync()
+			if err != nil {
+				logger.Error("Failed to sync buffer.", err)
+				return
+			}
 			err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
 			if err != nil {
-				log.Error(err)
+				logger.Error("Error occurred uploading ConnectorLogs", err)
 			}
 		} else {
-			log.Error("Invalid response from integration hub. Can't upload logs.")
+			logger.Error("Invalid response from integration hub. Can't upload logs.", err)
 		}
 	}
 }
@@ -97,7 +98,7 @@ func parseFlags() error {
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)
 	if err != nil {
-		log.Error(err)
+		logger.Error("Error overwriting configs in viper", err)
 		return err
 	}
 	// Check for config values in env vars
@@ -134,28 +135,4 @@ func parseFlags() error {
 		return fmt.Errorf("%s flag must be set", utils.IntegrationAPIDatasourceNameFlag)
 	}
 	return nil
-}
-
-// InitLogger initialise the logger for stdout and log file
-func initLogger() (logging.LeveledBackend, *bytes.Buffer) {
-	format := logging.MustStringFormatter(`%{time} ▶ [%{level:.4s}] %{message}`)
-	logging.SetFormatter(format)
-
-	// stdout logging backend
-	stdout := logging.NewLogBackend(os.Stdout, "", 0)
-	stdoutLeveled := logging.AddModuleLevel(stdout)
-
-	// file logging backend
-	var mem bytes.Buffer
-	fileLogger := logging.NewLogBackend(&mem, "", 0)
-	logging.SetBackend(fileLogger, stdoutLeveled)
-	return stdoutLeveled, &mem
-}
-
-func enableVerbose(logger logging.LeveledBackend, verbose bool) {
-	if verbose {
-		logger.SetLevel(logging.DEBUG, "")
-	} else {
-		logger.SetLevel(logging.INFO, "")
-	}
 }

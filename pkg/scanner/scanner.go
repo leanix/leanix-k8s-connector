@@ -1,24 +1,21 @@
 package scanner
 
 import (
-	"bytes"
 	"context"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"reflect"
 	"strings"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/leanix"
 	"github.com/leanix/leanix-k8s-connector/pkg/mapper"
-	"github.com/op/go-logging"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 )
 
-var log = logging.MustGetLogger("leanix-k8s-connector")
-
-func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedNamespacesList []string, config *rest.Config, logger *bytes.Buffer) ([]mapper.KubernetesObject, error) {
+func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedNamespacesList []string, config *rest.Config) ([]mapper.KubernetesObject, error) {
 
 	kubernetesAPI, err := kubernetes.NewAPI(config)
 	if err != nil {
@@ -26,16 +23,16 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 	}
 	dynClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		log.Error(err)
+		logger.Error("Failed to scan Kubernetes", err)
 	}
 
-	log.Debug("Get blacklist namespaces list...")
+	logger.Debug("Get blacklist namespaces list...")
 	blacklistedNamespaces, err := kubernetesAPI.BlackListNamespaces(blacklistedNamespacesList)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Getting blacklist namespaces list done.")
-	log.Infof("Namespace blacklist: %v", reflect.ValueOf(blacklistedNamespaces).MapKeys())
+	logger.Debug("Getting blacklist namespaces list done.")
+	logger.Infof("Namespace blacklist: %v", reflect.ValueOf(blacklistedNamespaces).MapKeys())
 
 	resourcesList, err := ServerPreferredListableResources(kubernetesAPI.Client.Discovery())
 	if err != nil {
@@ -47,15 +44,15 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 	}
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Discovery of Version Resources is done. Moving on to mapping nodes")
 	if err != nil {
-		log.Errorf("KubernetesScan: Before scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
+		logger.Errorf("KubernetesScan: Before scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
 	}
-	log.Debug("Listing nodes...")
+	logger.Debug("Listing nodes...")
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Listing nodes done.")
-	log.Debug("Map nodes to Kubernetes object")
+	logger.Debug("Listing nodes done.")
+	logger.Debug("Map nodes to Kubernetes object")
 	clusterKubernetesObject, err := mapper.MapNodes(
 		startResponse.ConnectorConfiguration.ClusterName,
 		nodes,
@@ -67,7 +64,7 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 	kubernetesObjects = append(kubernetesObjects, *clusterKubernetesObject)
 	_, statusErr := leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping nodes is done. Moving on to collecting kubernetes objects from Version Resources.")
 	if statusErr != nil {
-		log.Errorf("KubernetesScan: After Scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, statusErr)
+		logger.Errorf("KubernetesScan: After Scan: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, statusErr)
 
 	}
 	resourceGroupWhitelist := map[string]map[string]interface{}{
@@ -118,7 +115,7 @@ func ScanKubernetesCurrent(startResponse *leanix.SelfStartResponse, blacklistedN
 
 	for gvr := range groupVersionResources {
 		if _, ok := resourceGroupWhitelist[gvr.Group][gvr.Resource]; !ok {
-			log.Debugf("Not scanning resource %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
+			logger.Errorf("Not scanning resource %s", strings.Join([]string{gvr.Group, gvr.Version, gvr.Resource}, "/"))
 			continue
 		}
 		instances, err := dynClient.Resource(gvr).List(context.Background(), metav1.ListOptions{})

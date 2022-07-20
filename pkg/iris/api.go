@@ -3,6 +3,7 @@ package iris
 import (
 	"bytes"
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"io/ioutil"
 	"net/http"
 )
@@ -30,7 +31,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 	req, err := http.NewRequest("GET", configUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	if err != nil {
-		log.Errorf("Error while retrieving configuration from %s: %v", configurationName, err)
+		logger.Errorf("Error while retrieving configuration from %s: %v", configurationName, err)
 		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
@@ -52,7 +53,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
 	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(results))
 	if err != nil {
-		log.Errorf("Error while posting results: %v", err)
+		logger.Errorf("Error while posting results: %v", err)
 		return err
 	}
 	resp, err := http.DefaultClient.Do(postReq)
@@ -68,7 +69,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
 		return err
 	}
-	log.Infof("Event posted successfully [%s]", resp.Status)
+	logger.Infof("Event posted successfully [%s]", resp.Status)
 	return nil
 }
 
@@ -79,7 +80,7 @@ func (a *api) PostStatus(status []byte, accessToken string) error {
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
 	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(status))
 	if err != nil {
-		log.Errorf("Error while posting status: %v", err)
+		logger.Errorf("Error while posting status: %v", err)
 		return err
 	}
 	resp, err := http.DefaultClient.Do(postReq)
@@ -95,6 +96,6 @@ func (a *api) PostStatus(status []byte, accessToken string) error {
 		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
 		return err
 	}
-	log.Infof("Status Event posted successfully [%s]", resp.Status)
+	logger.Infof("Status Event posted successfully [%s]", resp.Status)
 	return nil
 }
