@@ -24,6 +24,8 @@ func NewAPI(config *rest.Config) (*API, error) {
 	}, nil
 }
 
+type GetKubernetesAPI func(config *rest.Config) (*API, error)
+
 // BlacklistFieldSelector builds a Field Selector string to filter the reponse to not
 // include resources, that live in the blacklisted namespaces.
 func BlacklistFieldSelector(blacklistedNamespaces []string) string {
