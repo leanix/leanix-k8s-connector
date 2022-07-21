@@ -60,7 +60,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with new version done. Preparing ldif.")
 		if err != nil {
-			logger.Errorf("New Kubernetes Scan: After Mapping: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
+			logger.Errorf("New Kubernetes Scan: After Mapping: Failed to update progress[%s] to Integration Hub"+leanix.IN_PROGRESS, err)
 		}
 	} else {
 		logger.Info("Using current k8s mapper")
@@ -71,7 +71,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 		}
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Mapping of kubernetes objects with old version done. Preparing ldif.")
 		if err != nil {
-			logger.Errorf("Current Kubernetes Scan: After Mapping: Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
+			logger.Errorf("Current Kubernetes Scan: After Mapping: Failed to update progress[%s] to Integration Hub"+leanix.IN_PROGRESS, err)
 		}
 		kubernetesObjects = append(kubernetesObjects, mappedObject...)
 	}
@@ -98,7 +98,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 
 	_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully collected required kubernetes data.")
 	if err != nil {
-		logger.Errorf("KubernetesScan: After mapping: Failed to progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
+		logger.Errorf("KubernetesScan: After mapping: Failed to progress[%s] to Integration Hub"+leanix.IN_PROGRESS, err)
 	}
 	logger.Debug("Marshal ldif")
 	ldifByte, err := storage.Marshal(ldif)
@@ -109,7 +109,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 	if err != nil {
 		_, statusErr := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to marshal ldif")
 		if statusErr != nil {
-			logger.Errorf("KubernetesScan: Marshal ldif error: Failed to progress[%s] to Integration Hub", leanix.FAILED, statusErr)
+			logger.Errorf("KubernetesScan: Marshal ldif error: Failed to progress[%s] to Integration Hub"+leanix.FAILED, statusErr)
 		}
 		return startResponse, err
 	}
@@ -133,7 +133,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 		if err != nil {
 			_, statusErr := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to create uploader for backend storage")
 			if statusErr != nil {
-				logger.Errorf("KubernetesScan: Failed to create uploader for backend storage: Failed to progress[%s] to Integration Hub", leanix.FAILED, statusErr)
+				logger.Errorf("KubernetesScan: Failed to create uploader for backend storage: Failed to progress[%s] to Integration Hub"+leanix.FAILED, statusErr)
 			}
 			return nil, err
 		}
@@ -141,14 +141,14 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 		if err != nil {
 			_, statusErr := leanix.UpdateFailedProgressStatus(startResponse.ProgressCallbackUrl, "Failed to upload ldif to backend storage configured storage backend - "+viper.GetString("storage-backend"))
 			if statusErr != nil {
-				logger.Errorf("KubernetesScan: Upload LDIF error: Failed to progress[%s] to Integration Hub", leanix.FAILED, statusErr)
+				logger.Errorf("KubernetesScan: Upload LDIF error: Failed to progress[%s] to Integration Hub"+leanix.FAILED, statusErr)
 			}
 			return nil, err
 		}
 
 		_, err = leanix.UpdateInProgressStatus(startResponse.ProgressCallbackUrl, "Successfully uploaded ldif to configured storage backend - "+viper.GetString("storage-backend"))
 		if err != nil {
-			logger.Errorf("Failed to update progress[%s] to Integration Hub", leanix.IN_PROGRESS, err)
+			logger.Errorf("Failed to update progress[%s] to Integration Hub"+leanix.IN_PROGRESS, err)
 		}
 		logger.Info("-----------Done Uploading to custom storage backend-----------")
 	} else {
@@ -163,7 +163,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 	}
 	_, err = leanix.UpdateProgress(startResponse.ProgressCallbackUrl, leanix.FINISHED, "")
 	if err != nil {
-		logger.Errorf("Failed to update progress[%s] to Integration Hub", leanix.FINISHED, err)
+		logger.Errorf("Failed to update progress[%s] to Integration Hub"+leanix.FINISHED, err)
 	}
 	logger.Debug("-----------End-----------")
 	logger.Info("-----------End-----------")
