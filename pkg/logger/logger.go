@@ -9,13 +9,17 @@ import (
 )
 
 var zapLog *zap.Logger
+var logBuffer *bytes.Buffer
 
 func Init() bytes.Buffer {
-	logFile := new(bytes.Buffer)
+	if zapLog != nil {
+		return *logBuffer
+	}
+	logBuffer = new(bytes.Buffer)
 	zapLog = zap.New(
 		zapcore.NewCore(
 			zapcore.NewJSONEncoder(encoderCfg),
-			zapcore.Lock(zapcore.AddSync(logFile)), zapcore.InfoLevel,
+			zapcore.Lock(zapcore.AddSync(logBuffer)), zapcore.InfoLevel,
 		))
 	zapLog = zapLog.WithOptions(zap.WrapCore(
 		func(c zapcore.Core) zapcore.Core {
@@ -30,7 +34,7 @@ func Init() bytes.Buffer {
 				))
 		}))
 
-	return *logFile
+	return *logBuffer
 }
 
 func Sync() error {

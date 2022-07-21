@@ -37,7 +37,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	if err != nil {
-		logger.Errorf("Error while creating request to retrieve configuration from %s: %v"+configurationName, err)
+		logger.Errorf("Error while creating request to retrieve configuration from %s: %v", configurationName, err)
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -82,7 +82,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
 		return err
 	}
-	logger.Infof("Event posted successfully [%s]", resp.Status)
+	logger.Infof("Discovery Event posted successfully [%s]", resp.Status)
 	return nil
 }
 
