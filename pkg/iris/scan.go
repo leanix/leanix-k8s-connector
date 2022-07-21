@@ -40,7 +40,6 @@ type kubernetesConfig struct {
 }
 
 const (
-	STARTED     string = "STARTED"
 	IN_PROGRESS string = "IN_PROGRESS"
 	FAILED      string = "FAILED"
 	SUCCESSFUL  string = "SUCCESSFUL"
@@ -72,7 +71,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return err
 	}
-	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, STARTED, "Started Kubernetes Scan")
+	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, IN_PROGRESS, "Started Kubernetes Scan")
 	if err != nil {
 		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
@@ -203,7 +202,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 
 func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken string, status string, message string) error {
 	var statusArray []StatusItem
-	statusObject := NewStatusEvent(configid, s.runId, workspaceId, FAILED, message)
+	statusObject := NewStatusEvent(configid, s.runId, workspaceId, status, message)
 	statusArray = append(statusArray, *statusObject)
 	statusByte, err := storage.Marshal(statusArray)
 	err = s.irisApi.PostStatus(statusByte, accessToken)
