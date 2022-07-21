@@ -1,6 +1,7 @@
 package iris
 
 import (
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -8,7 +9,12 @@ import (
 	"testing"
 )
 
+func setup() {
+	logger.Init()
+}
+
 func TestGetConfiguration200(t *testing.T) {
+	setup()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		// Test request parameters
 		assert.Equal(t, req.Method, "GET")
@@ -28,11 +34,11 @@ func TestGetConfiguration200(t *testing.T) {
 }
 
 func TestPostResults200(t *testing.T) {
+	setup()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		// Test request parameters
 		assert.Equal(t, req.Method, "POST")
 		assert.Contains(t, req.URL.String(), "/services/vsm-iris/v1/results")
-		defer req.Body.Close()
 		requestData, err := ioutil.ReadAll(req.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-results", string(requestData))
@@ -48,6 +54,7 @@ func TestPostResults200(t *testing.T) {
 }
 
 func TestPostResultsError(t *testing.T) {
+	setup()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 		rw.Write([]byte(`Exception`))
