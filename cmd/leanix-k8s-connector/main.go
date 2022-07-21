@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,6 @@ func main() {
 	if err != nil {
 		logger.Error("Error occurred when parsing flags.", err)
 	}
-
 	var config *restclient.Config
 	if viper.GetBool(utils.LocalFlag) {
 		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
@@ -51,7 +51,7 @@ func main() {
 			viper.GetString(utils.IntegrationAPIFqdnFlag), runId,
 		)
 
-		err = irisScanner.Scan(config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
+		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
 			logger.Error("Failed to scan Kubernetes via vsm-iris.\n%s", err)
 		}
@@ -63,11 +63,6 @@ func main() {
 		}
 		if startResponse != nil {
 			logger.Info("Uploading connector logs to iHub")
-			err := logger.Sync()
-			if err != nil {
-				logger.Error("Failed to sync buffer.", err)
-				return
-			}
 			err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
 			if err != nil {
 				logger.Error("Error occurred uploading ConnectorLogs", err)
