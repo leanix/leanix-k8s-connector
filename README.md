@@ -154,16 +154,16 @@ kubectl create secret generic api-token --from-literal=token={LEANIX_API_TOKEN}
 
 The following configuration example for quick start
 
-| Parameter                 | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
-| ------------------------- | ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
-| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
-| schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
-| lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
-| verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
-| blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
-| enableCustomStorage       | false         | false                                | Disable/enable custom storage backend option. Even if disabled the connector works
+| Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
+|-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
+| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
+| verbose                       | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| blacklistNameSpaces           | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage           | false         | false                                | Disable/enable custom storage backend option. Even if disabled the connector works                                                                                                                                                     |
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -198,19 +198,19 @@ args:
 
 The following configuration example assumes that you use the `azureblob` storage backend.
 
-| Parameter                 | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
-| ------------------------- | ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
-| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
-| schedule.standard         | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
-| lxWorkspace               | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
-| verbose                   | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
-| storageBackend            | none          | azureblob                            | The default value for the storage backend is `none`, if not provided.                                                                                                                                                                  |
-| secretName                | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
-| container                 | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
-| blacklistNameSpaces       | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
-| enableCustomStorage       | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
+| Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
+|-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
+| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
+| verbose                       | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| storageBackend                | none          | azureblob                            | The default value for the storage backend is `none`, if not provided.                                                                                                                                                                  |
+| secretName                    | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
+| container                     | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
+| blacklistNameSpaces           | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage           | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works                                                                                                                                                     |
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -324,19 +324,19 @@ Finally, we use the Helm chart deploying the LeanIX Kubernetes Connector to the 
 
 The following command deploys the connector to the Kubernetes cluster and overwrites the parameters in the `values.yaml` file.
 
-| Parameter           | Default value             | Provided value                       | Notes |
-| ------------------- | ------------------------- | ------------------------------------ | ----- |
-| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
-| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
-| schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
-| lxWorkspace         | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
-| verbose             | false                     | true                                 | Enables verbose logging on the stdout interface of the container. |
-| storageBackend      | none                      | file                                 | The default value for the storage backend is `none`, if not provided. |
-| localFilePath       | /mnt/leanix-k8s-connector |                                      | The path that is used for mounting the PVC into the container and storing the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
-| claimName           | ""                        | azurefile                            | The name of the PVC used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
-| blacklistNameSpaces | kube-system               | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
-| enableCustomStorage | false                     | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
+| Parameter                     | Default value             | Provided value                       | Notes                                                                                                                                                                                                                                  |
+|-------------------------------|---------------------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| integrationApi.fqdn           | ""                        | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName     | ""                        | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""                        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
+| schedule.standard             | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour.                                                                                                                                                                                              |
+| lxWorkspace                   | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to.                                                                                                                                                                                  |
+| verbose                       | false                     | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| storageBackend                | none                      | file                                 | The default value for the storage backend is `none`, if not provided.                                                                                                                                                                  |
+| localFilePath                 | /mnt/leanix-k8s-connector |                                      | The path that is used for mounting the PVC into the container and storing the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                  |
+| claimName                     | ""                        | azurefile                            | The name of the PVC used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                          |
+| blacklistNameSpaces           | kube-system               | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage           | false                     | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works                                                                                                                                                     |
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -398,19 +398,19 @@ Finally, we use the Helm chart deploying the LeanIX Kubernetes Connector to the 
 
 The following command deploys the connector to the Kubernetes cluster and overwrites the parameters in the `values.yaml` file.
 
-| Parameter           | Default value | Provided value                       | Notes |
-| ------------------- | ------------- | ------------------------------------ | ----- |
-| integrationApi.fqdn       | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
-| integrationApi.datasourceName | ""        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace
-| schedule.standard   | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour. |
-| lxWorkspace         | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. |
-| verbose             | false         | true                                 | Enables verbose logging on the stdout interface of the container. |
-| storageBackend      | none          | azureblob                            | The default value for the storage backend is `none`, if not provided. |
-| secretName          | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials. |
-| container           | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files. |
-| blacklistNameSpaces | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
-| enableCustomStorage | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works
+| Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
+|-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
+| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour.                                                                                                                                                                                              |
+| lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to.                                                                                                                                                                                  |
+| verbose                       | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
+| storageBackend                | none          | azureblob                            | The default value for the storage backend is `none`, if not provided.                                                                                                                                                                  |
+| secretName                    | ""            | azure-secret                         | The name of the Kubernetes secret containing the Azure Storage account credentials.                                                                                                                                                    |
+| container                     | ""            | leanixk8sconnector                   | The name of the container used to store the `kubernetes.ldif` and `leanix-k8s-connector.log` files.                                                                                                                                    |
+| blacklistNameSpaces           | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
+| enableCustomStorage           | false         | true                                 | Disable/enable custom storage backend option. Even if disabled the connector works                                                                                                                                                     |
 
 ``` bash
 helm upgrade --install leanix-k8s-connector leanix/leanix-k8s-connector \
@@ -579,40 +579,6 @@ e.g `--set args.storageBackend=file`
 ## Version history
 
 [CHANGELOG](CHANGELOG.md)
-
-| Release date | Connector version | Integration version | Helm chart version | Container image tag |
-|:------------:|:-----------------:| :-----------------: |:------------------:|:-------------------:|
-|  2022-06-29  |       6.8.3       |        1.0.0        |       6.8.3        |        6.8.3        |
-|  2022-05-05  |       6.7.0       |        1.0.0        |       6.7.0        |        6.7.0        |
-|  2022-05-05  |       6.6.0       |        1.0.0        |       6.6.0        |        6.6.2        |
-|  2022-04-29  |       6.5.2       |        1.0.0        |       6.5.2        |        6.5.2        |
-|  2022-04-26  |       6.5.1       |        1.0.0        |       6.5.1        |        6.5.1        |
-|  2022-04-08  |       6.5.0       |        1.0.0        |       6.5.0        |        6.5.0        |
-|  2022-03-16  |       6.4.1       |        1.0.0        |       6.4.1        |        6.4.1        |
-|  2022-03-09  |       6.4.0       |        1.0.0        |       6.4.0        |        6.4.0        |
-|  2022-03-07  |       6.3.3       |        1.0.0        |       6.3.3        |        6.3.3        |
-|  2022-01-20  |       6.3.2       |        1.0.0        |       6.3.2        |        6.3.2        |
-|  2022-01-10  |       6.3.1       |        1.0.0        |       6.3.1        |        6.3.1        |
-|  2022-01-03  |       6.3.0       |        1.0.0        |       6.3.0        |        6.3.0        |
-|  2022-01-03  |       6.2.0       |        1.0.0        |       6.2.0        |        6.2.0        |
-|  2021-12-08  |       6.1.0       |        1.0.0        |       6.1.0        |        6.1.0        |
-|  2021-12-06  |       6.0.3       |        1.0.0        |       6.0.3        |        6.0.3        |
-|  2021-12-19  |       6.0.2       |        1.0.0        |       6.0.2        |        6.0.2        |
-|  2021-11-18  |       6.0.1       |        1.0.0        |       6.0.1        |        6.0.1        |
-|  2021-10-12  |       6.0.0       |        1.0.0        |       6.0.0        |        6.0.0        |
-|  2021-09-20  |       5.0.0       |        1.0.0        |       5.0.0        |        5.0.0        |
-|  2021-08-30  |       4.0.0       |        1.0.0        |       4.0.0        |        4.0.0        |
-|  2021-08-04  |       3.0.0       |        1.0.0        |       3.0.0        |        3.0.0        |
-|  2021-06-21  |       2.0.0       |        1.0.0        |       2.0.0        |        2.0.0        |
-|  2020-10-22  |    2.0.0-beta7    |        1.0.0        |    2.0.0-beta7     |     2.0.0-beta7     |
-|  2020-10-21  |    2.0.0-beta6    |        1.0.0        |    2.0.0-beta6     |     2.0.0-beta6     |
-|  2020-10-15  |    2.0.0-beta5    |        1.0.0        |    2.0.0-beta5     |     2.0.0-beta5     |
-|  2020-06-15  |    2.0.0-beta4    |        1.0.0        |    2.0.0-beta4     | 2.0.0-beta4-1b46be5 |
-|  2020-04-28  |    2.0.0-beta3    |        1.0.0        |    2.0.0-beta3     | 2.0.0-beta3-fa5ea6f |
-|  2020-02-07  |    2.0.0-beta2    |        1.0.0        |    2.0.0-beta1     | 2.0.0-beta2-f8218f4 |
-|  2020-01-14  |    2.0.0-beta1    |        1.0.0        |    2.0.0-beta1     | 2.0.0-beta1-d5555d2 |
-|  2019-09-26  |       1.1.0       |        1.0.0        |       1.0.0        |       23d019b       |
-|  2019-08-28  |       1.0.0       |        1.0.0        |       1.0.0        |       b0bc069       |
 
 ## References for detailed understanding
 [Integration API](https://leanix.atlassian.net/wiki/spaces/~956226893/pages/4296016089/Integration+API)  
