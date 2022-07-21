@@ -54,7 +54,7 @@ func main() {
 
 		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
 		if err != nil {
-			logger.Errorf("Failed to scan Kubernetes via vsm-iris.\n%s", err)
+			logger.Error("Failed to scan Kubernetes via vsm-iris.", err)
 		}
 	} else {
 		// use the current context in kubeconfig
