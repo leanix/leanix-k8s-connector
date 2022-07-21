@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
-	"github.com/op/go-logging"
 	"k8s.io/client-go/rest"
 )
 
@@ -58,8 +58,6 @@ const (
 	}
   } */
 
-var log = logging.MustGetLogger("leanix-k8s-connector")
-
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason %v"
 
 func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
@@ -67,8 +65,8 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return err
 	}
-	log.Infof("Scan started for RunId: [%s]", s.runId)
-	log.Infof("Configuration used: %s", configuration)
+	logger.Infof("Scan started for RunId: [%s]", s.runId)
+	logger.Infof("Configuration used: %s", configuration)
 	kubernetesConfig := kubernetesConfig{}
 	err = json.Unmarshal(configuration, &kubernetesConfig)
 	if err != nil {
@@ -76,7 +74,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	}
 	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, STARTED, "Started Kubernetes Scan")
 	if err != nil {
-		log.Errorf(StatusErrorFormat, s.runId, err)
+		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
 
@@ -85,11 +83,11 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason %v", FAILED, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	log.Info("Retrieved kubernetes config Successfully")
+	logger.Info("Retrieved kubernetes config Successfully")
 
 	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, IN_PROGRESS, "Retrieved Kubernetes configuration Successfully")
 	if err != nil {
-		log.Errorf(StatusErrorFormat, s.runId, err)
+		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
 	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
@@ -124,10 +122,10 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason %v", FAILED, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	log.Infof("Scan Finished for RunId: [%s]", s.runId)
+	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
 	err = s.ShareStatus(kubernetesConfig.ID, workspaceId, accessToken, SUCCESSFUL, "Successfully Scanned")
 	if err != nil {
-		log.Errorf(StatusErrorFormat, s.runId, err)
+		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
 	return err
@@ -164,10 +162,10 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 }
 
 func (s scanner) LogAndShareError(message string, status string, err error, id string, workspaceId string, accessToken string) error {
-	log.Errorf(message, s.runId, err)
+	logger.Errorf(message, s.runId, err)
 	err = s.ShareStatus(id, workspaceId, accessToken, status, message)
 	if err != nil {
-		log.Errorf(StatusErrorFormat, s.runId, err)
+		logger.Errorf(StatusErrorFormat, s.runId, err)
 	}
 	return err
 }
@@ -210,7 +208,7 @@ func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken s
 	statusByte, err := storage.Marshal(statusArray)
 	err = s.irisApi.PostStatus(statusByte, accessToken)
 	if err != nil {
-		log.Debugf("Failed sharing status for RunId: [%s], with reason %v", s.runId, err)
+		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v"+s.runId, err)
 		return err
 	}
 	return nil

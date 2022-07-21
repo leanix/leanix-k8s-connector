@@ -3,6 +3,7 @@ package iris
 import (
 	"bytes"
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -36,7 +37,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	if err != nil {
-		log.Errorf("Error while creating request to retrieve configuration from %s: %v", configurationName, err)
+		logger.Errorf("Error while creating request to retrieve configuration from %s: %v"+configurationName, err)
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -60,7 +61,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/results", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	if err != nil {
-		log.Errorf("Error creating request to post results results: %v", err)
+		logger.Errorf("Error creating request to post results results: %v", err)
 		return err
 	}
 	postReq.Header.Set("Content-Type", "application/json")
@@ -81,7 +82,7 @@ func (a *api) PostResults(results []byte, accessToken string) error {
 		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
 		return err
 	}
-	log.Infof("Event posted successfully [%s]", resp.Status)
+	logger.Infof("Event posted successfully [%s]", resp.Status)
 	return nil
 }
 
@@ -92,7 +93,7 @@ func (a *api) PostStatus(status []byte, accessToken string) error {
 	postReq.Header.Set("Authorization", "Bearer "+accessToken)
 	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(status))
 	if err != nil {
-		log.Errorf("Error while posting status: %v", err)
+		logger.Errorf("Error while posting status: %v", err)
 		return err
 	}
 	resp, err := http.DefaultClient.Do(postReq)
@@ -108,6 +109,6 @@ func (a *api) PostStatus(status []byte, accessToken string) error {
 		err := fmt.Errorf("posting results status[%s]could not be processed: '%s'", resp.Status, responseData)
 		return err
 	}
-	log.Infof("Status Event posted successfully [%s]", resp.Status)
+	logger.Infof("Status Event posted successfully [%s]", resp.Status)
 	return nil
 }

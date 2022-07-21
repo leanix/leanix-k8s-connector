@@ -32,7 +32,6 @@ func TestPostResults200(t *testing.T) {
 		// Test request parameters
 		assert.Equal(t, req.Method, "POST")
 		assert.Contains(t, req.URL.String(), "/services/vsm-iris/v1/results")
-		defer req.Body.Close()
 		requestData, err := ioutil.ReadAll(req.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-results", string(requestData))
