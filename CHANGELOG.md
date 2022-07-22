@@ -1,5 +1,8 @@
 # LeanIX Kubernetes Connector Changelog
 
+## Release 2022-07-21 - 6.10.0
+* Implemented structured logging for Integration Hub and Iris 
+
 ## Release 2022-06-29 - 6.8.3
 * Dependency updates
 ## Release 2022-05-19 - 6.7.0
