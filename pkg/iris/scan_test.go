@@ -120,7 +120,7 @@ var deploymentList = appsv1.DeploymentList{
 }
 
 func TestScan(t *testing.T) {
-
+	setup()
 	apiMock := func(config *rest.Config) (*kubernetes.API, error) {
 		client := fake.NewSimpleClientset()
 		client.CoreV1().(*fakev1.FakeCoreV1).
