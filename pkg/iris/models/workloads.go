@@ -3,7 +3,8 @@ package models
 // workloads
 
 type Deployment struct {
-	Service    Service     `json:"service"`
+	Service    *Service    `json:"service"`
+	Image      string      `json:"image"`
 	Name       string      `json:"name"`
 	Labels     interface{} `json:"labels"`
 	Timestamp  string      `json:"time"`

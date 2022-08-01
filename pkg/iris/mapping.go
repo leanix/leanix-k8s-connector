@@ -88,10 +88,15 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1
 }
 
 func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
-	mappedDeployment := models.Deployment{
-		Service: models.Service{
+	var service *models.Service = nil
+	if deploymentService != "" {
+		service = &models.Service{
 			Name: deploymentService,
-		},
+		}
+	}
+	mappedDeployment := models.Deployment{
+		Service:   service,
+		Image:     deployment.Spec.Template.Spec.Containers[0].Image,
 		Name:      deployment.Name,
 		Labels:    deployment.ObjectMeta.Labels,
 		Timestamp: deployment.CreationTimestamp.UTC().Format(time.RFC3339),
