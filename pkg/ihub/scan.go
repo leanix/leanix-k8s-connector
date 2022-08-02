@@ -78,6 +78,7 @@ func KubernetesScan(config *rest.Config, viper *viper.Viper) (response *leanix.S
 
 	customFields := mapper.CustomFields{
 		BuildVersion:          version.VERSION,
+		K8sOwner:              startResponse.ConnectorConfiguration.ClusterName,
 		ResolveStrategy:       startResponse.ConnectorConfiguration.ResolveStrategy,
 		ResolveLabel:          startResponse.ConnectorConfiguration.ResolveLabel,
 		ClusterName:           startResponse.ConnectorConfiguration.ClusterName,

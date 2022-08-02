@@ -11,6 +11,7 @@ type KubernetesObject struct {
 type CustomFields struct {
 	ConnectorInstance     string `json:"connectorInstance,omitempty"`
 	BuildVersion          string `json:"buildVersion,omitempty"`
+	K8sOwner              string `json:"k8sOwner,omitempty"`
 	ResolveStrategy       string `json:"resolveStrategy,omitempty"`
 	ResolveLabel          string `json:"resolveLabel,omitempty"`
 	ClusterName           string `json:"clusterName,omitempty"`
