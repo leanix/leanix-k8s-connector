@@ -40,11 +40,12 @@ func TestMapDeployments(t *testing.T) {
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
-								{Resources: corev1.ResourceRequirements{
-									Requests: corev1.ResourceList{
-										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
-										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
-									}}},
+								{Image: "testImage",
+									Resources: corev1.ResourceRequirements{
+										Requests: corev1.ResourceList{
+											corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+											corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+										}}},
 							},
 						},
 					},
@@ -124,7 +125,98 @@ func TestMapDeployments(t *testing.T) {
 	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
 	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
 	assert.Equal(t, "1", result[0].Properties.Replicas)
+	assert.Equal(t, "testImage", result[0].Image)
+}
 
+func TestMapDeployments_NoService(t *testing.T) {
+	// create a dummy nodes
+	dummyDeployments := appsv1.DeploymentList{
+		Items: []appsv1.Deployment{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-deployment-2",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Image: "testImage",
+									Resources: corev1.ResourceRequirements{
+										Requests: corev1.ResourceList{
+											corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+											corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+										}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.DeploymentStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+		},
+	}
+	// create dummy services
+	dummyServices := corev1.ServiceList{
+		Items: []corev1.Service{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-service-1",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: corev1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "app1",
+					},
+				},
+				Status: corev1.ServiceStatus{
+					LoadBalancer: corev1.LoadBalancerStatus{},
+					Conditions:   nil,
+				},
+			},
+		},
+	}
+	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
+	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, result)
+
+	assert.Equal(t, "test-deployment-2", result[0].Name)
+	assert.Nil(t, result[0].Service)
+	assert.Equal(t, "100", result[0].Properties.K8sRequests.Cpu)
+	assert.Equal(t, "50", result[0].Properties.K8sRequests.Memory)
+	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
+	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
+	assert.Equal(t, "1", result[0].Properties.Replicas)
+	assert.Equal(t, "testImage", result[0].Image)
 }
 
 func TestGetCluster(t *testing.T) {
