@@ -2,7 +2,6 @@ package iris
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
@@ -138,6 +137,12 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		// collect all replicaSets
+		replicaSets, err := k8sApi.ReplicaSets(namespace.Name)
 		if err != nil {
 			return nil, err
 		}

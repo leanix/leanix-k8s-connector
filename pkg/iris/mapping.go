@@ -7,6 +7,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 type Mapper interface {
 	MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
-	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
+	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList, replicaSets *appsv1.ReplicaSetList) ([]models.Deployment, error)
 }
 
 type mapper struct {
@@ -74,32 +75,40 @@ func (m *mapper) MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO,
 	}, nil
 }
 
-func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
+func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList, replicaSets *appsv1.ReplicaSetList) ([]models.Deployment, error) {
 	var allDeployments []models.Deployment
 
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
+		deploymentReplicaSets := ResolveK8sReplicateSetsForK8sDeployment(replicaSets, deployment)
 		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
-		allDeployments = append(allDeployments, m.CreateDeployment(deploymentService, deployment))
+		allDeployments = append(allDeployments, m.CreateDeployment(deploymentService, deploymentReplicaSets, deployment))
 	}
 
 	return allDeployments, nil
 }
 
-func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
+func (m *mapper) CreateDeployment(deploymentService string, replicaSets []appsv1.ReplicaSet, deployment appsv1.Deployment) models.Deployment {
+	lastDeployment := ""
+	if len(replicaSets) != 0 {
+		lastDeployment = replicaSets[0].CreationTimestamp.UTC().Format(time.RFC3339)
+	}
+
 	var service *models.Service = nil
 	if deploymentService != "" {
 		service = &models.Service{
 			Name: deploymentService,
 		}
 	}
+
 	mappedDeployment := models.Deployment{
-		Service:   service,
-		Image:     deployment.Spec.Template.Spec.Containers[0].Image,
-		Name:      deployment.Name,
-		Labels:    deployment.ObjectMeta.Labels,
-		Timestamp: deployment.CreationTimestamp.UTC().Format(time.RFC3339),
+		Service:      service,
+		Image:        deployment.Spec.Template.Spec.Containers[0].Image,
+		Name:         deployment.Name,
+		Labels:       deployment.ObjectMeta.Labels,
+		Timestamp:    deployment.CreationTimestamp.UTC().Format(time.RFC3339),
+		LastDeployed: lastDeployment,
 		Properties: models.Properties{
 			UpdateStrategy: string(deployment.Spec.Strategy.Type),
 			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
@@ -147,4 +156,26 @@ func ResolveK8sServiceForK8sDeployment(services *v1.ServiceList, deployment apps
 		}
 	}
 	return deploymentService
+}
+
+func ResolveK8sReplicateSetsForK8sDeployment(replicaSets *appsv1.ReplicaSetList, deployment appsv1.Deployment) []appsv1.ReplicaSet {
+	deploymentReplicaSets := make([]appsv1.ReplicaSet, 0)
+	for _, replicaSet := range replicaSets.Items {
+		sharedLabelsDeployment := map[string]string{}
+		sharedLabelsReplicaSet := map[string]string{}
+		for label, _ := range replicaSet.Spec.Selector.MatchLabels {
+			if _, ok := deployment.Spec.Selector.MatchLabels[label]; ok {
+				sharedLabelsDeployment[label] = deployment.Spec.Selector.MatchLabels[label]
+				sharedLabelsReplicaSet[label] = replicaSet.Spec.Selector.MatchLabels[label]
+			}
+		}
+
+		if len(sharedLabelsDeployment) != 0 && len(sharedLabelsReplicaSet) != 0 && reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsReplicaSet) {
+			deploymentReplicaSets = append(deploymentReplicaSets, replicaSet)
+		}
+	}
+	sort.SliceStable(deploymentReplicaSets, func(x, y int) bool {
+		return deploymentReplicaSets[x].CreationTimestamp.Before(&deploymentReplicaSets[y].CreationTimestamp)
+	})
+	return deploymentReplicaSets
 }

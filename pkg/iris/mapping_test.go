@@ -20,12 +20,7 @@ func TestMapDeployments(t *testing.T) {
 					Name:              "test-deployment-2",
 					Namespace:         "deployment-1-namespace",
 					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
-					Labels: map[string]string{
-						"name": "nodepool-2",
-						"failure-domain.beta.kubernetes.io/region": "westeurope",
-						"failure-domain.beta.kubernetes.io/zone":   "2",
-						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
-					},
+					Labels:            map[string]string{},
 					Annotations: map[string]string{
 						"deployment.kubernetes.io/revision": "1",
 					},
@@ -40,17 +35,137 @@ func TestMapDeployments(t *testing.T) {
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
-								{Image: "testImage",
-									Resources: corev1.ResourceRequirements{
-										Requests: corev1.ResourceList{
-											corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
-											corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
-										}}},
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
 							},
 						},
 					},
 				},
 				Status: appsv1.DeploymentStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+		},
+	}
+	dummyReplicaSets := appsv1.ReplicaSetList{
+		Items: []appsv1.ReplicaSet{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-1",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-2",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-3",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app3",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
 					Replicas:      1,
 					ReadyReplicas: 1,
 				},
@@ -89,7 +204,7 @@ func TestMapDeployments(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              "test-service-2",
 					Namespace:         "deployment-1-namespace",
-					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					CreationTimestamp: metav1.Date(2018, 01, 12, 8, 55, 20, 0, time.UTC),
 					Labels: map[string]string{
 						"name": "nodepool-2",
 						"failure-domain.beta.kubernetes.io/region": "westeurope",
@@ -114,7 +229,7 @@ func TestMapDeployments(t *testing.T) {
 		},
 	}
 	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
+	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices, &dummyReplicaSets)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
 
@@ -125,98 +240,8 @@ func TestMapDeployments(t *testing.T) {
 	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
 	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
 	assert.Equal(t, "1", result[0].Properties.Replicas)
-	assert.Equal(t, "testImage", result[0].Image)
-}
+	assert.Equal(t, "2019-01-12T08:55:20Z", result[0].LastDeployed)
 
-func TestMapDeployments_NoService(t *testing.T) {
-	// create a dummy nodes
-	dummyDeployments := appsv1.DeploymentList{
-		Items: []appsv1.Deployment{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:              "test-deployment-2",
-					Namespace:         "deployment-1-namespace",
-					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
-					Labels: map[string]string{
-						"name": "nodepool-2",
-						"failure-domain.beta.kubernetes.io/region": "westeurope",
-						"failure-domain.beta.kubernetes.io/zone":   "2",
-						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
-					},
-					Annotations: map[string]string{
-						"deployment.kubernetes.io/revision": "1",
-					},
-				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app":  "app2",
-							"test": "false",
-						},
-					},
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{Image: "testImage",
-									Resources: corev1.ResourceRequirements{
-										Requests: corev1.ResourceList{
-											corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
-											corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
-										}}},
-							},
-						},
-					},
-				},
-				Status: appsv1.DeploymentStatus{
-					Replicas:      1,
-					ReadyReplicas: 1,
-				},
-			},
-		},
-	}
-	// create dummy services
-	dummyServices := corev1.ServiceList{
-		Items: []corev1.Service{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:              "test-service-1",
-					Namespace:         "deployment-1-namespace",
-					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
-					Labels: map[string]string{
-						"name": "nodepool-2",
-						"failure-domain.beta.kubernetes.io/region": "westeurope",
-						"failure-domain.beta.kubernetes.io/zone":   "2",
-						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
-					},
-					Annotations: map[string]string{
-						"deployment.kubernetes.io/revision": "1",
-					},
-				},
-				Spec: corev1.ServiceSpec{
-					Selector: map[string]string{
-						"app": "app1",
-					},
-				},
-				Status: corev1.ServiceStatus{
-					LoadBalancer: corev1.LoadBalancerStatus{},
-					Conditions:   nil,
-				},
-			},
-		},
-	}
-	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, result)
-
-	assert.Equal(t, "test-deployment-2", result[0].Name)
-	assert.Nil(t, result[0].Service)
-	assert.Equal(t, "100", result[0].Properties.K8sRequests.Cpu)
-	assert.Equal(t, "50", result[0].Properties.K8sRequests.Memory)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
-	assert.Equal(t, "1", result[0].Properties.Replicas)
-	assert.Equal(t, "testImage", result[0].Image)
 }
 
 func TestGetCluster(t *testing.T) {
@@ -279,7 +304,8 @@ func TestGetCluster(t *testing.T) {
 	assert.Equal(t, 2, result.nodesCount)
 	assert.Contains(t, result.k8sVersion, "def")
 	assert.Contains(t, result.k8sVersion, "abc")
-	assert.Equal(t, "123, 456", result.osImage)
+	assert.Contains(t, result.osImage, "123")
+	assert.Contains(t, result.osImage, "456")
 
 }
 
@@ -481,6 +507,338 @@ func TestResolveServiceForDeployment_NoCommonLabels(t *testing.T) {
 	}
 	result := ResolveK8sServiceForK8sDeployment(&dummyServices, dummyDeployment)
 	assert.Equal(t, "", result)
+}
+
+func TestResolveReplicaSetsForDeployment(t *testing.T) {
+	dummyReplicaSets := appsv1.ReplicaSetList{
+		Items: []appsv1.ReplicaSet{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-1",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-2",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-3",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app": "app3",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+		},
+	}
+
+	dummyDeployment := appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "test-deployment-2",
+			Namespace:         "deployment-1-namespace",
+			CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+			Labels: map[string]string{
+				"name": "nodepool-2",
+				"failure-domain.beta.kubernetes.io/region": "westeurope",
+				"failure-domain.beta.kubernetes.io/zone":   "2",
+				"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+			},
+			Annotations: map[string]string{
+				"deployment.kubernetes.io/revision": "1",
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app":  "app2",
+					"test": "false",
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Resources: corev1.ResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+								corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+							}}},
+					},
+				},
+			},
+		},
+		Status: appsv1.DeploymentStatus{
+			Replicas:      1,
+			ReadyReplicas: 1,
+		},
+	}
+	result := ResolveK8sReplicateSetsForK8sDeployment(&dummyReplicaSets, dummyDeployment)
+	assert.Len(t, result, 2)
+
+}
+
+func TestResolveReplicaSetsForDeployment_NoCommonLabels(t *testing.T) {
+	dummyReplicaSets := appsv1.ReplicaSetList{
+		Items: []appsv1.ReplicaSet{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-1",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-2",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app2",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "test-replicaset-3",
+					Namespace:         "deployment-1-namespace",
+					CreationTimestamp: metav1.Date(2020, 01, 12, 8, 55, 20, 0, time.UTC),
+					Labels: map[string]string{
+						"name": "nodepool-2",
+						"failure-domain.beta.kubernetes.io/region": "westeurope",
+						"failure-domain.beta.kubernetes.io/zone":   "2",
+						"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+					},
+					Annotations: map[string]string{
+						"deployment.kubernetes.io/revision": "1",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app":  "app3",
+							"test": "false",
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Resources: corev1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+										corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+									}}},
+							},
+						},
+					},
+				},
+				Status: appsv1.ReplicaSetStatus{
+					Replicas:      1,
+					ReadyReplicas: 1,
+				},
+			},
+		},
+	}
+
+	dummyDeployment := appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "test-deployment-2",
+			Namespace:         "deployment-1-namespace",
+			CreationTimestamp: metav1.Date(2019, 01, 12, 8, 55, 20, 0, time.UTC),
+			Labels: map[string]string{
+				"name": "nodepool-2",
+				"failure-domain.beta.kubernetes.io/region": "westeurope",
+				"failure-domain.beta.kubernetes.io/zone":   "2",
+				"beta.kubernetes.io/instance-type":         "Standard_D8s_v3",
+			},
+			Annotations: map[string]string{
+				"deployment.kubernetes.io/revision": "1",
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"production": "false",
+					"test":       "true",
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Resources: corev1.ResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    *resource.NewQuantity(int64(100), "Mi"),
+								corev1.ResourceMemory: *resource.NewQuantity(int64(50), "m"),
+							}}},
+					},
+				},
+			},
+		},
+		Status: appsv1.DeploymentStatus{
+			Replicas:      1,
+			ReadyReplicas: 1,
+		},
+	}
+	result := ResolveK8sReplicateSetsForK8sDeployment(&dummyReplicaSets, dummyDeployment)
+	assert.Empty(t, result)
 }
 
 func TestResolveServiceForDeployment_DifferentLabelValues(t *testing.T) {
