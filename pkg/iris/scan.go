@@ -152,7 +152,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, err
 		}
 
-		mappedDeployments, err := mapper.MapDeployments(deployments, services)
+		mappedDeployments, err := mapper.MapDeployments(deployments, services, replicaSets)
 		if err != nil {
 			return nil, err
 		}
