@@ -213,15 +213,12 @@ func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken s
 	statusObject := NewStatusEvent(configid, s.runId, workspaceId, status, message)
 	statusArray = append(statusArray, *statusObject)
 	statusByte, err := storage.Marshal(statusArray)
-	// if err != nil {
 	err = s.irisApi.PostStatus(statusByte, accessToken)
 	if err != nil {
 		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v"+s.runId, err)
 		return err
 	}
 	return nil
-	// }
-	// return err
 }
 
 func (s *scanner) ShareAdminLogs(configid string, workspaceId string, accessToken string, loglevel string, message string) error {
@@ -229,13 +226,10 @@ func (s *scanner) ShareAdminLogs(configid string, workspaceId string, accessToke
 	statusObject := NewAdminLogEvent(configid, s.runId, workspaceId, loglevel, message)
 	statusArray = append(statusArray, *statusObject)
 	statusByte, err := storage.Marshal(statusArray)
-	// if err != nil {
 	err = s.irisApi.PostStatus(statusByte, accessToken)
 	if err != nil {
 		logger.Debugf("Failed sharing admin logs for RunId: [%s], with reason %v"+s.runId, err)
 		return err
 	}
 	return nil
-	// }
-	// return err
 }
