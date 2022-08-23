@@ -279,8 +279,8 @@ func TestGetCluster(t *testing.T) {
 	assert.Equal(t, 2, result.nodesCount)
 	assert.Contains(t, result.k8sVersion, "def")
 	assert.Contains(t, result.k8sVersion, "abc")
-	assert.Equal(t, "123, 456", result.osImage)
-
+	assert.Contains(t, result.osImage, "123")
+	assert.Contains(t, result.osImage, "456")
 }
 
 func TestResolveServiceForDeployment_Success(t *testing.T) {
