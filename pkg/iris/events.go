@@ -139,3 +139,31 @@ func NewStatusEvent(configurationId string, runId string, workspaceId string, ru
 		Data:            StatusData,
 	}
 }
+
+func NewAdminLogEvent(configurationId string, runId string, workspaceId string, loglevel string, message string) *StatusItem {
+
+	Id := fmt.Sprintf("%s", configurationId)
+	Subject := fmt.Sprintf(loglevel)
+	Type := fmt.Sprintf("leanix.vsm.item-logged.admin")
+	Scope := fmt.Sprintf("workspace/%s", workspaceId)
+	Source := fmt.Sprintf("kubernetes/%s#%s", configurationId, runId)
+	Time := fmt.Sprintf(time.Now().Format(time.RFC3339))
+	DataContentType := fmt.Sprintf("application/json")
+	DataSchema := fmt.Sprintf("/vsm-iris/schemas/feedback-items/v1")
+
+	var StatusData = make(map[string]interface{})
+	StatusData["level"] = loglevel
+	StatusData["message"] = message
+
+	return &StatusItem{
+		ID:              Id,
+		Scope:           Scope,
+		Type:            Type,
+		Source:          Source,
+		Time:            Time,
+		Subject:         Subject,
+		DataContentType: DataContentType,
+		DataSchema:      DataSchema,
+		Data:            StatusData,
+	}
+}
