@@ -15,7 +15,7 @@ schedule:
 
 image:
   repository: leanixacrpublic.azurecr.io/leanix-k8s-connector
-  tag: 6.10.1
+  tag: 6.10.2
   pullPolicy: Always
 
 securityContext:
