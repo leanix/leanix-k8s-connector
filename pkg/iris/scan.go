@@ -62,7 +62,7 @@ const (
 	}
   } */
 
-const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason %v"
+const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
 
 func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *rest.Config, workspaceId string, configurationName string, accessToken string) error {
 	configuration, err := s.irisApi.GetConfiguration(configurationName, accessToken)
@@ -84,11 +84,11 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 
 	kubernetesAPI, err := getKubernetesAPI(config)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	logger.Info("Retrieved kubernetes config Successfully")
-	err = s.ShareAdminLogs(kubernetesConfig.ID, workspaceId, accessToken, INFO, "Retrieved kubernetes config Successfully")
+	logger.Info("Retrieved kubernetes config successfully")
+	err = s.ShareAdminLogs(kubernetesConfig.ID, workspaceId, accessToken, INFO, "Retrieved kubernetes config successfully")
 	if err != nil {
 		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
@@ -97,23 +97,23 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	clusterDTO, err := mapper.MapCluster(kubernetesConfig.Cluster, nodes)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	// Aggregate cluster information for the event
 	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	events, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	scannedObjectsByte, err := storage.Marshal(events)
@@ -122,7 +122,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	}
 	err = s.irisApi.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason %v", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
@@ -166,13 +166,13 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 
 func (s scanner) LogAndShareError(message string, loglevel string, err error, id string, workspaceId string, accessToken string) error {
 	logger.Errorf(message, s.runId, err)
-	err = s.ShareStatus(id, workspaceId, accessToken, FAILED, "Kubernetes scan failed")
-	if err != nil {
-		logger.Errorf(StatusErrorFormat, s.runId, err)
+	statusErr := s.ShareStatus(id, workspaceId, accessToken, FAILED, "Kubernetes scan failed")
+	if statusErr != nil {
+		logger.Errorf(StatusErrorFormat, s.runId, statusErr)
 	}
-	err = s.ShareAdminLogs(id, workspaceId, accessToken, loglevel, message)
-	if err != nil {
-		logger.Errorf(StatusErrorFormat, s.runId, err)
+	logErr := s.ShareAdminLogs(id, workspaceId, accessToken, loglevel, fmt.Sprintf(message, s.runId, err))
+	if logErr != nil {
+		logger.Errorf(StatusErrorFormat, s.runId, logErr)
 	}
 	return err
 }
@@ -215,7 +215,7 @@ func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken s
 	statusByte, err := storage.Marshal(statusArray)
 	err = s.irisApi.PostStatus(statusByte, accessToken)
 	if err != nil {
-		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v"+s.runId, err)
+		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 	return nil
@@ -228,7 +228,7 @@ func (s *scanner) ShareAdminLogs(configid string, workspaceId string, accessToke
 	statusByte, err := storage.Marshal(statusArray)
 	err = s.irisApi.PostStatus(statusByte, accessToken)
 	if err != nil {
-		logger.Debugf("Failed sharing admin logs for RunId: [%s], with reason %v"+s.runId, err)
+		logger.Debugf("Failed sharing admin logs for RunId: [%s], with reason %v", s.runId, err)
 		return err
 	}
 	return nil
