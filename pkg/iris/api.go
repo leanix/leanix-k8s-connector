@@ -2,6 +2,7 @@ package iris
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"io/ioutil"
@@ -36,6 +37,9 @@ func NewApi(client *http.Client, kind string, uri string) API {
 func (a *api) GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
 	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
 	req, err := http.NewRequest("GET", configUrl, nil)
+	if configurationName == "" {
+		return nil, errors.New("configuration name should not be null or empty")
+	}
 	if err != nil {
 		logger.Errorf("Error while creating request to retrieve configuration from %s: %v", configurationName, err)
 		return nil, err
@@ -53,6 +57,11 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		logger.Errorf("Could not find configuration in Iris with error: '%s'", responseData)
+		return nil, fmt.Errorf("failed to retrieve configuration with name '%s' from Iris", configurationName)
+
 	}
 	return responseData, nil
 }
