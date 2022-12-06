@@ -194,9 +194,11 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
 	subject := fmt.Sprintf("namespace/%s", namespace.Name)
 	time := time2.Now().Format(time2.RFC3339)
+	header := fmt.Sprintf("status")
 
 	// Build service/softwareArtifact event
 	discoveryEvent := New().
+		TypeHeader(header).
 		Id(id).
 		Source(source).
 		Subject(subject).

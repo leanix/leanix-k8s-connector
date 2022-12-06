@@ -26,6 +26,7 @@ func GenerateRunId() string {
 
 type EventBuilder interface {
 	Cluster(cluster models.Cluster) EventBuilder
+	TypeHeader(typeHeader string) EventBuilder
 	Id(id string) EventBuilder
 	Scope(scope string) EventBuilder
 	Type(eventType string) EventBuilder
@@ -37,17 +38,23 @@ type EventBuilder interface {
 }
 
 type eventBuilder struct {
-	c         models.Cluster
-	id        string
-	scope     string
-	eventType string
-	source    string
-	time      string
-	subject   string
+	c          models.Cluster
+	id         string
+	scope      string
+	eventType  string
+	source     string
+	time       string
+	subject    string
+	typeHeader string
 }
 
 func New() EventBuilder {
 	return &eventBuilder{}
+}
+
+func (eb *eventBuilder) TypeHeader(typeHeader string) EventBuilder {
+	eb.typeHeader = typeHeader
+	return eb
 }
 
 func (eb *eventBuilder) Cluster(cluster models.Cluster) EventBuilder {
@@ -89,6 +96,9 @@ func (eb *eventBuilder) Build() models.DiscoveryItem {
 	data := &models.Data{
 		Cluster: eb.c,
 	}
+	header := &models.HeaderProperties{
+		TypeHeader: eb.typeHeader,
+	}
 	return models.DiscoveryItem{
 		ID:      eb.id,
 		Scope:   eb.scope,
@@ -97,6 +107,7 @@ func (eb *eventBuilder) Build() models.DiscoveryItem {
 		Time:    eb.time,
 		Subject: eb.subject,
 		Data:    *data,
+		Header:  *header,
 	}
 }
 

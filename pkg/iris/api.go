@@ -35,7 +35,7 @@ func NewApi(client *http.Client, kind string, uri string) API {
 }
 
 func (a *api) GetConfiguration(configurationName string, accessToken string) ([]byte, error) {
-	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/kubernetes/%s", a.uri, configurationName)
+	configUrl := fmt.Sprintf("http://localhost:8080/configurations/kubernetes/helios-k8s-test-connector")
 	req, err := http.NewRequest("GET", configUrl, nil)
 	if configurationName == "" {
 		return nil, errors.New("configuration name should not be null or empty")
@@ -67,7 +67,7 @@ func (a *api) GetConfiguration(configurationName string, accessToken string) ([]
 }
 
 func (a *api) PostResults(results []byte, accessToken string) error {
-	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/results", a.uri)
+	resultUrl := fmt.Sprintf("http://localhost:8080/results")
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	if err != nil {
 		logger.Errorf("Error creating request to post results results: %v", err)
