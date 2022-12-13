@@ -25,35 +25,43 @@ func GenerateRunId() string {
 }
 
 type EventBuilder interface {
-	Cluster(cluster models.Cluster) EventBuilder
-	TypeHeader(typeHeader string) EventBuilder
-	Id(id string) EventBuilder
-	Scope(scope string) EventBuilder
-	Type(eventType string) EventBuilder
-	Source(source string) EventBuilder
-	Time(time string) EventBuilder
-	Subject(subject string) EventBuilder
+	Header(header models.HeaderProperties) EventBuilder
+	Body(body models.DiscoveryItem) EventBuilder
 
-	Build() models.DiscoveryItem
+	Build() models.DiscoveryEvent
 }
 
 type eventBuilder struct {
-	c          models.Cluster
-	id         string
-	scope      string
-	eventType  string
-	source     string
-	time       string
-	subject    string
-	typeHeader string
+	header models.HeaderProperties
+	body   models.DiscoveryItem
 }
 
 func New() EventBuilder {
 	return &eventBuilder{}
 }
 
-func (eb *eventBuilder) TypeHeader(typeHeader string) EventBuilder {
-	eb.typeHeader = typeHeader
+func (eb *eventBuilder) Header(header models.HeaderProperties) EventBuilder {
+	eb.header = header
+	return eb
+}
+
+func (eb *eventBuilder) Body(body models.DiscoveryItem) EventBuilder {
+	eb.body = body
+	return eb
+}
+
+/*func (eb *eventBuilder) HeaderScope(headerScope string) EventBuilder {
+	eb.headerScope = headerScope
+	return eb
+}
+
+func (eb *eventBuilder) HeaderId(headerId string) EventBuilder {
+	eb.headerId = headerId
+	return eb
+}
+
+func (eb *eventBuilder) HeaderType(headerType string) EventBuilder {
+	eb.headerType = headerType
 	return eb
 }
 
@@ -90,24 +98,23 @@ func (eb *eventBuilder) Time(time string) EventBuilder {
 func (eb *eventBuilder) Subject(subject string) EventBuilder {
 	eb.subject = subject
 	return eb
-}
+}*/
 
-func (eb *eventBuilder) Build() models.DiscoveryItem {
-	data := &models.Data{
-		Cluster: eb.c,
+func (eb *eventBuilder) Build() models.DiscoveryEvent {
+	body := &models.DiscoveryItem{
+		Subject: eb.body.Subject,
+		Source:  eb.body.Source,
+		Data:    eb.body.Data,
 	}
 	header := &models.HeaderProperties{
-		TypeHeader: eb.typeHeader,
+		HeaderClass: eb.header.HeaderClass,
+		HeaderType:  eb.header.HeaderType,
+		HeaderScope: eb.header.HeaderScope,
+		HeaderId:    eb.header.HeaderId,
 	}
-	return models.DiscoveryItem{
-		ID:      eb.id,
-		Scope:   eb.scope,
-		Type:    eb.eventType,
-		Source:  eb.source,
-		Time:    eb.time,
-		Subject: eb.subject,
-		Data:    *data,
-		Header:  *header,
+	return models.DiscoveryEvent{
+		HeaderProperties: *header,
+		Body:             *body,
 	}
 }
 

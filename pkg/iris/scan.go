@@ -4,13 +4,11 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
-	time2 "time"
-
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
+	"net/http"
+	"strconv"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
@@ -134,11 +132,11 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string) ([]models.DiscoveryItem, error) {
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string) ([]models.DiscoveryEvent, error) {
 	// Metadata for the event
 	scope := fmt.Sprintf("workspace/%s", workspaceId)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
-	var events []models.DiscoveryItem
+	var events []models.DiscoveryEvent
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
@@ -177,7 +175,7 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 	return err
 }
 
-func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
+func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
 	result := models.Cluster{
 		Namespace: models.Namespace{
 			Name: namespace.Name,
@@ -190,22 +188,26 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	}
 
 	// Metadata for the event
-
 	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
 	subject := fmt.Sprintf("namespace/%s", namespace.Name)
-	time := time2.Now().Format(time2.RFC3339)
-	header := fmt.Sprintf("status")
+	header := models.HeaderProperties{
+		HeaderId:    id,
+		HeaderScope: scope,
+		HeaderClass: subject,
+		HeaderType:  fmt.Sprintf("state"),
+	}
+	body := models.DiscoveryItem{
+		Data: models.Data{
+			Cluster: result,
+		},
+		Subject: subject,
+		Source:  source,
+	}
 
 	// Build service/softwareArtifact event
 	discoveryEvent := New().
-		TypeHeader(header).
-		Id(id).
-		Source(source).
-		Subject(subject).
-		Type(typeAsK8sNamespace).
-		Scope(scope).
-		Time(time).
-		Cluster(result).
+		Header(header).
+		Body(body).
 		Build()
 	return discoveryEvent
 }
