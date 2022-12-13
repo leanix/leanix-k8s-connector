@@ -197,11 +197,14 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		HeaderType:  fmt.Sprintf("state"),
 	}
 	body := models.DiscoveryItem{
+		State: models.State{
+			Name:    namespace.Name,
+			Subject: subject,
+			Source:  source,
+		},
 		Data: models.Data{
 			Cluster: result,
 		},
-		Subject: subject,
-		Source:  source,
 	}
 
 	// Build service/softwareArtifact event

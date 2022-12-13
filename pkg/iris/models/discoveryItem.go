@@ -6,9 +6,14 @@ type DiscoveryEvent struct {
 }
 
 type DiscoveryItem struct {
+	State State `json:"state"`
+	Data  Data  `json:"data"`
+}
+
+type State struct {
+	Name    string `json:"name"`
 	Source  string `json:"source"`
 	Subject string `json:"subject"`
-	Data    Data   `json:"data"`
 }
 
 type Data struct {

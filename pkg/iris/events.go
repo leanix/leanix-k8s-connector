@@ -102,9 +102,8 @@ func (eb *eventBuilder) Subject(subject string) EventBuilder {
 
 func (eb *eventBuilder) Build() models.DiscoveryEvent {
 	body := &models.DiscoveryItem{
-		Subject: eb.body.Subject,
-		Source:  eb.body.Source,
-		Data:    eb.body.Data,
+		State: eb.body.State,
+		Data:  eb.body.Data,
 	}
 	header := &models.HeaderProperties{
 		HeaderClass: eb.header.HeaderClass,
