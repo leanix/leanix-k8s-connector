@@ -48,7 +48,8 @@ const (
 	INFO               string = "INFO"
 )
 
-/* {
+/* UPDATE THIS WITH NEW DTO
+	{
 	"id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
 	"scope": "workspace/123e4567-e89b-12d3-a456-426614174000",
 	"type": "leanix.vsm.item-discovered.softwareArtifact",
@@ -109,7 +110,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	events, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId)
+	events, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId, kubernetesConfig)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
@@ -132,9 +133,9 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string) ([]models.DiscoveryEvent, error) {
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) ([]models.DiscoveryEvent, error) {
 	// Metadata for the event
-	scope := fmt.Sprintf("workspace/%s", workspaceId)
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
 	var events []models.DiscoveryEvent
 	for _, namespace := range namespaces {
@@ -189,18 +190,17 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 
 	// Metadata for the event
 	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
-	subject := fmt.Sprintf("namespace/%s", namespace.Name)
+	class := fmt.Sprintf("discoveryItem/kubernetes/%s/%s", clusterDTO.name, namespace.Name)
 	header := models.HeaderProperties{
 		HeaderId:    id,
 		HeaderScope: scope,
-		HeaderClass: subject,
+		HeaderClass: class,
 		HeaderType:  fmt.Sprintf("state"),
 	}
 	body := models.DiscoveryItem{
 		State: models.State{
-			Name:    namespace.Name,
-			Subject: subject,
-			Source:  source,
+			Name:   namespace.Name,
+			Source: source,
 		},
 		Data: models.Data{
 			Cluster: result,

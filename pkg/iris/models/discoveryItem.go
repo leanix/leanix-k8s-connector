@@ -11,9 +11,8 @@ type DiscoveryItem struct {
 }
 
 type State struct {
-	Name    string `json:"name"`
-	Source  string `json:"source"`
-	Subject string `json:"subject"`
+	Name   string `json:"name"`
+	Source string `json:"source"`
 }
 
 type Data struct {
