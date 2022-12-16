@@ -119,7 +119,10 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return s.LogAndShareError("Marshall scanned services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
-	err = s.irisApi.PostResults(scannedObjectsByte, accessToken)
+
+	var results = append(scannedObjectsByte)
+
+	err = s.irisApi.PostResults(results, accessToken)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
@@ -133,11 +136,11 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) ([]models.DiscoveryEvent, error) {
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) (interface{}, error) {
 	// Metadata for the event
 	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
-	var events []models.DiscoveryEvent
+	var events []interface{}
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
@@ -157,8 +160,13 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 
 		// create kubernetes event for namespace
 		discoveryEvent := s.CreateDiscoveryEvent(namespace, mappedDeployments, &cluster, source, scope)
+
 		events = append(events, discoveryEvent)
 	}
+	startReplay := s.CreateStartReplay(workspaceId, config)
+	endReplay := s.CreateEndReplay(workspaceId, config)
+
+	events = append(events, startReplay, endReplay)
 
 	return events, nil
 }
@@ -215,6 +223,38 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	return discoveryEvent
 }
 
+// Command Events
+func (s *scanner) CreateStartReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("startReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	startReplayEvent := NewCommand().Header(header).Build()
+	return startReplayEvent
+}
+
+func (s *scanner) CreateEndReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("endReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	endReplayEvent := NewCommand().Header(header).Build()
+	return endReplayEvent
+}
+
+// Status
 func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken string, status string, message string) error {
 	var statusArray []StatusItem
 	statusObject := NewStatusEvent(configid, s.runId, workspaceId, status, message)

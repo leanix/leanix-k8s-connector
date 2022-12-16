@@ -31,11 +31,24 @@ type EventBuilder interface {
 	Build() models.DiscoveryEvent
 }
 
+type CommandBuilder interface {
+	Header(header models.CommandProperties) CommandBuilder
+	Body(body models.CommandBody) CommandBuilder
+
+	Build() models.CommandEvent
+}
+
 type eventBuilder struct {
 	header models.HeaderProperties
 	body   models.DiscoveryItem
 }
 
+type commandBuilder struct {
+	header models.CommandProperties
+	body   models.CommandBody
+}
+
+// Discovery Event Builder
 func New() EventBuilder {
 	return &eventBuilder{}
 }
@@ -49,56 +62,6 @@ func (eb *eventBuilder) Body(body models.DiscoveryItem) EventBuilder {
 	eb.body = body
 	return eb
 }
-
-/*func (eb *eventBuilder) HeaderScope(headerScope string) EventBuilder {
-	eb.headerScope = headerScope
-	return eb
-}
-
-func (eb *eventBuilder) HeaderId(headerId string) EventBuilder {
-	eb.headerId = headerId
-	return eb
-}
-
-func (eb *eventBuilder) HeaderType(headerType string) EventBuilder {
-	eb.headerType = headerType
-	return eb
-}
-
-func (eb *eventBuilder) Cluster(cluster models.Cluster) EventBuilder {
-	eb.c = cluster
-	return eb
-}
-
-func (eb *eventBuilder) Id(id string) EventBuilder {
-	eb.id = id
-	return eb
-}
-
-func (eb *eventBuilder) Scope(scope string) EventBuilder {
-	eb.scope = scope
-	return eb
-}
-
-func (eb *eventBuilder) Type(eventType string) EventBuilder {
-	eb.eventType = eventType
-	return eb
-}
-
-func (eb *eventBuilder) Source(source string) EventBuilder {
-	eb.source = source
-	return eb
-}
-
-func (eb *eventBuilder) Time(time string) EventBuilder {
-	eb.time = time
-	return eb
-}
-
-func (eb *eventBuilder) Subject(subject string) EventBuilder {
-	eb.subject = subject
-	return eb
-}*/
 
 func (eb *eventBuilder) Build() models.DiscoveryEvent {
 	body := &models.DiscoveryItem{
@@ -114,6 +77,35 @@ func (eb *eventBuilder) Build() models.DiscoveryEvent {
 	return models.DiscoveryEvent{
 		HeaderProperties: *header,
 		Body:             *body,
+	}
+}
+
+//Command Event Builder
+func NewCommand() CommandBuilder {
+	return &commandBuilder{}
+}
+
+func (cb *commandBuilder) Header(header models.CommandProperties) CommandBuilder {
+	cb.header = header
+	return cb
+}
+
+func (cb *commandBuilder) Body(body models.CommandBody) CommandBuilder {
+	cb.body = body
+	return cb
+}
+
+func (cb *commandBuilder) Build() models.CommandEvent {
+	header := &models.CommandProperties{
+		Type:   cb.header.Type,
+		Scope:  cb.header.Scope,
+		Action: cb.header.Action,
+	}
+	body := &models.CommandBody{}
+
+	return models.CommandEvent{
+		Properties: *header,
+		Body:       *body,
 	}
 }
 
