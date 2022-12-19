@@ -49,18 +49,24 @@ const (
 	INFO               string = "INFO"
 )
 
-/* UPDATE THIS WITH NEW DTO
-	{
-	"id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
-	"scope": "workspace/123e4567-e89b-12d3-a456-426614174000",
-	"type": "leanix.vsm.item-discovered.softwareArtifact",
-	"source": "kubernetes/some-cluster",
-	"time": "2019-11-18T15:13:39.4589254Z",
-	"subject": "softwareArtifact/app1",
-	"data": {
-		"key": "value",
-	}
-  } */
+/* {
+    "properties": {
+        "id": "uniqueId",
+        "class": "discoveryItem/kubernetes/cluster-name/namespace",
+        "type": "state",
+        "scope": "workspace/a497a179-fbd6-409c-9582-4c59d8e819ac/configuration/76e62268-bf87-4e03-b586-f82527cb93d0" - #workspace/wsId/config/configId
+    },
+    "payload": {
+        "state": {
+            "name": "namespace-name",
+            "source": "kubernetes/cluster-name#5afdb3ae-99fe-4d4e-9db9-7ee05cd386ba", - #.../runId
+            "time": "2022-12-19T14:05:38Z",
+            "data": {
+                <cluster info>
+            }
+        }
+    }
+} */
 
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
 
