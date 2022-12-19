@@ -210,10 +210,10 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		State: models.State{
 			Name:   namespace.Name,
 			Source: source,
+			Time:   time,
 			Data: models.Data{
 				Cluster: result,
 			},
-			Time: time,
 		},
 	}
 
