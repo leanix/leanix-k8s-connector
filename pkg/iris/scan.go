@@ -9,6 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
 	"strconv"
+	time2 "time"
 
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
@@ -120,9 +121,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Marshall scanned services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	var results = append(scannedObjectsByte)
-
-	err = s.irisApi.PostResults(results, accessToken)
+	err = s.irisApi.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
@@ -141,6 +140,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
 	var events []interface{}
+	startReplay := s.CreateStartReplay(workspaceId, config)
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
@@ -163,7 +163,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 
 		events = append(events, discoveryEvent)
 	}
-	startReplay := s.CreateStartReplay(workspaceId, config)
+
 	endReplay := s.CreateEndReplay(workspaceId, config)
 
 	events = append(events, startReplay, endReplay)
@@ -199,6 +199,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	// Metadata for the event
 	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
 	class := fmt.Sprintf("discoveryItem/kubernetes/%s/%s", clusterDTO.name, namespace.Name)
+	time := time2.Now().Format(time2.RFC3339)
 	header := models.HeaderProperties{
 		HeaderId:    id,
 		HeaderScope: scope,
@@ -209,9 +210,10 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		State: models.State{
 			Name:   namespace.Name,
 			Source: source,
-		},
-		Data: models.Data{
-			Cluster: result,
+			Data: models.Data{
+				Cluster: result,
+			},
+			Time: time,
 		},
 	}
 

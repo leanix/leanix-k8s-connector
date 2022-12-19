@@ -66,7 +66,6 @@ func (eb *eventBuilder) Body(body models.DiscoveryItem) EventBuilder {
 func (eb *eventBuilder) Build() models.DiscoveryEvent {
 	body := &models.DiscoveryItem{
 		State: eb.body.State,
-		Data:  eb.body.Data,
 	}
 	header := &models.HeaderProperties{
 		HeaderClass: eb.header.HeaderClass,
