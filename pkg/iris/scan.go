@@ -1,7 +1,6 @@
 package iris
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
@@ -48,25 +47,6 @@ const (
 	WARNING            string = "WARNING"
 	INFO               string = "INFO"
 )
-
-/* {
-    "properties": {
-        "id": "uniqueId",
-        "class": "discoveryItem/kubernetes/cluster-name/namespace",
-        "type": "state",
-        "scope": "workspace/a497a179-fbd6-409c-9582-4c59d8e819ac/configuration/76e62268-bf87-4e03-b586-f82527cb93d0" - #workspace/wsId/config/configId
-    },
-    "payload": {
-        "state": {
-            "name": "namespace-name",
-            "source": "kubernetes/cluster-name#5afdb3ae-99fe-4d4e-9db9-7ee05cd386ba", - #.../runId
-            "time": "2022-12-19T14:05:38Z",
-            "data": {
-                <cluster info>
-            }
-        }
-    }
-} */
 
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
 
@@ -203,8 +183,8 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	}
 
 	// Metadata for the event
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
-	class := fmt.Sprintf("discoveryItem/kubernetes/%s/%s", clusterDTO.name, namespace.Name)
+	class := fmt.Sprintf("discoveryItem/service/kubernetes")
+	id := fmt.Sprintf("%s/%s", class, scope)
 	time := time2.Now().Format(time2.RFC3339)
 	header := models.HeaderProperties{
 		HeaderId:    id,
