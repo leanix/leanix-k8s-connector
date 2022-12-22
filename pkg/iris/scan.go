@@ -146,10 +146,8 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 
 		// create kubernetes event for namespace
 		discoveryEvent := s.CreateDiscoveryEvent(namespace, mappedDeployments, &cluster, source, scope)
-
 		events = append(events, discoveryEvent)
 	}
-
 	endReplay := s.CreateEndReplay(workspaceId, config)
 
 	events = append(events, startReplay, endReplay)
@@ -172,9 +170,7 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 
 func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
 	result := models.Cluster{
-		Namespace: models.Namespace{
-			Name: namespace.Name,
-		},
+		Namespace:   namespace.Name,
 		Deployments: deployments,
 		Name:        clusterDTO.name,
 		Os:          clusterDTO.osImage,
