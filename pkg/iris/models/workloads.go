@@ -3,21 +3,17 @@ package models
 // workloads
 
 type Deployment struct {
-	Service    *Service    `json:"service"`
-	Image      string      `json:"image"`
-	Name       string      `json:"name"`
-	Labels     interface{} `json:"labels"`
-	Timestamp  string      `json:"time"`
-	Properties `json:"properties"`
-}
-
-type Service struct {
-	Name string `json:"name"`
+	ServiceName          string               `json:"serviceName"`
+	Image                string               `json:"image"`
+	DeploymentName       string               `json:"deploymentName"`
+	Labels               interface{}          `json:"labels"`
+	Timestamp            string               `json:"time"`
+	DeploymentProperties DeploymentProperties `json:"deploymentProperties"`
 }
 
 // properties  for workloads
 
-type Properties struct {
+type DeploymentProperties struct {
 	UpdateStrategy string       `json:"updateStrategy"`
 	Replicas       string       `json:"replicas"`
 	K8sLimits      K8sResources `json:"k8sLimits"`
