@@ -210,7 +210,7 @@ func TestMapDeployments_NoService(t *testing.T) {
 	assert.NotEmpty(t, result)
 
 	assert.Equal(t, "test-deployment-2", result[0].DeploymentName)
-	assert.Nil(t, result[0].ServiceName)
+	assert.Empty(t, result[0].ServiceName)
 	assert.Equal(t, "100", result[0].DeploymentProperties.K8sRequests.Cpu)
 	assert.Equal(t, "50", result[0].DeploymentProperties.K8sRequests.Memory)
 	assert.Equal(t, "", result[0].DeploymentProperties.K8sLimits.Cpu)
