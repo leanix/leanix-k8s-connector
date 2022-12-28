@@ -183,10 +183,10 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	id := fmt.Sprintf("%s/%s", class, scope)
 	time := time2.Now().Format(time2.RFC3339)
 	header := models.HeaderProperties{
-		HeaderId:    id,
-		HeaderScope: scope,
-		HeaderClass: class,
-		HeaderType:  fmt.Sprintf("state"),
+		Id:    id,
+		Scope: scope,
+		Class: class,
+		Type:  fmt.Sprintf("state"),
 	}
 	body := models.DiscoveryItem{
 		State: models.State{

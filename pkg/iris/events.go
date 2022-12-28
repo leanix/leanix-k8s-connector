@@ -68,10 +68,10 @@ func (eb *eventBuilder) Build() models.DiscoveryEvent {
 		State: eb.body.State,
 	}
 	header := &models.HeaderProperties{
-		HeaderClass: eb.header.HeaderClass,
-		HeaderType:  eb.header.HeaderType,
-		HeaderScope: eb.header.HeaderScope,
-		HeaderId:    eb.header.HeaderId,
+		Class: eb.header.Class,
+		Type:  eb.header.Type,
+		Scope: eb.header.Scope,
+		Id:    eb.header.Id,
 	}
 	return models.DiscoveryEvent{
 		HeaderProperties: *header,
