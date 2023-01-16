@@ -1,18 +1,19 @@
 package iris
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"strconv"
 	time2 "time"
-
-	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
-	"github.com/leanix/leanix-k8s-connector/pkg/storage"
-	"k8s.io/client-go/rest"
 )
 
 type Scanner interface {
@@ -180,7 +181,11 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 
 	// Metadata for the event
 	class := fmt.Sprintf("discoveryItem/service/kubernetes")
-	id := fmt.Sprintf("%s/%s", class, scope)
+
+	idString := fmt.Sprintf("%s/%s", class, scope)
+	sum := sha256.Sum256([]byte(idString))
+
+	id := hex.EncodeToString(sum[:])
 	time := time2.Now().Format(time2.RFC3339)
 	header := models.HeaderProperties{
 		Id:    id,
