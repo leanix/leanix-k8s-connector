@@ -66,5 +66,5 @@ func TestPostResultsError(t *testing.T) {
 	api := NewApi(server.Client(), "kind-test", server.URL)
 	results := []byte("test-results")
 	err := api.PostEcstResults(results, "test-token")
-	assert.Equal(t, "posting results status[500 Internal Server Error]could not be processed: 'Exception'", err.Error())
+	assert.Equal(t, "posting ECST results status [500 Internal Server Error] could not be processed: 'Exception'", err.Error())
 }
