@@ -2,10 +2,9 @@ package iris
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"time"
 )
 
 const (
@@ -25,86 +24,78 @@ func GenerateRunId() string {
 }
 
 type EventBuilder interface {
-	Header(header models.HeaderProperties) EventBuilder
-	Body(body models.DiscoveryItem) EventBuilder
+	Cluster(cluster models.Cluster) EventBuilder
+	Id(id string) EventBuilder
+	Scope(scope string) EventBuilder
+	Type(eventType string) EventBuilder
+	Source(source string) EventBuilder
+	Time(time string) EventBuilder
+	Subject(subject string) EventBuilder
 
-	Build() models.DiscoveryEvent
-}
-
-type CommandBuilder interface {
-	Header(header models.CommandProperties) CommandBuilder
-	Body(body models.CommandBody) CommandBuilder
-
-	Build() models.CommandEvent
+	Build() models.DiscoveryItem
 }
 
 type eventBuilder struct {
-	header models.HeaderProperties
-	body   models.DiscoveryItem
+	c         models.Cluster
+	id        string
+	scope     string
+	eventType string
+	source    string
+	time      string
+	subject   string
 }
 
-type commandBuilder struct {
-	header models.CommandProperties
-	body   models.CommandBody
-}
-
-// Discovery Event Builder
 func New() EventBuilder {
 	return &eventBuilder{}
 }
 
-func (eb *eventBuilder) Header(header models.HeaderProperties) EventBuilder {
-	eb.header = header
+func (eb *eventBuilder) Cluster(cluster models.Cluster) EventBuilder {
+	eb.c = cluster
 	return eb
 }
 
-func (eb *eventBuilder) Body(body models.DiscoveryItem) EventBuilder {
-	eb.body = body
+func (eb *eventBuilder) Id(id string) EventBuilder {
+	eb.id = id
 	return eb
 }
 
-func (eb *eventBuilder) Build() models.DiscoveryEvent {
-	body := &models.DiscoveryItem{
-		State: eb.body.State,
-	}
-	header := &models.HeaderProperties{
-		Class: eb.header.Class,
-		Type:  eb.header.Type,
-		Scope: eb.header.Scope,
-		Id:    eb.header.Id,
-	}
-	return models.DiscoveryEvent{
-		HeaderProperties: *header,
-		Body:             *body,
-	}
+func (eb *eventBuilder) Scope(scope string) EventBuilder {
+	eb.scope = scope
+	return eb
 }
 
-//Command Event Builder
-func NewCommand() CommandBuilder {
-	return &commandBuilder{}
+func (eb *eventBuilder) Type(eventType string) EventBuilder {
+	eb.eventType = eventType
+	return eb
 }
 
-func (cb *commandBuilder) Header(header models.CommandProperties) CommandBuilder {
-	cb.header = header
-	return cb
+func (eb *eventBuilder) Source(source string) EventBuilder {
+	eb.source = source
+	return eb
 }
 
-func (cb *commandBuilder) Body(body models.CommandBody) CommandBuilder {
-	cb.body = body
-	return cb
+func (eb *eventBuilder) Time(time string) EventBuilder {
+	eb.time = time
+	return eb
 }
 
-func (cb *commandBuilder) Build() models.CommandEvent {
-	header := &models.CommandProperties{
-		Type:   cb.header.Type,
-		Scope:  cb.header.Scope,
-		Action: cb.header.Action,
+func (eb *eventBuilder) Subject(subject string) EventBuilder {
+	eb.subject = subject
+	return eb
+}
+
+func (eb *eventBuilder) Build() models.DiscoveryItem {
+	data := &models.DiscoveryData{
+		Cluster: eb.c,
 	}
-	body := &models.CommandBody{}
-
-	return models.CommandEvent{
-		Properties: *header,
-		Body:       *body,
+	return models.DiscoveryItem{
+		ID:      eb.id,
+		Scope:   eb.scope,
+		Type:    eb.eventType,
+		Source:  eb.source,
+		Time:    eb.time,
+		Subject: eb.subject,
+		Data:    *data,
 	}
 }
 

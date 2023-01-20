@@ -1,28 +1,15 @@
 package models
 
-type DiscoveryEvent struct {
-	HeaderProperties HeaderProperties `json:"properties"`
-	Body             DiscoveryItem    `json:"body"`
-}
-
 type DiscoveryItem struct {
-	State State `json:"state"`
+	ID      string        `json:"id"`
+	Scope   string        `json:"scope"`
+	Type    string        `json:"type"`
+	Source  string        `json:"source"`
+	Time    string        `json:"time"`
+	Subject string        `json:"subject"`
+	Data    DiscoveryData `json:"data"`
 }
 
-type State struct {
-	Name   string `json:"name"`
-	Source string `json:"source"`
-	Time   string `json:"time"`
-	Data   Data   `json:"data"`
-}
-
-type Data struct {
+type DiscoveryData struct {
 	Cluster Cluster `json:"cluster"`
-}
-
-type HeaderProperties struct {
-	Class string `json:"class"`
-	Type  string `json:"type"`
-	Scope string `json:"scope"`
-	Id    string `json:"id"`
 }
