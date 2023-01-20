@@ -1,6 +1,7 @@
 package iris
 
 import (
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -98,19 +99,29 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	events, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId, kubernetesConfig)
+	ecstEvents, oldEvents, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId, kubernetesConfig)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	scannedObjectsByte, err := storage.Marshal(events)
+	scannedObjectsByte, err := storage.Marshal(oldEvents)
 	if err != nil {
 		return s.LogAndShareError("Marshall scanned services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+	}
+
+	scannedEcstObjectsByte, err := storage.Marshal(ecstEvents)
+	if err != nil {
+		return s.LogAndShareError("Marshall scanned ECST services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	err = s.irisApi.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+	}
+
+	err = s.irisApi.PostEcstResults(scannedEcstObjectsByte, accessToken)
+	if err != nil {
+		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
@@ -122,38 +133,48 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) (interface{}, error) {
-	// Metadata for the event
-	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) (interface{}, []models.DiscoveryItem, error) {
+	//Metadata for OLD Discovery Item
+	scope := fmt.Sprintf("workspace/%s", workspaceId)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
-	var events []interface{}
+	var oldEvents []models.DiscoveryItem
+
+	// Metadata for ECST Discovery Item
+	ecstScope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	ecstSource := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
+	var ecstEvents []interface{}
+
 	startReplay := s.CreateStartReplay(workspaceId, config)
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		services, err := k8sApi.Services(namespace.Name)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		mappedDeployments, err := mapper.MapDeployments(deployments, services)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		// create kubernetes event for namespace
-		discoveryEvent := s.CreateDiscoveryEvent(namespace, mappedDeployments, &cluster, source, scope)
-		events = append(events, discoveryEvent)
+		// create OLD disovery item
+		oldDiscoveryEvent := s.CreateDiscoveryItem(namespace.Name, mappedDeployments, &cluster, source, scope)
+		oldEvents = append(oldEvents, oldDiscoveryEvent)
+
+		// create ECST discovery item for namespace
+		ecstDiscoveryEvent := s.CreateEcstDiscoveryEvent(namespace, mappedDeployments, &cluster, ecstSource, ecstScope)
+		ecstEvents = append(ecstEvents, ecstDiscoveryEvent)
 	}
 	endReplay := s.CreateEndReplay(workspaceId, config)
 
-	events = append(events, startReplay, endReplay)
+	ecstEvents = append(ecstEvents, startReplay, endReplay)
 
-	return events, nil
+	return ecstEvents, oldEvents, nil
 }
 
 func (s scanner) LogAndShareError(message string, loglevel string, err error, id string, workspaceId string, accessToken string) error {
@@ -169,7 +190,37 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 	return err
 }
 
-func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
+// OLD Discovery Items
+func (s *scanner) CreateDiscoveryItem(namespace string, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
+	result := models.Cluster{
+		Namespace:   namespace,
+		Deployments: deployments,
+		Name:        clusterDTO.name,
+		Os:          clusterDTO.osImage,
+		K8sVersion:  clusterDTO.k8sVersion,
+		NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
+	}
+
+	// Metadata for the event
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace))))
+	subject := fmt.Sprintf("namespace/%s", namespace)
+	time := time2.Now().Format(time2.RFC3339)
+
+	// Build service/softwareArtifact event
+	discoveryEvent := New().
+		Id(id).
+		Source(source).
+		Subject(subject).
+		Type(typeAsK8sNamespace).
+		Scope(scope).
+		Time(time).
+		Cluster(result).
+		Build()
+	return discoveryEvent
+}
+
+// ECST Discovery Items
+func (s *scanner) CreateEcstDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
 	result := models.Cluster{
 		Namespace:   namespace.Name,
 		Deployments: deployments,
@@ -193,7 +244,7 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		Class: class,
 		Type:  fmt.Sprintf("state"),
 	}
-	body := models.DiscoveryItem{
+	body := models.DiscoveryBody{
 		State: models.State{
 			Name:   namespace.Name,
 			Source: source,
@@ -204,12 +255,12 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 		},
 	}
 
-	// Build service/softwareArtifact event
-	discoveryEvent := New().
+	// Build ECST event
+	ecstDiscoveryEvent := NewEcstBuilder().
 		Header(header).
 		Body(body).
 		Build()
-	return discoveryEvent
+	return ecstDiscoveryEvent
 }
 
 // Command Events
