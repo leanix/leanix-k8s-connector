@@ -88,19 +88,17 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1
 }
 
 func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
-	var service *models.Service = nil
+	var service = ""
 	if deploymentService != "" {
-		service = &models.Service{
-			Name: deploymentService,
-		}
+		service = deploymentService
 	}
 	mappedDeployment := models.Deployment{
-		Service:   service,
-		Image:     deployment.Spec.Template.Spec.Containers[0].Image,
-		Name:      deployment.Name,
-		Labels:    deployment.ObjectMeta.Labels,
-		Timestamp: deployment.CreationTimestamp.UTC().Format(time.RFC3339),
-		Properties: models.Properties{
+		ServiceName:    service,
+		Image:          deployment.Spec.Template.Spec.Containers[0].Image,
+		DeploymentName: deployment.Name,
+		Labels:         deployment.ObjectMeta.Labels,
+		Timestamp:      deployment.CreationTimestamp.UTC().Format(time.RFC3339),
+		DeploymentProperties: models.DeploymentProperties{
 			UpdateStrategy: string(deployment.Spec.Strategy.Type),
 			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
 			K8sLimits:      CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
@@ -134,7 +132,7 @@ func ResolveK8sServiceForK8sDeployment(services *v1.ServiceList, deployment apps
 	for _, service := range services.Items {
 		sharedLabelsDeployment := map[string]string{}
 		sharedLabelsService := map[string]string{}
-		for label, _ := range service.Spec.Selector {
+		for label := range service.Spec.Selector {
 			if _, ok := deployment.Spec.Selector.MatchLabels[label]; ok {
 				sharedLabelsDeployment[label] = deployment.Spec.Selector.MatchLabels[label]
 				sharedLabelsService[label] = service.Spec.Selector[label]

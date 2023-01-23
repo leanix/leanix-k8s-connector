@@ -2,10 +2,9 @@ package iris
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"time"
 )
 
 const (
@@ -86,7 +85,7 @@ func (eb *eventBuilder) Subject(subject string) EventBuilder {
 }
 
 func (eb *eventBuilder) Build() models.DiscoveryItem {
-	data := &models.Data{
+	data := &models.DiscoveryData{
 		Cluster: eb.c,
 	}
 	return models.DiscoveryItem{

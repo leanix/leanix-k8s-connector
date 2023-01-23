@@ -2,19 +2,19 @@ package iris
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	"github.com/leanix/leanix-k8s-connector/pkg/storage"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"strconv"
 	time2 "time"
-
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
-	"github.com/leanix/leanix-k8s-connector/pkg/logger"
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
-	"github.com/leanix/leanix-k8s-connector/pkg/storage"
-	"k8s.io/client-go/rest"
 )
 
 type Scanner interface {
@@ -49,18 +49,6 @@ const (
 	WARNING            string = "WARNING"
 	INFO               string = "INFO"
 )
-
-/* {
-	"id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
-	"scope": "workspace/123e4567-e89b-12d3-a456-426614174000",
-	"type": "leanix.vsm.item-discovered.softwareArtifact",
-	"source": "kubernetes/some-cluster",
-	"time": "2019-11-18T15:13:39.4589254Z",
-	"subject": "softwareArtifact/app1",
-	"data": {
-		"key": "value",
-	}
-  } */
 
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
 
@@ -111,18 +99,29 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	events, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId)
+	ecstEvents, oldEvents, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO, workspaceId, kubernetesConfig)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
-	scannedObjectsByte, err := storage.Marshal(events)
+	scannedObjectsByte, err := storage.Marshal(oldEvents)
 	if err != nil {
 		return s.LogAndShareError("Marshall scanned services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
+
+	scannedEcstObjectsByte, err := storage.Marshal(ecstEvents)
+	if err != nil {
+		return s.LogAndShareError("Marshall scanned ECST services", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+	}
+
 	err = s.irisApi.PostResults(scannedObjectsByte, accessToken)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
+	}
+
+	err = s.irisApi.PostEcstResults(scannedEcstObjectsByte, accessToken)
+	if err != nil {
+		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID, workspaceId, accessToken)
 	}
 
 	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
@@ -134,34 +133,48 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string) ([]models.DiscoveryItem, error) {
-	// Metadata for the event
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO, workspaceId string, config kubernetesConfig) (interface{}, []models.DiscoveryItem, error) {
+	//Metadata for OLD Discovery Item
 	scope := fmt.Sprintf("workspace/%s", workspaceId)
 	source := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
-	var events []models.DiscoveryItem
+	var oldEvents []models.DiscoveryItem
+
+	// Metadata for ECST Discovery Item
+	ecstScope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	ecstSource := fmt.Sprintf("kubernetes/%s#%s", cluster.name, s.runId)
+	var ecstEvents []interface{}
+
+	startReplay := s.CreateStartReplay(workspaceId, config)
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		services, err := k8sApi.Services(namespace.Name)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		mappedDeployments, err := mapper.MapDeployments(deployments, services)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		// create kubernetes event for namespace
-		discoveryEvent := s.CreateDiscoveryEvent(namespace, mappedDeployments, &cluster, source, scope)
-		events = append(events, discoveryEvent)
-	}
+		// create OLD disovery item
+		oldDiscoveryEvent := s.CreateDiscoveryItem(namespace.Name, mappedDeployments, &cluster, source, scope)
+		oldEvents = append(oldEvents, oldDiscoveryEvent)
 
-	return events, nil
+		// create ECST discovery item for namespace
+		ecstDiscoveryEvent := s.CreateEcstDiscoveryEvent(namespace, mappedDeployments, &cluster, ecstSource, ecstScope)
+		ecstEvents = append(ecstEvents, ecstDiscoveryEvent)
+	}
+	endReplay := s.CreateEndReplay(workspaceId, config)
+
+	ecstEvents = append(ecstEvents, startReplay, endReplay)
+
+	return ecstEvents, oldEvents, nil
 }
 
 func (s scanner) LogAndShareError(message string, loglevel string, err error, id string, workspaceId string, accessToken string) error {
@@ -177,11 +190,10 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 	return err
 }
 
-func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
+// OLD Discovery Items
+func (s *scanner) CreateDiscoveryItem(namespace string, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
 	result := models.Cluster{
-		Namespace: models.Namespace{
-			Name: namespace.Name,
-		},
+		Namespace:   namespace,
 		Deployments: deployments,
 		Name:        clusterDTO.name,
 		Os:          clusterDTO.osImage,
@@ -190,9 +202,8 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	}
 
 	// Metadata for the event
-
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
-	subject := fmt.Sprintf("namespace/%s", namespace.Name)
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace))))
+	subject := fmt.Sprintf("namespace/%s", namespace)
 	time := time2.Now().Format(time2.RFC3339)
 
 	// Build service/softwareArtifact event
@@ -208,6 +219,82 @@ func (s *scanner) CreateDiscoveryEvent(namespace corev1.Namespace, deployments [
 	return discoveryEvent
 }
 
+// ECST Discovery Items
+func (s *scanner) CreateEcstDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
+	result := models.Cluster{
+		Namespace:   namespace.Name,
+		Deployments: deployments,
+		Name:        clusterDTO.name,
+		Os:          clusterDTO.osImage,
+		K8sVersion:  clusterDTO.k8sVersion,
+		NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
+	}
+
+	// Metadata for the event
+	class := fmt.Sprintf("discoveryItem/service/kubernetes")
+
+	idString := fmt.Sprintf("%s/%s", class, scope)
+	sum := sha256.Sum256([]byte(idString))
+
+	id := hex.EncodeToString(sum[:])
+	time := time2.Now().Format(time2.RFC3339)
+	header := models.HeaderProperties{
+		Id:    id,
+		Scope: scope,
+		Class: class,
+		Type:  fmt.Sprintf("state"),
+	}
+	body := models.DiscoveryBody{
+		State: models.State{
+			Name:   namespace.Name,
+			Source: source,
+			Time:   time,
+			Data: models.Data{
+				Cluster: result,
+			},
+		},
+	}
+
+	// Build ECST event
+	ecstDiscoveryEvent := NewEcstBuilder().
+		Header(header).
+		Body(body).
+		Build()
+	return ecstDiscoveryEvent
+}
+
+// Command Events
+func (s *scanner) CreateStartReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("startReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	startReplayEvent := NewCommand().Header(header).Build()
+	return startReplayEvent
+}
+
+func (s *scanner) CreateEndReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("endReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	endReplayEvent := NewCommand().Header(header).Build()
+	return endReplayEvent
+}
+
+// Status
 func (s *scanner) ShareStatus(configid string, workspaceId string, accessToken string, status string, message string) error {
 	var statusArray []StatusItem
 	statusObject := NewStatusEvent(configid, s.runId, workspaceId, status, message)

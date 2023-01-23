@@ -49,7 +49,7 @@ func TestPostResults200(t *testing.T) {
 	// Use Client & URL from our local test server
 	api := NewApi(server.Client(), "kind-test", server.URL)
 	results := []byte("test-results")
-	err := api.PostResults(results, "test-token")
+	err := api.PostEcstResults(results, "test-token")
 	assert.NoError(t, err)
 }
 
@@ -65,6 +65,6 @@ func TestPostResultsError(t *testing.T) {
 	// Use Client & URL from our local test server
 	api := NewApi(server.Client(), "kind-test", server.URL)
 	results := []byte("test-results")
-	err := api.PostResults(results, "test-token")
-	assert.Equal(t, "posting results status[500 Internal Server Error]could not be processed: 'Exception'", err.Error())
+	err := api.PostEcstResults(results, "test-token")
+	assert.Equal(t, "posting ECST results status [500 Internal Server Error] could not be processed: 'Exception'", err.Error())
 }
