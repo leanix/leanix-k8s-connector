@@ -163,7 +163,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 		}
 
 		// create OLD disovery item
-		oldDiscoveryEvent := s.CreateDiscoveryItem(namespace.Name, mappedDeployments, &cluster, source, scope)
+		oldDiscoveryEvent := s.CreateDiscoveryItem(namespace, mappedDeployments, &cluster, source, scope)
 		oldEvents = append(oldEvents, oldDiscoveryEvent)
 
 		// create ECST discovery item for namespace
@@ -191,9 +191,11 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 }
 
 // OLD Discovery Items
-func (s *scanner) CreateDiscoveryItem(namespace string, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
+func (s *scanner) CreateDiscoveryItem(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryItem {
 	result := models.Cluster{
-		Namespace:   namespace,
+		Namespace: models.Namespace{
+			Name: namespace.Name,
+		},
 		Deployments: deployments,
 		Name:        clusterDTO.name,
 		Os:          clusterDTO.osImage,
@@ -203,7 +205,7 @@ func (s *scanner) CreateDiscoveryItem(namespace string, deployments []models.Dep
 
 	// Metadata for the event
 	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace))))
-	subject := fmt.Sprintf("namespace/%s", namespace)
+	subject := fmt.Sprintf("namespace/%s", namespace.Name)
 	time := time2.Now().Format(time2.RFC3339)
 
 	// Build service/softwareArtifact event
@@ -221,7 +223,7 @@ func (s *scanner) CreateDiscoveryItem(namespace string, deployments []models.Dep
 
 // ECST Discovery Items
 func (s *scanner) CreateEcstDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
-	result := models.Cluster{
+	result := models.ClusterEcst{
 		Namespace:   namespace.Name,
 		Deployments: deployments,
 		Name:        clusterDTO.name,
