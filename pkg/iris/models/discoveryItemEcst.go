@@ -17,7 +17,7 @@ type State struct {
 }
 
 type Data struct {
-	Cluster Cluster `json:"cluster"`
+	Cluster ClusterEcst `json:"cluster"`
 }
 
 type HeaderProperties struct {
