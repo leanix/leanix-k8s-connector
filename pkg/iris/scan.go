@@ -204,7 +204,7 @@ func (s *scanner) CreateDiscoveryItem(namespace corev1.Namespace, deployments []
 	}
 
 	// Metadata for the event
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace))))
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", clusterDTO.name, namespace.Name))))
 	subject := fmt.Sprintf("namespace/%s", namespace.Name)
 	time := time2.Now().Format(time2.RFC3339)
 
