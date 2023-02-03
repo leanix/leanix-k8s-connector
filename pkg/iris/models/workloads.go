@@ -3,6 +3,19 @@ package models
 // workloads
 
 type Deployment struct {
+	Service        *Service             `json:"service"`
+	Image          string               `json:"image"`
+	DeploymentName string               `json:"deploymentName"`
+	Labels         interface{}          `json:"labels"`
+	Timestamp      string               `json:"time"`
+	Properties     DeploymentProperties `json:"deploymentProperties"`
+}
+
+type Service struct {
+	Name string `json:"name"`
+}
+
+type DeploymentEcst struct {
 	ServiceName          string               `json:"serviceName"`
 	Image                string               `json:"image"`
 	DeploymentName       string               `json:"deploymentName"`
