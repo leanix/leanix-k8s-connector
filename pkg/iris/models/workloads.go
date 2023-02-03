@@ -8,7 +8,7 @@ type Deployment struct {
 	DeploymentName string               `json:"deploymentName"`
 	Labels         interface{}          `json:"labels"`
 	Timestamp      string               `json:"time"`
-	Properties     DeploymentProperties `json:"deploymentProperties"`
+	Properties     DeploymentProperties `json:"properties"`
 }
 
 type Service struct {
