@@ -1,20 +1,21 @@
 package iris
 
 import (
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Mapper interface {
 	MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
-	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
+	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error)
 }
 
 type mapper struct {
@@ -74,8 +75,8 @@ func (m *mapper) MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO,
 	}, nil
 }
 
-func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
-	var allDeployments []models.Deployment
+func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error) {
+	var allDeployments []models.DeploymentEcst
 
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
@@ -87,12 +88,12 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1
 	return allDeployments, nil
 }
 
-func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
+func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.DeploymentEcst {
 	var service = ""
 	if deploymentService != "" {
 		service = deploymentService
 	}
-	mappedDeployment := models.Deployment{
+	mappedDeployment := models.DeploymentEcst{
 		ServiceName:    service,
 		Image:          deployment.Spec.Template.Spec.Containers[0].Image,
 		DeploymentName: deployment.Name,
