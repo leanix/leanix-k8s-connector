@@ -6,15 +6,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	time2 "time"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"strconv"
-	time2 "time"
 )
 
 type Scanner interface {
@@ -162,12 +163,17 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, nil, err
 		}
 
+		mappedDeploymentsEcst, err := mapper.MapDeploymentsEcst(deployments, services)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		// create OLD disovery item
 		oldDiscoveryEvent := s.CreateDiscoveryItem(namespace, mappedDeployments, &cluster, source, scope)
 		oldEvents = append(oldEvents, oldDiscoveryEvent)
 
 		// create ECST discovery item for namespace
-		ecstDiscoveryEvent := s.CreateEcstDiscoveryEvent(namespace, mappedDeployments, &cluster, ecstSource, ecstScope)
+		ecstDiscoveryEvent := s.CreateEcstDiscoveryEvent(namespace, mappedDeploymentsEcst, &cluster, ecstSource, ecstScope)
 		ecstEvents = append(ecstEvents, ecstDiscoveryEvent)
 	}
 	endReplay := s.CreateEndReplay(workspaceId, config)
@@ -222,7 +228,7 @@ func (s *scanner) CreateDiscoveryItem(namespace corev1.Namespace, deployments []
 }
 
 // ECST Discovery Items
-func (s *scanner) CreateEcstDiscoveryEvent(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
+func (s *scanner) CreateEcstDiscoveryEvent(namespace corev1.Namespace, deployments []models.DeploymentEcst, clusterDTO *ClusterDTO, source string, scope string) models.DiscoveryEvent {
 	result := models.ClusterEcst{
 		Namespace:   namespace.Name,
 		Deployments: deployments,

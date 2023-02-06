@@ -1,20 +1,22 @@
 package iris
 
 import (
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Mapper interface {
 	MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
 	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
+	MapDeploymentsEcst(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error)
 }
 
 type mapper struct {
@@ -87,12 +89,43 @@ func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1
 	return allDeployments, nil
 }
 
+func (m *mapper) MapDeploymentsEcst(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error) {
+	var allDeployments []models.DeploymentEcst
+
+	for _, deployment := range deployments.Items {
+		deploymentService := ""
+		// Check if any service has the exact same selector labels and use this as the service related to the deployment
+		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
+		allDeployments = append(allDeployments, m.CreateDeploymentEcst(deploymentService, deployment))
+	}
+
+	return allDeployments, nil
+}
+
 func (m *mapper) CreateDeployment(deploymentService string, deployment appsv1.Deployment) models.Deployment {
+
+	mappedDeployment := models.Deployment{
+		Service:        &models.Service{Name: deploymentService},
+		Image:          deployment.Spec.Template.Spec.Containers[0].Image,
+		DeploymentName: deployment.Name,
+		Labels:         deployment.ObjectMeta.Labels,
+		Timestamp:      deployment.CreationTimestamp.UTC().Format(time.RFC3339),
+		Properties: models.DeploymentProperties{
+			UpdateStrategy: string(deployment.Spec.Strategy.Type),
+			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
+			K8sLimits:      CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
+			K8sRequests:    CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
+		},
+	}
+	return mappedDeployment
+}
+
+func (m *mapper) CreateDeploymentEcst(deploymentService string, deployment appsv1.Deployment) models.DeploymentEcst {
 	var service = ""
 	if deploymentService != "" {
 		service = deploymentService
 	}
-	mappedDeployment := models.Deployment{
+	mappedDeployment := models.DeploymentEcst{
 		ServiceName:    service,
 		Image:          deployment.Spec.Template.Spec.Containers[0].Image,
 		DeploymentName: deployment.Name,
