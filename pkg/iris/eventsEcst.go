@@ -1,7 +1,20 @@
 package iris
 
 import (
+	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	time2 "time"
+)
+
+const (
+	EVENT_TYPE_STATE     string = "state"
+	EVENT_TYPE_CHANGE    string = "change"
+	EVENT_ACTION_CREATED string = "created"
+	EVENT_ACTION_UPDATED string = "updated"
+	EVENT_ACTION_DELETED string = "deleted"
 )
 
 // ECST Discovery Items
@@ -60,7 +73,7 @@ func (eb *ecstEventBuilder) Build() models.DiscoveryEvent {
 	}
 }
 
-//Command Event Builder
+// Command Event Builder
 func NewCommand() CommandBuilder {
 	return &commandBuilder{}
 }
@@ -87,4 +100,99 @@ func (cb *commandBuilder) Build() models.CommandEvent {
 		Properties: *header,
 		Body:       *body,
 	}
+}
+
+// CreateEcstDiscoveryEvent ECST Discovery Items
+func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models.Data, source string, scope string) models.DiscoveryEvent {
+	// Metadata for the event
+	class := "discoveryItem/service/kubernetes"
+	idString := fmt.Sprintf("%s/%s", class, scope)
+	sum := sha256.Sum256([]byte(idString))
+
+	id := hex.EncodeToString(sum[:])
+	time := time2.Now().Format(time2.RFC3339)
+
+	var header models.HeaderProperties
+	if eventType == EVENT_TYPE_CHANGE {
+		header = models.HeaderProperties{
+			Id:     id,
+			Scope:  scope,
+			Class:  class,
+			Type:   eventType,
+			Action: changeAction,
+		}
+	} else {
+		header = models.HeaderProperties{
+			Id:    id,
+			Scope: scope,
+			Class: class,
+			Type:  eventType,
+		}
+	}
+
+	body := models.DiscoveryBody{
+		State: models.State{
+			Name:   data.Cluster.Namespace,
+			Source: source,
+			Time:   time,
+			Data:   data,
+		},
+	}
+
+	// Build ECST event
+	ecstDiscoveryEvent := NewEcstBuilder().
+		Header(header).
+		Body(body).
+		Build()
+	return ecstDiscoveryEvent
+}
+
+// Command Events
+func CreateStartReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("startReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	startReplayEvent := NewCommand().Header(header).Build()
+	return startReplayEvent
+}
+
+func CreateEndReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+	// Metadata for the command event
+	eventType := fmt.Sprintf("command")
+	action := fmt.Sprintf("endReplay")
+	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	header := models.CommandProperties{
+		Type:   eventType,
+		Action: action,
+		Scope:  scope,
+	}
+
+	endReplayEvent := NewCommand().Header(header).Build()
+	return endReplayEvent
+}
+
+func CreateDiscoveryItem(cluster models.Cluster, source string, scope string) models.DiscoveryItem {
+	// Metadata for the event
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", cluster.Name, cluster.Namespace.Name))))
+	subject := fmt.Sprintf("namespace/%s", cluster.Namespace.Name)
+	time := time2.Now().Format(time2.RFC3339)
+
+	// Build service/softwareArtifact event
+	discoveryEvent := New().
+		Id(id).
+		Source(source).
+		Subject(subject).
+		Type(typeAsK8sNamespace).
+		Scope(scope).
+		Time(time).
+		Cluster(cluster).
+		Build()
+	return discoveryEvent
 }

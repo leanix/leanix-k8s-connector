@@ -21,8 +21,9 @@ type Data struct {
 }
 
 type HeaderProperties struct {
-	Class string `json:"class"`
-	Type  string `json:"type"`
-	Scope string `json:"scope"`
-	Id    string `json:"id"`
+	Class  string `json:"class"`
+	Type   string `json:"type"`
+	Scope  string `json:"scope"`
+	Id     string `json:"id"`
+	Action string `json:"action"`
 }

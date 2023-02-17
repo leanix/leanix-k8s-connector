@@ -49,10 +49,13 @@ func main() {
 		runId := iris.GenerateRunId()
 		irisScanner := iris.NewScanner(
 			"Iris Integration",
-			viper.GetString(utils.IntegrationAPIFqdnFlag), runId,
+			viper.GetString(utils.IntegrationAPIFqdnFlag),
+			runId,
+			accessToken,
+			viper.GetString(utils.LxWorkspaceFlag),
 		)
 
-		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
+		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.ConfigurationNameFlag))
 		if err != nil {
 			logger.Error("Failed to scan Kubernetes via vsm-iris.", err)
 		}
