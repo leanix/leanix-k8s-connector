@@ -106,9 +106,6 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 	//Fetch old scan results
-
-	//Metadata for OLD Discovery Item
-
 	ecstDiscoveredData, legacyData, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
@@ -118,10 +115,6 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
-	// TODO : remove?
-	// startReplay := s.CreateStartReplay(workspaceId, config)
-	// TODO: remove?
-	// endReplay := s.CreateEndReplay(workspaceId, config)
 
 	err = s.eventProducer.PostLegacyResults(legacyData)
 	if err != nil {
