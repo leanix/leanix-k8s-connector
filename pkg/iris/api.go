@@ -75,7 +75,7 @@ func (a *api) GetConfiguration(configurationName string) ([]byte, error) {
 
 func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	if configurationId == "" {
-		return nil, errors.New("configuration name should not be null or empty")
+		return nil, errors.New("configuration id should not be null or empty")
 	}
 	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configuration/%s/results", a.uri, configurationId)
 	req, err := http.NewRequest("GET", configUrl, nil)
@@ -151,7 +151,7 @@ func (a *api) PostEcstResults(ecstResults []byte) error {
 	}
 	postReq.Header.Set("Content-Type", "application/json")
 	postReq.Header.Set("Authorization", "Bearer "+a.token)
-	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(ecstResults))
+	postReq.Body = io.NopCloser(bytes.NewBuffer(ecstResults))
 
 	// Execute request
 	resp, err := a.client.Do(postReq)
