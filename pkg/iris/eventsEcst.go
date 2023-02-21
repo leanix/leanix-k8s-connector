@@ -63,11 +63,13 @@ func (eb *ecstEventBuilder) Build() models.DiscoveryEvent {
 	body := &models.DiscoveryBody{
 		State: eb.body.State,
 	}
+
 	header := &models.HeaderProperties{
-		Class: eb.header.Class,
-		Type:  eb.header.Type,
-		Scope: eb.header.Scope,
-		Id:    eb.header.Id,
+		Class:  eb.header.Class,
+		Type:   eb.header.Type,
+		Scope:  eb.header.Scope,
+		Id:     eb.header.Id,
+		Action: eb.header.Action,
 	}
 	return models.DiscoveryEvent{
 		HeaderProperties: *header,

@@ -77,9 +77,6 @@ func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.Di
 	for _, oldItem := range oldResultMap {
 		deletedEvents = append(deletedEvents, CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, p.configId))
 	}
-	if err != nil {
-		return nil, nil, nil, err
-	}
 
 	return createdEvents, updatedEvents, deletedEvents, nil
 
