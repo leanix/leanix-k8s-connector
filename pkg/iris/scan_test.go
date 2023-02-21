@@ -148,8 +148,8 @@ func TestScan(t *testing.T) {
 	// Close the server when test finishes
 	defer server.Close()
 
-	scanner := NewScanner("test-kind", server.URL, "test-run-id")
-	err := scanner.Scan(apiMock, nil, "test-workspace", "test-config", "test-token")
+	scanner := NewScanner("test-kind", server.URL, "test-run-id", "test-token", "test-workspace")
+	err := scanner.Scan(apiMock, nil, "test-token")
 
 	assert.NoError(t, err)
 

@@ -26,9 +26,9 @@ func TestGetConfiguration200(t *testing.T) {
 	defer server.Close()
 
 	// Use Client & URL from our local test server
-	api := NewApi(server.Client(), "kind-test", server.URL)
+	api := NewApi(server.Client(), "kind-test", server.URL, "token")
 
-	configuration, err := api.GetConfiguration("test-config", "test-token")
+	configuration, err := api.GetConfiguration("test-config")
 	assert.NoError(t, err)
 	assert.Equal(t, "OK", string(configuration))
 }
@@ -47,9 +47,9 @@ func TestPostResults200(t *testing.T) {
 	defer server.Close()
 
 	// Use Client & URL from our local test server
-	api := NewApi(server.Client(), "kind-test", server.URL)
+	api := NewApi(server.Client(), "kind-test", server.URL, "token")
 	results := []byte("test-results")
-	err := api.PostEcstResults(results, "test-token")
+	err := api.PostEcstResults(results)
 	assert.NoError(t, err)
 }
 
@@ -63,8 +63,8 @@ func TestPostResultsError(t *testing.T) {
 	defer server.Close()
 
 	// Use Client & URL from our local test server
-	api := NewApi(server.Client(), "kind-test", server.URL)
+	api := NewApi(server.Client(), "kind-test", server.URL, "token")
 	results := []byte("test-results")
-	err := api.PostEcstResults(results, "test-token")
+	err := api.PostEcstResults(results)
 	assert.Equal(t, "posting ECST results status [500 Internal Server Error] could not be processed: 'Exception'", err.Error())
 }
