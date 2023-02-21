@@ -31,5 +31,5 @@ jobs:
       - name: Build and test
         run: |
           VERSION=$(make version)
-          make build
+          make build gen
           make test
