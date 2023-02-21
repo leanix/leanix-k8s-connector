@@ -15,7 +15,7 @@ import (
 
 type API interface {
 	GetConfiguration(configurationName string) ([]byte, error)
-	GetScanResults(configurationId string) ([]models.IrisResultItem, error)
+	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
 	PostResults(results []byte) error
 	PostEcstResults(ecstResults []byte) error
 	PostStatus(status []byte) error
@@ -73,7 +73,7 @@ func (a *api) GetConfiguration(configurationName string) ([]byte, error) {
 	return responseData, nil
 }
 
-func (a *api) GetScanResults(configurationId string) ([]models.IrisResultItem, error) {
+func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	if configurationId == "" {
 		return nil, errors.New("configuration name should not be null or empty")
 	}
@@ -102,7 +102,7 @@ func (a *api) GetScanResults(configurationId string) ([]models.IrisResultItem, e
 		return nil, fmt.Errorf("failed to retrieve configuration with name '%s' from Iris", configurationId)
 
 	}
-	previousResults := make([]models.IrisResultItem, 0)
+	previousResults := make([]models.DiscoveryEvent, 0)
 	err = json.Unmarshal(responseData, &previousResults)
 	if err != nil {
 		return nil, err

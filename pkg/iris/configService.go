@@ -6,7 +6,7 @@ import (
 
 type ConfigService interface {
 	GetConfiguration(configurationName string) ([]byte, error)
-	GetScanResults(configurationId string) ([]models.IrisResultItem, error)
+	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
 }
 
 type configService struct {
@@ -23,6 +23,6 @@ func (a *configService) GetConfiguration(configurationName string) ([]byte, erro
 	return a.irisApi.GetConfiguration(configurationName)
 }
 
-func (a *configService) GetScanResults(configurationId string) ([]models.IrisResultItem, error) {
+func (a *configService) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	return a.irisApi.GetScanResults(configurationId)
 }
