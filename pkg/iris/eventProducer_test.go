@@ -39,13 +39,8 @@ func Test_eventProducer_filter_created(t *testing.T) {
 		},
 	}
 	//oldData map[string]models.DiscoveryEvent
-	p := &eventProducer{
-		irisApi:     mockApi,
-		runId:       "testRunId",
-		configId:    "testConfigId",
-		workspaceId: "testWorkspaceId",
-	}
-	created, updated, _, err := p.filterForChangedItems(newData, oldData)
+	p := NewEventProducer(mockApi, "testRunId", "testWorkspaceId")
+	created, updated, _, err := p.FilterForChangedItems(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
 	assert.Empty(t, updated)
@@ -91,13 +86,8 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 		},
 	}
 	//oldData map[string]models.DiscoveryEvent
-	p := &eventProducer{
-		irisApi:     mockApi,
-		runId:       "testRunId",
-		configId:    "testConfigId",
-		workspaceId: "testWorkspaceId",
-	}
-	created, updated, filteredData, err := p.filterForChangedItems(newData, oldData)
+	p := NewEventProducer(mockApi, "testRunId", "testWorkspaceId")
+	created, updated, filteredData, err := p.FilterForChangedItems(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
 	assert.Empty(t, updated)
@@ -146,10 +136,9 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 	p := &eventProducer{
 		irisApi:     mockApi,
 		runId:       "testRunId",
-		configId:    "testConfigId",
 		workspaceId: "testWorkspaceId",
 	}
-	created, updated, filteredData, err := p.filterForChangedItems(newData, oldData)
+	created, updated, filteredData, err := p.FilterForChangedItems(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
 	assert.Empty(t, created)
@@ -269,10 +258,9 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	p := &eventProducer{
 		irisApi:     mockApi,
 		runId:       "testRunId",
-		configId:    "testConfigId",
 		workspaceId: "testWorkspaceId",
 	}
-	created, updated, deleted, err := p.createECSTEvents(newData, oldData)
+	created, updated, deleted, err := p.createECSTEvents(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
 	assert.Len(t, created, 1)
@@ -294,4 +282,17 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	assert.Equal(t, EventActionDeleted, deleted[0].HeaderProperties.Action)
 	assert.Equal(t, "testCluster2", deleted[0].Body.State.Data.Cluster.Name)
 	assert.Equal(t, "testNamespace2", deleted[0].Body.State.Data.Cluster.Namespace)
+}
+
+func Test_eventProducer_processECSTResults_empty(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockApi := NewMockAPI(ctrl)
+
+	var newData []models.Data
+	var oldData []models.DiscoveryEvent
+	p := NewEventProducer(mockApi, "testRunId", "testWorkspaceId")
+	err := p.ProcessResults(newData, oldData, "testConfigId")
+
+	assert.NoError(t, err)
 }

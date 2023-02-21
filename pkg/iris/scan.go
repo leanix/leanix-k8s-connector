@@ -114,7 +114,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
-	err = s.eventProducer.ProcessResults(ecstDiscoveredData, oldResults)
+	err = s.eventProducer.ProcessResults(ecstDiscoveredData, oldResults, kubernetesConfig.ID)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
