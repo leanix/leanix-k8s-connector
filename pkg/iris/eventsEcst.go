@@ -10,11 +10,13 @@ import (
 )
 
 const (
-	EVENT_TYPE_STATE     string = "state"
-	EVENT_TYPE_CHANGE    string = "change"
-	EVENT_ACTION_CREATED string = "created"
-	EVENT_ACTION_UPDATED string = "updated"
-	EVENT_ACTION_DELETED string = "deleted"
+	EVENT_TYPE_STATE   string = "state"
+	EventTypeChange    string = "change"
+	EventActionCreated string = "created"
+	EventActionUpdated string = "updated"
+	EventActionDeleted string = "deleted"
+	EventClass         string = "discoveryItem/service/kubernetes"
+	EventScopeFormat   string = "workspace/%s/configuration/%s"
 )
 
 // ECST Discovery Items
@@ -103,29 +105,25 @@ func (cb *commandBuilder) Build() models.CommandEvent {
 }
 
 // CreateEcstDiscoveryEvent ECST Discovery Items
-func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models.Data, source string, scope string) models.DiscoveryEvent {
+func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models.Data, runId string, workspaceId string, configId string) models.DiscoveryEvent {
 	// Metadata for the event
-	class := "discoveryItem/service/kubernetes"
-	idString := fmt.Sprintf("%s/%s", class, scope)
-	sum := sha256.Sum256([]byte(idString))
-
-	id := hex.EncodeToString(sum[:])
+	id := GenerateId(workspaceId, configId, data)
 	time := time2.Now().Format(time2.RFC3339)
 
 	var header models.HeaderProperties
-	if eventType == EVENT_TYPE_CHANGE {
+	if eventType == EventTypeChange {
 		header = models.HeaderProperties{
 			Id:     id,
-			Scope:  scope,
-			Class:  class,
+			Scope:  fmt.Sprintf(EventScopeFormat, workspaceId, configId),
+			Class:  EventClass,
 			Type:   eventType,
 			Action: changeAction,
 		}
 	} else {
 		header = models.HeaderProperties{
 			Id:    id,
-			Scope: scope,
-			Class: class,
+			Scope: fmt.Sprintf(EventScopeFormat, workspaceId, configId),
+			Class: EventClass,
 			Type:  eventType,
 		}
 	}
@@ -133,7 +131,7 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models
 	body := models.DiscoveryBody{
 		State: models.State{
 			Name:   data.Cluster.Namespace,
-			Source: source,
+			Source: fmt.Sprintf("kubernetes/%s#%s/", data.Cluster.Name, runId),
 			Time:   time,
 			Data:   data,
 		},
@@ -147,12 +145,21 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models
 	return ecstDiscoveryEvent
 }
 
+func GenerateId(workspaceId string, configId string, data models.Data) string {
+	scope := fmt.Sprintf(EventScopeFormat, workspaceId, configId)
+	// workspace/{workspaceId}/configuration/{configurationId}/discoveryItem/service/kubernetes/{clusterName}/{namespaceName}
+	idString := fmt.Sprintf("%s/%s/%s/%s", scope, EventClass, data.Cluster.Name, data.Cluster.Namespace)
+	sum := sha256.Sum256([]byte(idString))
+	id := hex.EncodeToString(sum[:])
+	return id
+}
+
 // Command Events
 func CreateStartReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
 	// Metadata for the command event
 	eventType := fmt.Sprintf("command")
 	action := fmt.Sprintf("startReplay")
-	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	scope := fmt.Sprintf(EventScopeFormat, workspaceId, config.ID)
 	header := models.CommandProperties{
 		Type:   eventType,
 		Action: action,
@@ -167,7 +174,7 @@ func CreateEndReplay(workspaceId string, config kubernetesConfig) models.Command
 	// Metadata for the command event
 	eventType := fmt.Sprintf("command")
 	action := fmt.Sprintf("endReplay")
-	scope := fmt.Sprintf("workspace/%s/configuration/%s", workspaceId, config.ID)
+	scope := fmt.Sprintf(EventScopeFormat, workspaceId, config.ID)
 	header := models.CommandProperties{
 		Type:   eventType,
 		Action: action,

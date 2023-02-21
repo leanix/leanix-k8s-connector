@@ -5,11 +5,12 @@ import (
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/pkg/errors"
+	"reflect"
 )
 
 type EventProducer interface {
 	PostLegacyResults(data []models.DiscoveryData) error
-	ProcessResults(data []models.Data, oldData []models.IrisResultItem) error
+	ProcessResults(data []models.Data, oldData []models.DiscoveryEvent) error
 	PostStatus(status []byte) error
 }
 
@@ -44,7 +45,7 @@ func (p *eventProducer) PostLegacyResults(data []models.DiscoveryData) error {
 	return p.irisApi.PostResults(scannedObjectsByte)
 }
 
-func (p *eventProducer) ProcessResults(data []models.Data, oldData []models.IrisResultItem) error {
+func (p *eventProducer) ProcessResults(data []models.Data, oldData []models.DiscoveryEvent) error {
 	created, updated, deleted, err := p.createECSTEvents(data, oldData)
 	if err != nil {
 		return err
@@ -62,54 +63,63 @@ func (p *eventProducer) PostStatus(status []byte) error {
 	return p.irisApi.PostStatus(status)
 }
 
-func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.IrisResultItem) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
-	created := make([]models.DiscoveryEvent, 0)
-	updated := make([]models.DiscoveryEvent, 0)
-	deleted := make([]models.DiscoveryEvent, 0)
+func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.DiscoveryEvent) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
+	deletedEvents := make([]models.DiscoveryEvent, 0)
 	resultMap := p.createItemMap(data)
 	oldResultMap := p.createOldItemMap(oldData)
 
-	data, createdEvents, err := p.filterForNewDiscoveries(data, oldData)
+	createdEvents, updatedEvents, oldResultMap, err := p.filterForChangedItems(resultMap, oldResultMap)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return created, updated, deleted, nil
+	// Create DELETED events
+	for _, oldItem := range oldResultMap {
+		deletedEvents = append(deletedEvents, CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, p.configId))
+	}
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return createdEvents, updatedEvents, deletedEvents, nil
 
 }
 
 func (p *eventProducer) createItemMap(data []models.Data) map[string]models.Data {
 	resultMap := map[string]models.Data{}
 	for _, item := range data {
-		// Build unique string for discoveryItem
-		scope := fmt.Sprintf("workspace/%s/configuration/%s", p.workspaceId, p.configId)
-		source := fmt.Sprintf("kubernetes/%s/discoveryItem/service/kubernetes", item.Cluster.Name)
-		resultMap[fmt.Sprintf("%s/%s", scope, source)] = item
+		// Build unique string hash for discoveryItem
+		id := GenerateId(p.workspaceId, p.configId, item)
+		resultMap[id] = item
 	}
 	return resultMap
 }
 
-func (p *eventProducer) createOldItemMap(data []models.IrisResultItem) map[string]models.IrisResultItem {
-	resultMap := map[string]models.IrisResultItem{}
+func (p *eventProducer) createOldItemMap(data []models.DiscoveryEvent) map[string]models.DiscoveryEvent {
+	resultMap := map[string]models.DiscoveryEvent{}
 	for _, item := range data {
-		// Build unique string for discoveryItem
-		scope := fmt.Sprintf("workspace/%s/configuration/%s", p.workspaceId, p.configId)
-		source := fmt.Sprintf("kubernetes/%s/discoveryItem/service/kubernetes", item.Data[""])
-		resultMap[fmt.Sprintf("%s/%s", scope, source)] = item
+		// Use id hash from iris to as a key
+		resultMap[item.HeaderProperties.Id] = item
 	}
 	return resultMap
 }
 
-func (p *eventProducer) filterForNewDiscoveries(data []models.Data, oldData []models.IrisResultItem) ([]models.Data, []models.DiscoveryEvent, error) {
+func (p *eventProducer) filterForChangedItems(newData map[string]models.Data, oldData map[string]models.DiscoveryEvent) ([]models.DiscoveryEvent, []models.DiscoveryEvent, map[string]models.DiscoveryEvent, error) {
+	updated := make([]models.DiscoveryEvent, 0)
 	created := make([]models.DiscoveryEvent, 0)
-	filteredData := make([]models.Data, 0)
-	for _, item := range data {
-		scope := fmt.Sprintf("workspace/%s/configuration/%s", p.workspaceId, p.configId)
-		source := fmt.Sprintf("kubernetes/%s#%s/", item.Cluster.Name, p.runId)
-		created = append(created, CreateEcstDiscoveryEvent(EVENT_ACTION_CREATED, "", item, source, scope))
-
-		// TODO remove
+	for id, newItem := range newData {
+		// if the current element from the freshly discovered items is not in the old results, create an CREATED event
+		if oldItem, ok := oldData[id]; !ok {
+			created = append(created, CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, p.configId))
+			// if item exists in old and new result sets but their payloads differ
+		} else {
+			if !reflect.DeepEqual(oldItem.Body.State.Data.Cluster, newItem.Cluster) {
+				updated = append(updated, CreateEcstDiscoveryEvent(EventTypeChange, EventActionUpdated, newItem, p.runId, p.workspaceId, p.configId))
+			}
+			// Remove key from oldData results so we only have the entries inside which shall be deleted
+			delete(oldData, id)
+		}
 	}
 
-	return filteredData, created, nil
+	return created, updated, oldData, nil
 }
