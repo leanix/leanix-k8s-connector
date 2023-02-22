@@ -43,6 +43,7 @@ func main() {
 	if err != nil {
 		logger.Error("Error occurred when authenticating.", err)
 		logger.Info("Failed to authenticate. Terminating..")
+		return
 	}
 	if viper.GetBool(utils.IrisFlag) {
 		logger.Info("Enabled Iris")
