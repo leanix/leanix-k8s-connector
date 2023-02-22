@@ -77,7 +77,7 @@ func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, e
 	if configurationId == "" {
 		return nil, errors.New("configuration id should not be null or empty")
 	}
-	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configuration/%s/results", a.uri, configurationId)
+	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/%s/results", a.uri, configurationId)
 	req, err := http.NewRequest("GET", configUrl, nil)
 	if err != nil {
 		logger.Errorf("Error while creating request to retrieve latestResults from config '%s': %v", configurationId, err)
@@ -97,12 +97,15 @@ func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, e
 	if err != nil {
 		return nil, err
 	}
+	previousResults := make([]models.DiscoveryEvent, 0)
+	if resp.StatusCode == 404 {
+		return previousResults, nil
+	}
 	if resp.StatusCode != 200 {
 		logger.Errorf("Could not find configuration in Iris with error: '%s'", responseData)
 		return nil, fmt.Errorf("failed to retrieve configuration with name '%s' from Iris", configurationId)
 
 	}
-	previousResults := make([]models.DiscoveryEvent, 0)
 	err = json.Unmarshal(responseData, &previousResults)
 	if err != nil {
 		return nil, err
