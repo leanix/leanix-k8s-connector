@@ -1,11 +1,14 @@
 package iris
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/pkg/errors"
-	"reflect"
+	"log"
 )
 
 type EventProducer interface {
@@ -107,6 +110,16 @@ func (p *eventProducer) createOldItemMap(data []models.DiscoveryEvent) map[strin
 	return resultMap
 }
 
+func GenerateHash(toBeHashed interface{}) (string, error) {
+	serialized, err := json.Marshal(toBeHashed)
+	if err != nil {
+		return "", err
+	}
+	hashed := sha256.Sum256(serialized)
+	return hex.EncodeToString(hashed[:]), nil
+
+}
+
 func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, oldData map[string]models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, map[string]models.DiscoveryEvent, error) {
 	updated := make([]models.DiscoveryEvent, 0)
 	created := make([]models.DiscoveryEvent, 0)
@@ -116,7 +129,17 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 			created = append(created, CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId))
 			// if item exists in old and new result sets but their payloads differ
 		} else {
-			if !reflect.DeepEqual(oldItem.Body.State.Data, newItem) {
+			oldItemHash, err := GenerateHash(oldItem.Body.State.Data)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			newItemHash, err := GenerateHash(newItem)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+
+			if oldItemHash != newItemHash {
+				log.Printf("old %+v, new %+v", oldItem.Body.State.Data.Cluster, newItem.Cluster)
 				updated = append(updated, CreateEcstDiscoveryEvent(EventTypeChange, EventActionUpdated, newItem, p.runId, p.workspaceId, configId))
 			}
 			// Remove key from oldData results so we only have the entries inside which shall be deleted
