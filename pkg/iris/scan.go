@@ -156,9 +156,9 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, nil, err
 		}
 
-		// create OLD disovery item
-		oldDataDiscoveryData := s.CreateLegacyDiscoveryData(namespace, mappedDeployments, &cluster)
-		legacyData = append(legacyData, oldDataDiscoveryData)
+		// create legacy discovery item
+		legacyDiscoveryData := s.CreateLegacyDiscoveryData(namespace, mappedDeployments, &cluster)
+		legacyData = append(legacyData, legacyDiscoveryData)
 
 		// create ECST discovery item for namespace
 		ecstDiscoveryData := s.CreateEcstDiscoveryData(namespace, mappedDeploymentsEcst, &cluster)
