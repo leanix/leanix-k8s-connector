@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	EVENT_TYPE_STATE   string = "state"
-	EventTypeChange    string = "change"
-	EventActionCreated string = "created"
-	EventActionUpdated string = "updated"
-	EventActionDeleted string = "deleted"
-	EventClass         string = "discoveryItem/service/kubernetes"
-	EventScopeFormat   string = "workspace/%s/configuration/%s"
+	EVENT_TYPE_STATE    string = "state"
+	EventTypeChange     string = "change"
+	EventActionCreated  string = "created"
+	EventActionUpdated  string = "updated"
+	EventActionDeleted  string = "deleted"
+	EventClassNamespace string = "discoveryItem/service/kubernetes"
+	EventScopeFormat    string = "workspace/%s/configuration/%s"
 )
 
 // ECST Discovery Items

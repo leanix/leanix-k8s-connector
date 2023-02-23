@@ -1,6 +1,7 @@
 package iris
 
 import (
+	"crypto/md5"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
@@ -165,4 +166,23 @@ func NewAdminLogEvent(configurationId string, runId string, workspaceId string, 
 		DataSchema:      DataSchema,
 		Data:            StatusData,
 	}
+}
+
+func CreateDiscoveryItem(cluster models.Cluster, source string, scope string) models.DiscoveryItem {
+	// Metadata for the event
+	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", cluster.Name, cluster.Namespace.Name))))
+	subject := fmt.Sprintf("namespace/%s", cluster.Namespace.Name)
+	time := time.Now().Format(time.RFC3339)
+
+	// Build service/softwareArtifact event
+	discoveryEvent := New().
+		Id(id).
+		Source(source).
+		Subject(subject).
+		Type(typeAsK8sNamespace).
+		Scope(scope).
+		Time(time).
+		Cluster(cluster).
+		Build()
+	return discoveryEvent
 }
