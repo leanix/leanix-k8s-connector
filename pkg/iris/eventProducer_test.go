@@ -30,10 +30,11 @@ func Test_eventProducer_filter_created(t *testing.T) {
 		"testId2": {
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
-					Data:   models.Data{},
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
+					Data:           models.Data{},
 				},
 			},
 		},
@@ -68,9 +69,10 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 		"testId1": {
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
 					Data: models.Data{
 						Cluster: models.ClusterEcst{
 							Namespace:   "testNamespace1",
@@ -115,9 +117,10 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 		"testId1": {
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
 					Data: models.Data{
 						Cluster: models.ClusterEcst{
 							Namespace:   "testNamespace1",
@@ -197,9 +200,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
 					Data: models.Data{Cluster: models.ClusterEcst{
 						Name:        "testCluster1",
 						Namespace:   "testNamespace2",
@@ -217,9 +221,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
 					Data: models.Data{Cluster: models.ClusterEcst{
 						Name:        "testCluster2",
 						Namespace:   "testNamespace1",
@@ -238,9 +243,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
-					Name:   "",
-					Source: "",
-					Time:   "",
+					Name:           "",
+					SourceInstance: "",
+					SourceType:     "",
+					Time:           "",
 					Data: models.Data{Cluster: models.ClusterEcst{
 						Name:        "testCluster2",
 						Namespace:   "testNamespace2",
