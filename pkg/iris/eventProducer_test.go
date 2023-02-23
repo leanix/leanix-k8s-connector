@@ -151,10 +151,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockApi := NewMockAPI(ctrl)
-	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClass, "testCluster1", "testNamespace1")))
-	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClass, "testCluster1", "testNamespace2")))
-	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClass, "testCluster2", "testNamespace1")))
-	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClass, "testCluster2", "testNamespace2")))
+	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster1", "testNamespace1")))
+	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster1", "testNamespace2")))
+	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster2", "testNamespace1")))
+	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster2", "testNamespace2")))
 	newData := []models.Data{
 		{
 			// NEW item

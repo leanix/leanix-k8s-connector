@@ -1,7 +1,6 @@
 package iris
 
 import (
-	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -117,7 +116,7 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models
 		header = models.HeaderProperties{
 			Id:     id,
 			Scope:  fmt.Sprintf(EventScopeFormat, workspaceId, configId),
-			Class:  EventClass,
+			Class:  EventClassNamespace,
 			Type:   eventType,
 			Action: changeAction,
 		}
@@ -125,17 +124,18 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models
 		header = models.HeaderProperties{
 			Id:    id,
 			Scope: fmt.Sprintf(EventScopeFormat, workspaceId, configId),
-			Class: EventClass,
+			Class: EventClassNamespace,
 			Type:  eventType,
 		}
 	}
 
 	body := models.DiscoveryBody{
 		State: models.State{
-			Name:   data.Cluster.Namespace,
-			Source: fmt.Sprintf("kubernetes/%s#%s", data.Cluster.Name, runId),
-			Time:   time,
-			Data:   data,
+			Name:           data.Cluster.Namespace,
+			SourceType:     "kubernetes",
+			SourceInstance: fmt.Sprintf("cluster/%s", data.Cluster.Name),
+			Time:           time,
+			Data:           data,
 		},
 	}
 
@@ -150,7 +150,7 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models
 func GenerateId(workspaceId string, configId string, data models.Data) string {
 	scope := fmt.Sprintf(EventScopeFormat, workspaceId, configId)
 	// workspace/{workspaceId}/configuration/{configurationId}/discoveryItem/service/kubernetes/{clusterName}/{namespaceName}
-	idString := fmt.Sprintf("%s/%s/%s/%s", scope, EventClass, data.Cluster.Name, data.Cluster.Namespace)
+	idString := fmt.Sprintf("%s/%s/%s/%s", scope, EventClassNamespace, data.Cluster.Name, data.Cluster.Namespace)
 	sum := sha256.Sum256([]byte(idString))
 	id := hex.EncodeToString(sum[:])
 	return id
@@ -185,23 +185,4 @@ func CreateEndReplay(workspaceId string, config kubernetesConfig) models.Command
 
 	endReplayEvent := NewCommand().Header(header).Build()
 	return endReplayEvent
-}
-
-func CreateDiscoveryItem(cluster models.Cluster, source string, scope string) models.DiscoveryItem {
-	// Metadata for the event
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", cluster.Name, cluster.Namespace.Name))))
-	subject := fmt.Sprintf("namespace/%s", cluster.Namespace.Name)
-	time := time2.Now().Format(time2.RFC3339)
-
-	// Build service/softwareArtifact event
-	discoveryEvent := New().
-		Id(id).
-		Source(source).
-		Subject(subject).
-		Type(typeAsK8sNamespace).
-		Scope(scope).
-		Time(time).
-		Cluster(cluster).
-		Build()
-	return discoveryEvent
 }

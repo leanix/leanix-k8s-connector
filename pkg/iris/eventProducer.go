@@ -127,7 +127,7 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 		// if the current element from the freshly discovered items is not in the old results, create an CREATED event
 		if oldItem, ok := oldData[id]; !ok {
 			created = append(created, CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId))
-			// if item exists in old and new result sets but their payloads differ
+			// if item has been discovered before, check if there are any changes in the new payload
 		} else {
 			oldItemHash, err := GenerateHash(oldItem.Body.State.Data)
 			if err != nil {
@@ -142,7 +142,7 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 				log.Printf("old %+v, new %+v", oldItem.Body.State.Data.Cluster, newItem.Cluster)
 				updated = append(updated, CreateEcstDiscoveryEvent(EventTypeChange, EventActionUpdated, newItem, p.runId, p.workspaceId, configId))
 			}
-			// Remove key from oldData results so we only have the entries inside which shall be deleted
+			// Remove key from oldData results, so we only have the entries inside which shall be deleted
 			delete(oldData, id)
 		}
 	}
