@@ -10,10 +10,11 @@ type DiscoveryBody struct {
 }
 
 type State struct {
-	Name   string `json:"name"`
-	Source string `json:"source"`
-	Time   string `json:"time"`
-	Data   Data   `json:"data"`
+	Name           string `json:"name"`
+	SourceType     string `json:"sourceType"`
+	SourceInstance string `json:"sourceInstance"`
+	Time           string `json:"time"`
+	Data           Data   `json:"data"`
 }
 
 type Data struct {
@@ -21,8 +22,9 @@ type Data struct {
 }
 
 type HeaderProperties struct {
-	Class string `json:"class"`
-	Type  string `json:"type"`
-	Scope string `json:"scope"`
-	Id    string `json:"id"`
+	Class  string `json:"class"`
+	Type   string `json:"type"`
+	Scope  string `json:"scope"`
+	Id     string `json:"id"`
+	Action string `json:"action"`
 }

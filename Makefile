@@ -25,6 +25,9 @@ build:
 version:
 	@echo $(VERSION)
 
+gen:
+	mockgen -source=pkg/iris/api.go -destination=pkg/iris/api_mocks_test.go -package=iris
+
 image:
 	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(IMAGE_LATEST) .
 

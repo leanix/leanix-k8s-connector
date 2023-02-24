@@ -31,5 +31,6 @@ jobs:
       - name: Build and test
         run: |
           VERSION=$(make version)
-          make build
+          go install github.com/golang/mock/mockgen
+          make build gen
           make test

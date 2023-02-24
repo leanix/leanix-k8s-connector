@@ -39,20 +39,32 @@ func main() {
 			logger.Errorf("Failed to load kube config. Running in Kubernetes?\n%s", err)
 		}
 	}
-	accessToken, err := leanix.Authenticate(viper.GetString(utils.IntegrationAPIFqdnFlag), viper.GetString(utils.IntegrationAPITokenFlag))
+	apiHostFqdn := viper.GetString(utils.IntegrationAPIFqdnFlag)
+	apiToken := viper.GetString(utils.IntegrationAPITokenFlag)
+	if apiHostFqdn == "" {
+		apiHostFqdn = viper.GetString(utils.ApiHostFlag)
+	}
+	if apiToken == "" {
+		apiToken = viper.GetString(utils.ApiTokenFlag)
+	}
+	accessToken, err := leanix.Authenticate(apiHostFqdn, apiToken)
 	if err != nil {
 		logger.Error("Error occurred when authenticating.", err)
 		logger.Info("Failed to authenticate. Terminating..")
+		return
 	}
 	if viper.GetBool(utils.IrisFlag) {
 		logger.Info("Enabled Iris")
 		runId := iris.GenerateRunId()
 		irisScanner := iris.NewScanner(
 			"Iris Integration",
-			viper.GetString(utils.IntegrationAPIFqdnFlag), runId,
+			apiHostFqdn,
+			runId,
+			accessToken,
+			viper.GetString(utils.LxWorkspaceFlag),
 		)
 
-		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.LxWorkspaceFlag), viper.GetString(utils.ConfigurationNameFlag), accessToken)
+		err = irisScanner.Scan(kubernetes.NewAPI, config, viper.GetString(utils.ConfigurationNameFlag))
 		if err != nil {
 			logger.Error("Failed to scan Kubernetes via vsm-iris.", err)
 		}
@@ -88,8 +100,10 @@ func parseFlags() error {
 	flag.String(utils.LocalFilePathFlag, ".", "path to place the ldif file when using local file storage backend")
 	flag.Bool(utils.VerboseFlag, false, "verbose log output")
 	flag.String(utils.IntegrationAPIDatasourceNameFlag, "", "LeanIX Integration Hub Datasource name created on the workspace")
-	flag.String(utils.IntegrationAPIFqdnFlag, "app.leanix.net", "LeanIX Instance FQDN")
-	flag.String(utils.IntegrationAPITokenFlag, "", "LeanIX API token")
+	flag.String(utils.IntegrationAPIFqdnFlag, "", "LeanIX Instance FQDN - deprecated flag")
+	flag.String(utils.IntegrationAPITokenFlag, "", "LeanIX API token - deprecated flag")
+	flag.String(utils.ApiHostFlag, "app.leanix.net", "LeanIX Instance FQDN")
+	flag.String(utils.ApiTokenFlag, "", "LeanIX API token")
 	flag.StringSlice(utils.BlacklistNamespacesFlag, []string{""}, "list of namespaces that are not scanned")
 	flag.String(utils.LxWorkspaceFlag, "", "name of the LeanIX workspace the data is sent to")
 	flag.Bool(utils.LocalFlag, false, "use local kubeconfig from home folder")
