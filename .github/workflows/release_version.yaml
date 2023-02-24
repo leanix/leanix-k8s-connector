@@ -23,7 +23,9 @@ jobs:
           go-version: 1.18.3
 
       - name: Setup project
-        run: make clean gen
+        run: |
+          go install github.com/golang/mock/mockgen
+          make clean gen
 
       - name: Tests - Unit
         run: make test
@@ -42,7 +44,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.17'
+          go-version: 1.18.3
 
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
