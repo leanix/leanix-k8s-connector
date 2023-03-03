@@ -14,7 +14,7 @@ const (
 	EventActionCreated  string = "created"
 	EventActionUpdated  string = "updated"
 	EventActionDeleted  string = "deleted"
-	EventClassNamespace string = "discoveryItem/service/kubernetes"
+	EventClassNamespace string = "discoveryItem/service/kubernetes/namespace"
 	EventScopeFormat    string = "workspace/%s/configuration/%s"
 )
 
