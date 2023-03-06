@@ -11,7 +11,7 @@ integrationApi:
   datasourceName: ""
 
 schedule:
-  standard: "0 */1 * * *"
+  standard: "0 1 * * *"
 
 image:
   repository: leanixacrpublic.azurecr.io/leanix-k8s-connector
