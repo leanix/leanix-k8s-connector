@@ -15,7 +15,6 @@ import (
 
 type Mapper interface {
 	MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO, error)
-	MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error)
 	MapDeploymentsEcst(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error)
 }
 
@@ -74,19 +73,6 @@ func (m *mapper) MapCluster(clusterName string, nodes *v1.NodeList) (ClusterDTO,
 		nodesCount: len(items),
 		osImage:    strings.Join(osImage.Items(), ", "),
 	}, nil
-}
-
-func (m *mapper) MapDeployments(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Deployment, error) {
-	var allDeployments []models.Deployment
-
-	for _, deployment := range deployments.Items {
-		deploymentService := ""
-		// Check if any service has the exact same selector labels and use this as the service related to the deployment
-		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
-		allDeployments = append(allDeployments, m.CreateDeployment(deploymentService, deployment))
-	}
-
-	return allDeployments, nil
 }
 
 func (m *mapper) MapDeploymentsEcst(deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.DeploymentEcst, error) {

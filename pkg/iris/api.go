@@ -16,7 +16,6 @@ import (
 type API interface {
 	GetConfiguration(configurationName string) ([]byte, error)
 	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
-	PostResults(results []byte) error
 	PostEcstResults(ecstResults []byte) error
 	PostStatus(status []byte) error
 }
@@ -112,36 +111,6 @@ func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, e
 	}
 
 	return previousResults, nil
-}
-
-// OLD Results endpoint
-func (a *api) PostResults(results []byte) error {
-	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/results", a.uri)
-	postReq, err := http.NewRequest("POST", resultUrl, nil)
-	if err != nil {
-		logger.Errorf("Error creating request to post results results: %v", err)
-		return err
-	}
-	postReq.Header.Set("Content-Type", "application/json")
-	postReq.Header.Set("Authorization", "Bearer "+a.token)
-	postReq.Body = ioutil.NopCloser(bytes.NewBuffer(results))
-
-	// Execute request
-	resp, err := a.client.Do(postReq)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		responseData, readErr := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
-		if readErr != nil {
-			return readErr
-		}
-		err := fmt.Errorf("posting results status [%s] could not be processed: '%s'", resp.Status, responseData)
-		return err
-	}
-	logger.Infof("Discovery Event posted successfully [%s]", resp.Status)
-	return nil
 }
 
 // Send request to ECST Endpoint

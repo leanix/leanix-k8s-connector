@@ -106,7 +106,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 	//Fetch old scan results
-	ecstDiscoveredData, legacyData, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
+	ecstDiscoveredData, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
@@ -114,11 +114,6 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	err = s.eventProducer.ProcessResults(ecstDiscoveredData, oldResults, kubernetesConfig.ID)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
-	}
-
-	err = s.eventProducer.PostLegacyResults(legacyData)
-	if err != nil {
-		return s.LogAndShareError("Scan failed while posting legacy results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
@@ -130,42 +125,32 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO) ([]models.Data, []models.DiscoveryData, error) {
-	var legacyData = make([]models.DiscoveryData, 0)
+func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO) ([]models.Data, error) {
 	var ecstData = make([]models.Data, 0)
 
 	for _, namespace := range namespaces {
 		// collect all deployments
 		deployments, err := k8sApi.Deployments(namespace.Name)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		services, err := k8sApi.Services(namespace.Name)
 		if err != nil {
-			return nil, nil, err
-		}
-
-		mappedDeployments, err := mapper.MapDeployments(deployments, services)
-		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		mappedDeploymentsEcst, err := mapper.MapDeploymentsEcst(deployments, services)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-
-		// create legacy discovery item
-		legacyDiscoveryData := s.CreateLegacyDiscoveryData(namespace, mappedDeployments, &cluster)
-		legacyData = append(legacyData, legacyDiscoveryData)
 
 		// create ECST discovery item for namespace
 		ecstDiscoveryData := s.CreateEcstDiscoveryData(namespace, mappedDeploymentsEcst, &cluster)
 		ecstData = append(ecstData, ecstDiscoveryData)
 	}
 
-	return ecstData, legacyData, nil
+	return ecstData, nil
 }
 
 func (s scanner) LogAndShareError(message string, loglevel string, err error, id string) error {
@@ -179,24 +164,6 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 		logger.Errorf(StatusErrorFormat, s.runId, logErr)
 	}
 	return err
-}
-
-func (s *scanner) CreateLegacyDiscoveryData(namespace corev1.Namespace, deployments []models.Deployment, clusterDTO *ClusterDTO) models.DiscoveryData {
-	result := models.Cluster{
-		Namespace: models.Namespace{
-			Name: namespace.Name,
-		},
-		Deployments: deployments,
-		Name:        clusterDTO.name,
-		Os:          clusterDTO.osImage,
-		K8sVersion:  clusterDTO.k8sVersion,
-		NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
-	}
-
-	return models.DiscoveryData{
-		Cluster: result,
-	}
-
 }
 
 func (s *scanner) CreateEcstDiscoveryData(namespace corev1.Namespace, deployments []models.DeploymentEcst, clusterDTO *ClusterDTO) models.Data {

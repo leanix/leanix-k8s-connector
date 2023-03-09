@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/pkg/errors"
@@ -12,7 +11,6 @@ import (
 )
 
 type EventProducer interface {
-	PostLegacyResults(data []models.DiscoveryData) error
 	ProcessResults(data []models.Data, oldData []models.DiscoveryEvent, configId string) error
 	PostStatus(status []byte) error
 	FilterForChangedItems(newData map[string]models.Data, oldData map[string]models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, map[string]models.DiscoveryEvent, error)
@@ -30,25 +28,6 @@ func NewEventProducer(irisApi API, runId string, workspaceId string) EventProduc
 		runId:       runId,
 		workspaceId: workspaceId,
 	}
-}
-
-func (p *eventProducer) PostLegacyResults(data []models.DiscoveryData) error {
-	events := make([]models.DiscoveryItem, 0)
-	for _, item := range data {
-		// Metadata for ECST Discovery Item
-		scope := fmt.Sprintf("workspace/%s", p.workspaceId)
-		source := fmt.Sprintf("kubernetes/%s#%s", item.Cluster.Name, p.runId)
-		events = append(events, CreateDiscoveryItem(item.Cluster, source, scope))
-
-	}
-	if len(events) == 0 {
-		return nil
-	}
-	scannedObjectsByte, err := storage.Marshal(events)
-	if err != nil {
-		return errors.Wrap(err, "Marshall scanned legacy services")
-	}
-	return p.irisApi.PostResults(scannedObjectsByte)
 }
 
 func (p *eventProducer) ProcessResults(data []models.Data, oldData []models.DiscoveryEvent, configId string) error {
