@@ -5,10 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/pkg/errors"
-	"log"
 )
 
 type EventProducer interface {
@@ -77,6 +79,9 @@ func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.Di
 	deletedEvents := make([]models.DiscoveryEvent, 0)
 	resultMap := p.createItemMap(data, configId)
 	oldResultMap := p.createOldItemMap(oldData)
+	for id, r := range oldResultMap {
+		logger.Infof("Current db item id:%s, scope: %s, ClusterName: %s, namespace:%s", id, r.HeaderProperties.Scope, r.Body.State.Data.Cluster.Name, r.Body.State.Data.Cluster.Namespace)
+	}
 
 	createdEvents, updatedEvents, oldResultMap, err := p.FilterForChangedItems(resultMap, oldResultMap, configId)
 	if err != nil {
@@ -85,7 +90,9 @@ func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.Di
 
 	// Create DELETED events
 	for _, oldItem := range oldResultMap {
-		deletedEvents = append(deletedEvents, CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId))
+		deletedEvent := CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId)
+		logger.Infof("DELETE event id:%s, scope: %s, ClusterName: %s, namespace:%s", deletedEvent.HeaderProperties.Id, deletedEvent.HeaderProperties.Scope, deletedEvent.Body.State.Data.Cluster.Name, deletedEvent.Body.State.Data.Cluster.Namespace)
+		deletedEvents = append(deletedEvents, deletedEvent)
 	}
 	return createdEvents, updatedEvents, deletedEvents, nil
 
@@ -126,7 +133,9 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 	for id, newItem := range newData {
 		// if the current element from the freshly discovered items is not in the old results, create an CREATED event
 		if oldItem, ok := oldData[id]; !ok {
-			created = append(created, CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId))
+			createdEcstDiscoveryEvent := CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId)
+			created = append(created, createdEcstDiscoveryEvent)
+			logger.Infof("CREATE event id:%s, scope: %s, ClusterName: %s, namespace:%s", createdEcstDiscoveryEvent.HeaderProperties.Id, createdEcstDiscoveryEvent.HeaderProperties.Scope, createdEcstDiscoveryEvent.Body.State.Data.Cluster.Name, createdEcstDiscoveryEvent.Body.State.Data.Cluster.Namespace)
 			// if item has been discovered before, check if there are any changes in the new payload
 		} else {
 			oldItemHash, err := GenerateHash(oldItem.Body.State.Data)
