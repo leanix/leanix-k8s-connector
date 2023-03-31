@@ -4,10 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/pkg/errors"
-	"log"
 )
 
 type EventProducer interface {
@@ -64,7 +64,8 @@ func (p *eventProducer) createECSTEvents(data []models.Data, oldData []models.Di
 
 	// Create DELETED events
 	for _, oldItem := range oldResultMap {
-		deletedEvents = append(deletedEvents, CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId))
+		deletedEvent := CreateEcstDiscoveryEvent(EventTypeChange, EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId)
+		deletedEvents = append(deletedEvents, deletedEvent)
 	}
 	return createdEvents, updatedEvents, deletedEvents, nil
 
@@ -105,7 +106,8 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 	for id, newItem := range newData {
 		// if the current element from the freshly discovered items is not in the old results, create an CREATED event
 		if oldItem, ok := oldData[id]; !ok {
-			created = append(created, CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId))
+			createdEcstDiscoveryEvent := CreateEcstDiscoveryEvent(EventTypeChange, EventActionCreated, newItem, p.runId, p.workspaceId, configId)
+			created = append(created, createdEcstDiscoveryEvent)
 			// if item has been discovered before, check if there are any changes in the new payload
 		} else {
 			oldItemHash, err := GenerateHash(oldItem.Body.State.Data)
@@ -118,7 +120,6 @@ func (p *eventProducer) FilterForChangedItems(newData map[string]models.Data, ol
 			}
 
 			if oldItemHash != newItemHash {
-				log.Printf("old %+v, new %+v", oldItem.Body.State.Data.Cluster, newItem.Cluster)
 				updated = append(updated, CreateEcstDiscoveryEvent(EventTypeChange, EventActionUpdated, newItem, p.runId, p.workspaceId, configId))
 			}
 			// Remove key from oldData results, so we only have the entries inside which shall be deleted
