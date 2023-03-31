@@ -115,19 +115,7 @@ func TestMapDeployments(t *testing.T) {
 		},
 	}
 	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
 	resultEcst, err := mapper.MapDeploymentsEcst(&dummyDeployments, &dummyServices)
-
-	assert.NoError(t, err)
-	assert.NotEmpty(t, result)
-	assert.Equal(t, "test-deployment-2", result[0].DeploymentName)
-	assert.Equal(t, "test-service-2", result[0].Service.Name)
-	assert.Equal(t, "100", result[0].Properties.K8sRequests.Cpu)
-	assert.Equal(t, "50", result[0].Properties.K8sRequests.Memory)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
-	assert.Equal(t, "1", result[0].Properties.Replicas)
-	assert.Equal(t, "testImage", result[0].Image)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resultEcst)
@@ -218,19 +206,7 @@ func TestMapDeployments_NoService(t *testing.T) {
 		},
 	}
 	mapper := NewMapper(&kubernetes.API{}, "cluster-test", "workspace-test", make([]string, 0), "test-runid")
-	result, err := mapper.MapDeployments(&dummyDeployments, &dummyServices)
 	resultEcst, err := mapper.MapDeploymentsEcst(&dummyDeployments, &dummyServices)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, result)
-
-	assert.Equal(t, "test-deployment-2", result[0].DeploymentName)
-	assert.Empty(t, result[0].Service.Name)
-	assert.Equal(t, "100", result[0].Properties.K8sRequests.Cpu)
-	assert.Equal(t, "50", result[0].Properties.K8sRequests.Memory)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Cpu)
-	assert.Equal(t, "", result[0].Properties.K8sLimits.Memory)
-	assert.Equal(t, "1", result[0].Properties.Replicas)
-	assert.Equal(t, "testImage", result[0].Image)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resultEcst)

@@ -1,10 +1,8 @@
 package iris
 
 import (
-	"crypto/md5"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"time"
 )
 
@@ -22,82 +20,6 @@ type Log struct {
 
 func GenerateRunId() string {
 	return uuid.New().String()
-}
-
-type EventBuilder interface {
-	Cluster(cluster models.Cluster) EventBuilder
-	Id(id string) EventBuilder
-	Scope(scope string) EventBuilder
-	Type(eventType string) EventBuilder
-	Source(source string) EventBuilder
-	Time(time string) EventBuilder
-	Subject(subject string) EventBuilder
-
-	Build() models.DiscoveryItem
-}
-
-type eventBuilder struct {
-	c         models.Cluster
-	id        string
-	scope     string
-	eventType string
-	source    string
-	time      string
-	subject   string
-}
-
-func New() EventBuilder {
-	return &eventBuilder{}
-}
-
-func (eb *eventBuilder) Cluster(cluster models.Cluster) EventBuilder {
-	eb.c = cluster
-	return eb
-}
-
-func (eb *eventBuilder) Id(id string) EventBuilder {
-	eb.id = id
-	return eb
-}
-
-func (eb *eventBuilder) Scope(scope string) EventBuilder {
-	eb.scope = scope
-	return eb
-}
-
-func (eb *eventBuilder) Type(eventType string) EventBuilder {
-	eb.eventType = eventType
-	return eb
-}
-
-func (eb *eventBuilder) Source(source string) EventBuilder {
-	eb.source = source
-	return eb
-}
-
-func (eb *eventBuilder) Time(time string) EventBuilder {
-	eb.time = time
-	return eb
-}
-
-func (eb *eventBuilder) Subject(subject string) EventBuilder {
-	eb.subject = subject
-	return eb
-}
-
-func (eb *eventBuilder) Build() models.DiscoveryItem {
-	data := &models.DiscoveryData{
-		Cluster: eb.c,
-	}
-	return models.DiscoveryItem{
-		ID:      eb.id,
-		Scope:   eb.scope,
-		Type:    eb.eventType,
-		Source:  eb.source,
-		Time:    eb.time,
-		Subject: eb.subject,
-		Data:    *data,
-	}
 }
 
 type StatusItem struct {
@@ -166,23 +88,4 @@ func NewAdminLogEvent(configurationId string, runId string, workspaceId string, 
 		DataSchema:      DataSchema,
 		Data:            StatusData,
 	}
-}
-
-func CreateDiscoveryItem(cluster models.Cluster, source string, scope string) models.DiscoveryItem {
-	// Metadata for the event
-	id := fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s-%s", cluster.Name, cluster.Namespace.Name))))
-	subject := fmt.Sprintf("namespace/%s", cluster.Namespace.Name)
-	time := time.Now().Format(time.RFC3339)
-
-	// Build service/softwareArtifact event
-	discoveryEvent := New().
-		Id(id).
-		Source(source).
-		Subject(subject).
-		Type(typeAsK8sNamespace).
-		Scope(scope).
-		Time(time).
-		Cluster(cluster).
-		Build()
-	return discoveryEvent
 }
