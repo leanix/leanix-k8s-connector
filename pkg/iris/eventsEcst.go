@@ -4,7 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/common"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
 	time2 "time"
 )
 
@@ -27,10 +28,10 @@ type EcstEventBuilder interface {
 }
 
 type CommandBuilder interface {
-	Header(header models.CommandProperties) CommandBuilder
-	Body(body models.CommandBody) CommandBuilder
+	Header(header common.CommandProperties) CommandBuilder
+	Body(body common.CommandBody) CommandBuilder
 
-	Build() models.CommandEvent
+	Build() common.CommandEvent
 }
 
 type ecstEventBuilder struct {
@@ -39,8 +40,8 @@ type ecstEventBuilder struct {
 }
 
 type commandBuilder struct {
-	header models.CommandProperties
-	body   models.CommandBody
+	header common.CommandProperties
+	body   common.CommandBody
 }
 
 // Discovery Event Builder
@@ -81,32 +82,32 @@ func NewCommand() CommandBuilder {
 	return &commandBuilder{}
 }
 
-func (cb *commandBuilder) Header(header models.CommandProperties) CommandBuilder {
+func (cb *commandBuilder) Header(header common.CommandProperties) CommandBuilder {
 	cb.header = header
 	return cb
 }
 
-func (cb *commandBuilder) Body(body models.CommandBody) CommandBuilder {
+func (cb *commandBuilder) Body(body common.CommandBody) CommandBuilder {
 	cb.body = body
 	return cb
 }
 
-func (cb *commandBuilder) Build() models.CommandEvent {
-	header := &models.CommandProperties{
+func (cb *commandBuilder) Build() common.CommandEvent {
+	header := &common.CommandProperties{
 		Type:   cb.header.Type,
 		Scope:  cb.header.Scope,
 		Action: cb.header.Action,
 	}
-	body := &models.CommandBody{}
+	body := &common.CommandBody{}
 
-	return models.CommandEvent{
+	return common.CommandEvent{
 		Properties: *header,
 		Body:       *body,
 	}
 }
 
 // CreateEcstDiscoveryEvent ECST Discovery Items
-func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models.Data, runId string, workspaceId string, configId string) models.DiscoveryEvent {
+func CreateEcstDiscoveryEvent(eventType string, changeAction string, data models.Data, workspaceId string, configId string) models.DiscoveryEvent {
 	// Metadata for the event
 	id := GenerateId(workspaceId, configId, data)
 	time := time2.Now().Format(time2.RFC3339)
@@ -157,12 +158,12 @@ func GenerateId(workspaceId string, configId string, data models.Data) string {
 }
 
 // Command Events
-func CreateStartReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+func CreateStartReplay(workspaceId string, config kubernetesConfig) common.CommandEvent {
 	// Metadata for the command event
 	eventType := fmt.Sprintf("command")
 	action := fmt.Sprintf("startReplay")
 	scope := fmt.Sprintf(EventScopeFormat, workspaceId, config.ID)
-	header := models.CommandProperties{
+	header := common.CommandProperties{
 		Type:   eventType,
 		Action: action,
 		Scope:  scope,
@@ -172,12 +173,12 @@ func CreateStartReplay(workspaceId string, config kubernetesConfig) models.Comma
 	return startReplayEvent
 }
 
-func CreateEndReplay(workspaceId string, config kubernetesConfig) models.CommandEvent {
+func CreateEndReplay(workspaceId string, config kubernetesConfig) common.CommandEvent {
 	// Metadata for the command event
 	eventType := fmt.Sprintf("command")
 	action := fmt.Sprintf("endReplay")
 	scope := fmt.Sprintf(EventScopeFormat, workspaceId, config.ID)
-	header := models.CommandProperties{
+	header := common.CommandProperties{
 		Type:   eventType,
 		Action: action,
 		Scope:  scope,

@@ -1,12 +1,14 @@
 package iris
 
 import (
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 )
 
 type ConfigService interface {
 	GetConfiguration(configurationName string) ([]byte, error)
-	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
+	GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error)
+	GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error)
 }
 
 type configService struct {
@@ -23,6 +25,10 @@ func (a *configService) GetConfiguration(configurationName string) ([]byte, erro
 	return a.irisApi.GetConfiguration(configurationName)
 }
 
-func (a *configService) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
-	return a.irisApi.GetScanResults(configurationId)
+func (a *configService) GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
+	return a.irisApi.GetNamespaceScanResults(configurationId)
+}
+
+func (a *configService) GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error) {
+	return a.irisApi.GetWorkloadScanResults(configurationId)
 }

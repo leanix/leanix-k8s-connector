@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"io"
 	"io/ioutil"
@@ -15,7 +16,8 @@ import (
 
 type API interface {
 	GetConfiguration(configurationName string) ([]byte, error)
-	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
+	GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error)
+	GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error)
 	PostEcstResults(ecstResults []byte) error
 	PostStatus(status []byte) error
 }
@@ -72,7 +74,7 @@ func (a *api) GetConfiguration(configurationName string) ([]byte, error) {
 	return responseData, nil
 }
 
-func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
+func (a *api) GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	if configurationId == "" {
 		return nil, errors.New("configuration id should not be null or empty")
 	}
@@ -97,6 +99,47 @@ func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, e
 		return nil, err
 	}
 	previousResults := make([]models.DiscoveryEvent, 0)
+	if resp.StatusCode == 404 {
+		return previousResults, nil
+	}
+	if resp.StatusCode != 200 {
+		logger.Errorf("Could not find configuration in Iris with error: '%s'", responseData)
+		return nil, fmt.Errorf("failed to retrieve configuration with name '%s' from Iris", configurationId)
+
+	}
+	err = json.Unmarshal(responseData, &previousResults)
+	if err != nil {
+		return nil, err
+	}
+
+	return previousResults, nil
+}
+
+func (a *api) GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error) {
+	if configurationId == "" {
+		return nil, errors.New("configuration id should not be null or empty")
+	}
+	configUrl := fmt.Sprintf("%s/services/vsm-iris/v1/configurations/%s/results", a.uri, configurationId)
+	req, err := http.NewRequest("GET", configUrl, nil)
+	if err != nil {
+		logger.Errorf("Error while creating request to retrieve latestResults from config '%s': %v", configurationId, err)
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+a.token)
+
+	// Execute request
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read response
+	responseData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	previousResults := make([]workload.DiscoveryEvent, 0)
 	if resp.StatusCode == 404 {
 		return previousResults, nil
 	}

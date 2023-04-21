@@ -1,12 +1,12 @@
 package iris
 
 import (
+	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/set"
 	appsv1 "k8s.io/api/apps/v1"

@@ -3,14 +3,19 @@ package iris
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
+	newmapper "github.com/leanix/leanix-k8s-connector/pkg/newmapper/workloadEcst"
+	"github.com/leanix/leanix-k8s-connector/pkg/utils"
+	"github.com/spf13/viper"
+	"net/http"
+	"strconv"
+
+	workloads "github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"strconv"
 )
 
 type Scanner interface {
@@ -18,21 +23,24 @@ type Scanner interface {
 }
 
 type scanner struct {
-	configService ConfigService
-	eventProducer EventProducer
-	runId         string
-	workspaceId   string
+	configService         ConfigService
+	eventProducer         EventProducer
+	workloadEventProducer WorkloadEventProducer
+	runId                 string
+	workspaceId           string
 }
 
 func NewScanner(kind string, uri string, runId string, token string, workspaceId string) Scanner {
 	api := NewApi(http.DefaultClient, kind, uri, token)
 	configService := NewConfigService(api)
 	eventProducer := NewEventProducer(api, runId, workspaceId)
+	workloadEventProducer := NewEventWorkloadProducer(api, runId, workspaceId)
 	return &scanner{
-		configService: configService,
-		eventProducer: eventProducer,
-		runId:         runId,
-		workspaceId:   workspaceId,
+		configService:         configService,
+		eventProducer:         eventProducer,
+		workloadEventProducer: workloadEventProducer,
+		runId:                 runId,
+		workspaceId:           workspaceId,
 	}
 }
 
@@ -64,10 +72,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return err
 	}
-	oldResults, err := s.configService.GetScanResults(kubernetesConfig.ID)
-	if err != nil {
-		return err
-	}
+
 	logger.Infof("Scan started for RunId: [%s]", s.runId)
 	logger.Infof("Configuration used: %s", configuration)
 
@@ -88,6 +93,35 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
+
+	if viper.GetBool(utils.WorkloadFlag) {
+		logger.Info("Scanning of Workloads is enabled")
+		mapper := newmapper.MapWorkload(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, s.runId)
+		ecstWorkloadDiscoveredData, err := s.ScanWorkloads(kubernetesAPI, mapper, kubernetesConfig.Cluster)
+		if err != nil {
+			return s.LogAndShareError("Scan failed while retrieving k8s workload. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		}
+		oldResults, err := s.configService.GetWorkloadScanResults(kubernetesConfig.ID)
+		if err != nil {
+			return err
+		}
+		err = s.workloadEventProducer.ProcessWorkloads(ecstWorkloadDiscoveredData, oldResults, kubernetesConfig.ID)
+		if err != nil {
+			return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		}
+		logger.Infof("Scan Finished for RunId: [%s]", s.runId)
+		err = s.ShareStatus(kubernetesConfig.ID, SUCCESSFUL, "Successfully Scanned")
+		if err != nil {
+			logger.Errorf(StatusErrorFormat, s.runId, err)
+			return err
+		}
+		return err
+	}
+	oldResults, err := s.configService.GetNamespaceScanResults(kubernetesConfig.ID)
+	if err != nil {
+		return err
+	}
+
 	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 
 	nodes, err := kubernetesAPI.Nodes()
@@ -150,6 +184,23 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 		ecstData = append(ecstData, ecstDiscoveryData)
 	}
 
+	return ecstData, nil
+}
+
+// ScanWorkloads todo: scanWorkload function
+func (s scanner) ScanWorkloads(k8sApi *kubernetes.API, newmapper newmapper.MapperWorkload, clusterName string) ([]workloads.Data, error) {
+	var ecstData = make([]workloads.Data, 0)
+
+	mappedWorkloadEcst, err := newmapper.MapWorkloads(k8sApi, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	// create ECST discovery item with Data object
+	ecstDiscoveryData := workloads.Data{
+		Workload: mappedWorkloadEcst,
+	}
+	ecstData = append(ecstData, ecstDiscoveryData)
 	return ecstData, nil
 }
 

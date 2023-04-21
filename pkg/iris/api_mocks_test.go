@@ -5,16 +5,25 @@
 package iris
 
 import (
+	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models"
 )
 
 // MockAPI is a mock of API interface.
 type MockAPI struct {
 	ctrl     *gomock.Controller
 	recorder *MockAPIMockRecorder
+}
+
+func (m *MockAPI) GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetScanResults", configurationId)
+	ret0, _ := ret[0].([]workload.DiscoveryEvent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // MockAPIMockRecorder is the mock recorder for MockAPI.
@@ -50,7 +59,7 @@ func (mr *MockAPIMockRecorder) GetConfiguration(configurationName interface{}) *
 }
 
 // GetScanResults mocks base method.
-func (m *MockAPI) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
+func (m *MockAPI) GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetScanResults", configurationId)
 	ret0, _ := ret[0].([]models.DiscoveryEvent)
@@ -59,9 +68,9 @@ func (m *MockAPI) GetScanResults(configurationId string) ([]models.DiscoveryEven
 }
 
 // GetScanResults indicates an expected call of GetScanResults.
-func (mr *MockAPIMockRecorder) GetScanResults(configurationId interface{}) *gomock.Call {
+func (mr *MockAPIMockRecorder) GetNamespaceScanResults(configurationId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScanResults", reflect.TypeOf((*MockAPI)(nil).GetScanResults), configurationId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScanResults", reflect.TypeOf((*MockAPI)(nil).GetNamespaceScanResults), configurationId)
 }
 
 // PostEcstResults mocks base method.

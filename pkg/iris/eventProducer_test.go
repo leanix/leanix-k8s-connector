@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
