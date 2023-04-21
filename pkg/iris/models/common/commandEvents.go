@@ -1,4 +1,4 @@
-package models
+package common
 
 type CommandEvent struct {
 	Properties CommandProperties `json:"properties"`

@@ -1,7 +1,5 @@
 package models
 
-// workloads
-
 type Deployment struct {
 	Service        *Service             `json:"service"`
 	Image          string               `json:"image"`
@@ -23,8 +21,6 @@ type DeploymentEcst struct {
 	Timestamp            string               `json:"time"`
 	DeploymentProperties DeploymentProperties `json:"deploymentProperties"`
 }
-
-// properties  for workloads
 
 type DeploymentProperties struct {
 	UpdateStrategy string       `json:"updateStrategy"`
