@@ -2,12 +2,11 @@ package newmapper
 
 import (
 	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strings"
 	"time"
-
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 func (m *mapworkload) MapStatefulSetsEcst(clusterName string, statefulSets *appsv1.StatefulSetList, services *v1.ServiceList) ([]workload.WorkloadEcst, error) {
@@ -30,6 +29,8 @@ func (m *mapworkload) CreateStatefulSetEcst(clusterName string, statefulSet apps
 		WorkloadType: "cronjob",
 		WorkloadName: statefulSet.Name,
 		ServiceName:  service,
+		Labels:       statefulSet.ObjectMeta.Labels,
+		Timestamp:    statefulSet.CreationTimestamp.UTC().Format(time.RFC3339),
 		Containers: workload.Containers{
 			Name:        statefulSet.Spec.Template.Spec.Containers[0].Name,
 			Image:       strings.Split(statefulSet.Spec.Template.Spec.Containers[0].Image, ":")[0],
@@ -39,9 +40,7 @@ func (m *mapworkload) CreateStatefulSetEcst(clusterName string, statefulSet apps
 		},
 		WorkloadProperties: workload.Properties{
 			Replicas:       string(statefulSet.Status.Replicas),
-			Labels:         statefulSet.ObjectMeta.Labels,
 			UpdateStrategy: string(statefulSet.Spec.UpdateStrategy.Type),
-			Timestamp:      statefulSet.CreationTimestamp.UTC().Format(time.RFC3339),
 		},
 	}
 	return mappedDeployment

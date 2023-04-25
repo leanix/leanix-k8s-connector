@@ -7,22 +7,22 @@ type Service struct {
 }
 
 type WorkloadEcst struct {
-	ClusterName        string     `json:"clusterName"`
-	WorkloadType       string     `json:"workloadType"` //todo: check enum type instead of string
-	WorkloadName       string     `json:"workloadName"`
-	Containers         Containers `json:"containers"`
-	ServiceName        string     `json:"serviceName"`
-	WorkloadProperties Properties `json:"WorkloadProperties"`
+	ClusterName        string      `json:"clusterName"`
+	WorkloadType       string      `json:"workloadType"` //todo: check enum type instead of string
+	WorkloadName       string      `json:"workloadName"`
+	Containers         Containers  `json:"containers"`
+	ServiceName        string      `json:"serviceName"`
+	Labels             interface{} `json:"labels"`
+	Timestamp          string      `json:"timestamp"`
+	WorkloadProperties Properties  `json:"WorkloadProperties"`
 }
 
 // properties  for workloadEcst
 
 type Properties struct {
-	Schedule       string      `json:"schedule"`
-	Replicas       string      `json:"replicas"`
-	UpdateStrategy string      `json:"updateStrategy"`
-	Labels         interface{} `json:"labels"`
-	Timestamp      string      `json:"timestamp"`
+	Schedule       string `json:"schedule"`
+	Replicas       string `json:"replicas"`
+	UpdateStrategy string `json:"updateStrategy"`
 }
 
 type Containers struct {

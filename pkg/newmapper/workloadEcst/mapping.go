@@ -64,8 +64,18 @@ func (m *mapworkload) MapWorkloads(k8sApi *kubernetes.API, clusterName string) (
 		return nil, err
 	}
 
+	daemonSets, err := k8sApi.DaemonSets("")
+	if err != nil {
+		return nil, err
+	}
+	MappedDaemonSets, err := m.MapDaemonSetsEcst(clusterName, daemonSets, services)
+	if err != nil {
+		return nil, err
+	}
+
 	scannedObjects = append(scannedObjects, mappedDeployments...)
 	scannedObjects = append(scannedObjects, mappedCronJobs...)
 	scannedObjects = append(scannedObjects, MappedStatefulSets...)
+	scannedObjects = append(scannedObjects, MappedDaemonSets...)
 	return scannedObjects, nil
 }

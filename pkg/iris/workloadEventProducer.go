@@ -63,8 +63,10 @@ func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Data, o
 
 	// Create DELETED events
 	for _, oldItem := range oldResultMap {
-		deletedEvent := workload.CreateEcstWorkloadDiscoveryEvent(workload.EventTypeChange, workload.EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId)
-		deletedEvents = append(deletedEvents, deletedEvent)
+		if len(oldItem.Body.State.Data.Workload) != 0 {
+			deletedEvent := workload.CreateEcstWorkloadDiscoveryEvent(workload.EventTypeChange, workload.EventActionDeleted, oldItem.Body.State.Data, p.runId, p.workspaceId, configId)
+			deletedEvents = append(deletedEvents, deletedEvent)
+		}
 	}
 	return createdEvents, updatedEvents, deletedEvents, nil
 

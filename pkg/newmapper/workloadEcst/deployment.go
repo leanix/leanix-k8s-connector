@@ -32,6 +32,8 @@ func (m *mapworkload) CreateDeploymentEcst(clusterName string, deploymentService
 		WorkloadType: "deployment",
 		WorkloadName: deployment.Name,
 		ServiceName:  service,
+		Labels:       deployment.ObjectMeta.Labels,
+		Timestamp:    deployment.CreationTimestamp.UTC().Format(time.RFC3339),
 		Containers: workload.Containers{
 			Name:        deployment.Spec.Template.Spec.Containers[0].Name,
 			Image:       deployment.Spec.Template.Spec.Containers[0].Image,
@@ -42,8 +44,6 @@ func (m *mapworkload) CreateDeploymentEcst(clusterName string, deploymentService
 		WorkloadProperties: workload.Properties{
 			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
 			UpdateStrategy: string(deployment.Spec.Strategy.Type),
-			Labels:         deployment.ObjectMeta.Labels,
-			Timestamp:      deployment.CreationTimestamp.UTC().Format(time.RFC3339),
 		},
 	}
 	return mappedDeployment

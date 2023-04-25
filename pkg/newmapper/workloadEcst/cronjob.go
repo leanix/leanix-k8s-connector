@@ -30,6 +30,8 @@ func (m *mapworkload) CreateCronjobEcst(clusterName string, cronJob batchv1.Cron
 		WorkloadType: "cronjob",
 		WorkloadName: cronJob.Name,
 		ServiceName:  service,
+		Labels:       cronJob.ObjectMeta.Labels,
+		Timestamp:    cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
 		Containers: workload.Containers{
 			Name:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name,
 			Image:       strings.Split(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image, ":")[0],
@@ -38,10 +40,8 @@ func (m *mapworkload) CreateCronjobEcst(clusterName string, cronJob batchv1.Cron
 			K8sRequests: CreateK8sResources(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Requests),
 		},
 		WorkloadProperties: workload.Properties{
-			Replicas:  cronJob.Status.String(),
-			Schedule:  cronJob.Spec.Schedule,
-			Labels:    cronJob.ObjectMeta.Labels,
-			Timestamp: cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
+			Replicas: cronJob.Status.String(),
+			Schedule: cronJob.Spec.Schedule,
 		},
 	}
 	return mappedDeployment
