@@ -5,25 +5,17 @@
 package iris
 
 import (
-	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	models "github.com/leanix/leanix-k8s-connector/pkg/iris/models/namespace"
+	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/models/workload"
 )
 
 // MockAPI is a mock of API interface.
 type MockAPI struct {
 	ctrl     *gomock.Controller
 	recorder *MockAPIMockRecorder
-}
-
-func (m *MockAPI) GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetScanResults", configurationId)
-	ret0, _ := ret[0].([]workload.DiscoveryEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
 }
 
 // MockAPIMockRecorder is the mock recorder for MockAPI.
@@ -58,19 +50,34 @@ func (mr *MockAPIMockRecorder) GetConfiguration(configurationName interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfiguration", reflect.TypeOf((*MockAPI)(nil).GetConfiguration), configurationName)
 }
 
-// GetScanResults mocks base method.
+// GetNamespaceScanResults mocks base method.
 func (m *MockAPI) GetNamespaceScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetScanResults", configurationId)
+	ret := m.ctrl.Call(m, "GetNamespaceScanResults", configurationId)
 	ret0, _ := ret[0].([]models.DiscoveryEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetScanResults indicates an expected call of GetScanResults.
+// GetNamespaceScanResults indicates an expected call of GetNamespaceScanResults.
 func (mr *MockAPIMockRecorder) GetNamespaceScanResults(configurationId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScanResults", reflect.TypeOf((*MockAPI)(nil).GetNamespaceScanResults), configurationId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceScanResults", reflect.TypeOf((*MockAPI)(nil).GetNamespaceScanResults), configurationId)
+}
+
+// GetWorkloadScanResults mocks base method.
+func (m *MockAPI) GetWorkloadScanResults(configurationId string) ([]workload.DiscoveryEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkloadScanResults", configurationId)
+	ret0, _ := ret[0].([]workload.DiscoveryEvent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkloadScanResults indicates an expected call of GetWorkloadScanResults.
+func (mr *MockAPIMockRecorder) GetWorkloadScanResults(configurationId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkloadScanResults", reflect.TypeOf((*MockAPI)(nil).GetWorkloadScanResults), configurationId)
 }
 
 // PostEcstResults mocks base method.
@@ -85,20 +92,6 @@ func (m *MockAPI) PostEcstResults(ecstResults []byte) error {
 func (mr *MockAPIMockRecorder) PostEcstResults(ecstResults interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostEcstResults", reflect.TypeOf((*MockAPI)(nil).PostEcstResults), ecstResults)
-}
-
-// PostResults mocks base method.
-func (m *MockAPI) PostResults(results []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostResults", results)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PostResults indicates an expected call of PostResults.
-func (mr *MockAPIMockRecorder) PostResults(results interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostResults", reflect.TypeOf((*MockAPI)(nil).PostResults), results)
 }
 
 // PostStatus mocks base method.
