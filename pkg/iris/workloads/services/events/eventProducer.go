@@ -70,19 +70,6 @@ func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Data, o
 
 }
 
-func ParseWorkloadData(oldItem models.DiscoveryEvent) (*workload.Data, error) {
-	dataString, err := json.Marshal(oldItem.Body.State.Data)
-	if err != nil {
-		return nil, err
-	}
-	var mappedData workload.Data
-	err = json.Unmarshal(dataString, &mappedData)
-	if err != nil {
-		return nil, err
-	}
-	return &mappedData, nil
-}
-
 func (p *workloadEventProducer) createItemMap(data []workload.Data, configId string) map[string]workload.Data {
 	resultMap := map[string]workload.Data{}
 	for _, item := range data {

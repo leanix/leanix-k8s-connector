@@ -70,19 +70,6 @@ func (p *eventProducer) createECSTEvents(data []namespace.Data, oldData []models
 
 }
 
-func ParseNamespaceData(oldItem models.DiscoveryEvent) (*namespace.Data, error) {
-	dataString, err := json.Marshal(oldItem.Body.State.Data)
-	if err != nil {
-		return nil, err
-	}
-	var mappedData namespace.Data
-	err = json.Unmarshal(dataString, &mappedData)
-	if err != nil {
-		return nil, err
-	}
-	return &mappedData, nil
-}
-
 func (p *eventProducer) createItemMap(data []namespace.Data, configId string) map[string]namespace.Data {
 	resultMap := map[string]namespace.Data{}
 	for _, item := range data {

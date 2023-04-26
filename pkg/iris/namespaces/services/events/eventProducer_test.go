@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
+	common "github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	namespaceModels "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -145,7 +146,7 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 	created, updated, filteredData, err := p.FilterForChangedItems(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
-	parsedData, err := ParseNamespaceData(updated[0])
+	parsedData, err := common.ParseNamespaceData(updated[0])
 	assert.NoError(t, err)
 	assert.Empty(t, created)
 	assert.Len(t, updated, 1)
@@ -199,7 +200,8 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	oldData := []models.DiscoveryEvent{
 		{
 			HeaderProperties: models.HeaderProperties{
-				Id: hex.EncodeToString(id2[:]),
+				Id:    hex.EncodeToString(id2[:]),
+				Class: models.EventClassNamespace,
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
@@ -220,7 +222,8 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 		},
 		{
 			HeaderProperties: models.HeaderProperties{
-				Id: hex.EncodeToString(id3[:]),
+				Id:    hex.EncodeToString(id3[:]),
+				Class: models.EventClassNamespace,
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
@@ -242,7 +245,8 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 		},
 		{
 			HeaderProperties: models.HeaderProperties{
-				Id: hex.EncodeToString(id4[:]),
+				Id:    hex.EncodeToString(id4[:]),
+				Class: models.EventClassNamespace,
 			},
 			Body: models.DiscoveryBody{
 				State: models.State{
@@ -284,14 +288,14 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	assert.Equal(t, hex.EncodeToString(id3[:]), updated[0].HeaderProperties.Id)
 	assert.Equal(t, models.EventTypeChange, updated[0].HeaderProperties.Type)
 	assert.Equal(t, models.EventActionUpdated, updated[0].HeaderProperties.Action)
-	parsedData, err := ParseNamespaceData(updated[0])
+	parsedData, err := common.ParseNamespaceData(updated[0])
 	assert.NoError(t, err)
 	assert.Equal(t, "5", parsedData.Cluster.NoOfNodes)
 	// DELETED
 	assert.Equal(t, hex.EncodeToString(id4[:]), deleted[0].HeaderProperties.Id)
 	assert.Equal(t, models.EventTypeChange, deleted[0].HeaderProperties.Type)
 	assert.Equal(t, models.EventActionDeleted, deleted[0].HeaderProperties.Action)
-	parsedData, err = ParseNamespaceData(deleted[0])
+	parsedData, err = common.ParseNamespaceData(deleted[0])
 	assert.NoError(t, err)
 	assert.Equal(t, "testCluster2", parsedData.Cluster.Name)
 	assert.Equal(t, "testNamespace2", parsedData.Cluster.Namespace)
