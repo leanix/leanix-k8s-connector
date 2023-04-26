@@ -28,7 +28,7 @@ version:
 gen:
 	go mod download
 	go install github.com/golang/mock/mockgen@v1.6.0
-	mockgen -source=pkg/iris/api.go -destination=pkg/iris/api_mocks_test.go -package=iris
+	mockgen -source=pkg/iris/common/api.go -destination=pkg/iris/common/api_mocks_test.go -package=common
 
 image:
 	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(IMAGE_LATEST) .
