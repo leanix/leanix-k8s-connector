@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services/iris"
+	common "github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
 	"github.com/pkg/errors"
 )
@@ -17,12 +17,12 @@ type WorkloadEventProducer interface {
 }
 
 type workloadEventProducer struct {
-	irisApi     iris.API
+	irisApi     common.API
 	runId       string
 	workspaceId string
 }
 
-func NewEventWorkloadProducer(irisApi iris.API, runId string, workspaceId string) WorkloadEventProducer {
+func NewEventWorkloadProducer(irisApi common.API, runId string, workspaceId string) WorkloadEventProducer {
 	return &workloadEventProducer{
 		irisApi:     irisApi,
 		runId:       runId,
@@ -53,7 +53,6 @@ func (p *workloadEventProducer) PostStatus(status []byte) error {
 }
 
 func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Data, oldData []models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
-	deletedEvents := make([]models.DiscoveryEvent, 0)
 	resultMap := p.createItemMap(data, configId)
 	oldResultMap := p.createOldItemMap(oldData)
 
@@ -63,14 +62,25 @@ func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Data, o
 	}
 
 	// Create DELETED events
-	for _, oldItem := range oldResultMap {
-		if len(oldItem.Body.State.Data.(workload.Data).Workload) != 0 {
-			deletedEvent := workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, oldItem.Body.State.Data.(workload.Data), p.runId, p.workspaceId, configId)
-			deletedEvents = append(deletedEvents, deletedEvent)
-		}
+	deletedEvents, err := common.FilterForDeletedItems(oldResultMap, p.workspaceId, configId, p.runId)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	return createdEvents, updatedEvents, deletedEvents, nil
 
+}
+
+func ParseWorkloadData(oldItem models.DiscoveryEvent) (*workload.Data, error) {
+	dataString, err := json.Marshal(oldItem.Body.State.Data)
+	if err != nil {
+		return nil, err
+	}
+	var mappedData workload.Data
+	err = json.Unmarshal(dataString, &mappedData)
+	if err != nil {
+		return nil, err
+	}
+	return &mappedData, nil
 }
 
 func (p *workloadEventProducer) createItemMap(data []workload.Data, configId string) map[string]workload.Data {

@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services/iris"
+	common "github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	namespace "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
 	"github.com/pkg/errors"
 )
@@ -17,12 +17,12 @@ type EventProducer interface {
 }
 
 type eventProducer struct {
-	irisApi     iris.API
+	irisApi     common.API
 	runId       string
 	workspaceId string
 }
 
-func NewEventProducer(irisApi iris.API, runId string, workspaceId string) EventProducer {
+func NewEventProducer(irisApi common.API, runId string, workspaceId string) EventProducer {
 	return &eventProducer{
 		irisApi:     irisApi,
 		runId:       runId,
@@ -53,7 +53,6 @@ func (p *eventProducer) PostStatus(status []byte) error {
 }
 
 func (p *eventProducer) createECSTEvents(data []namespace.Data, oldData []models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
-	deletedEvents := make([]models.DiscoveryEvent, 0)
 	resultMap := p.createItemMap(data, configId)
 	oldResultMap := p.createOldItemMap(oldData)
 
@@ -63,12 +62,25 @@ func (p *eventProducer) createECSTEvents(data []namespace.Data, oldData []models
 	}
 
 	// Create DELETED events
-	for _, oldItem := range oldResultMap {
-		deletedEvent := namespace.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, oldItem.Body.State.Data.(namespace.Data), p.workspaceId, configId)
-		deletedEvents = append(deletedEvents, deletedEvent)
+	deletedEvents, err := common.FilterForDeletedItems(oldResultMap, p.workspaceId, configId, p.runId)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	return createdEvents, updatedEvents, deletedEvents, nil
 
+}
+
+func ParseNamespaceData(oldItem models.DiscoveryEvent) (*namespace.Data, error) {
+	dataString, err := json.Marshal(oldItem.Body.State.Data)
+	if err != nil {
+		return nil, err
+	}
+	var mappedData namespace.Data
+	err = json.Unmarshal(dataString, &mappedData)
+	if err != nil {
+		return nil, err
+	}
+	return &mappedData, nil
 }
 
 func (p *eventProducer) createItemMap(data []namespace.Data, configId string) map[string]namespace.Data {

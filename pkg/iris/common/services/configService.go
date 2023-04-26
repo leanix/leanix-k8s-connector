@@ -1,4 +1,4 @@
-package iris
+package services
 
 import (
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"

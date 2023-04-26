@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
+	namespaceModels "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -14,13 +16,13 @@ import (
 func Test_eventProducer_filter_created(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockApi := iris.NewMockAPI(ctrl)
-	newData := map[string]models.models{
+
+	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Namespace:   "testNamespace1",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Name:        "testCluster1",
 				Os:          "testOs1",
 				K8sVersion:  "1.0.0",
@@ -35,7 +37,7 @@ func Test_eventProducer_filter_created(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data:           models.Data{},
+					Data:           namespaceModels.Data{},
 				},
 			},
 		},
@@ -54,12 +56,12 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockApi := iris.NewMockAPI(ctrl)
-	newData := map[string]models.Data{
+	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Namespace:   "testNamespace1",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Name:        "testCluster1",
 				Os:          "testOs1",
 				K8sVersion:  "1.0.0",
@@ -74,10 +76,10 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data: models.Data{
-						Cluster: models.ClusterEcst{
+					Data: namespaceModels.Data{
+						Cluster: namespaceModels.ClusterEcst{
 							Namespace:   "testNamespace1",
-							Deployments: make([]models.DeploymentEcst, 0),
+							Deployments: make([]namespaceModels.DeploymentEcst, 0),
 							Name:        "testCluster1",
 							Os:          "testOs1",
 							K8sVersion:  "1.0.0",
@@ -102,12 +104,12 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockApi := iris.NewMockAPI(ctrl)
-	newData := map[string]models.Data{
+	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Namespace:   "testNamespace1",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Name:        "testCluster1",
 				Os:          "testOs1",
 				K8sVersion:  "1.5.0",
@@ -122,10 +124,10 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data: models.Data{
-						Cluster: models.ClusterEcst{
+					Data: namespaceModels.Data{
+						Cluster: namespaceModels.ClusterEcst{
 							Namespace:   "testNamespace1",
-							Deployments: make([]models.DeploymentEcst, 0),
+							Deployments: make([]namespaceModels.DeploymentEcst, 0),
 							Name:        "testCluster1",
 							Os:          "testOs1",
 							K8sVersion:  "1.0.0",
@@ -145,9 +147,11 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 	created, updated, filteredData, err := p.FilterForChangedItems(newData, oldData, "testConfigId")
 
 	assert.NoError(t, err)
+	parsedData, err := ParseNamespaceData(updated[0])
+	assert.NoError(t, err)
 	assert.Empty(t, created)
 	assert.Len(t, updated, 1)
-	assert.Equal(t, "1.5.0", updated[0].Body.State.Data.Cluster.K8sVersion)
+	assert.Equal(t, "1.5.0", parsedData.Cluster.K8sVersion
 	assert.Empty(t, filteredData)
 }
 
@@ -155,17 +159,17 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockApi := iris.NewMockAPI(ctrl)
-	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster1", "testNamespace1")))
-	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster1", "testNamespace2")))
-	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster2", "testNamespace1")))
-	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", EventClassNamespace, "testCluster2", "testNamespace2")))
-	newData := []models.Data{
+	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster1", "testNamespace1")))
+	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster1", "testNamespace2")))
+	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster2", "testNamespace1")))
+	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster2", "testNamespace2")))
+	newData := []namespaceModels.Data{
 		{
 			// NEW item
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Name:        "testCluster1",
 				Namespace:   "testNamespace1",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Os:          "testOs1",
 				K8sVersion:  "1.0.0",
 				NoOfNodes:   "1",
@@ -173,10 +177,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 		},
 		{
 			// Existing but not changed
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Name:        "testCluster1",
 				Namespace:   "testNamespace2",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Os:          "testOs1",
 				K8sVersion:  "1.0.0",
 				NoOfNodes:   "1",
@@ -184,10 +188,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 		},
 		{
 			// Existing and changed
-			models.ClusterEcst{
+			namespaceModels.ClusterEcst{
 				Name:        "testCluster2",
 				Namespace:   "testNamespace1",
-				Deployments: make([]models.DeploymentEcst, 0),
+				Deployments: make([]namespaceModels.DeploymentEcst, 0),
 				Os:          "testOs1",
 				K8sVersion:  "1.0.0",
 				NoOfNodes:   "5",
@@ -205,10 +209,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data: models.Data{Cluster: models.ClusterEcst{
+					Data: namespaceModels.Data{Cluster: namespaceModels.ClusterEcst{
 						Name:        "testCluster1",
 						Namespace:   "testNamespace2",
-						Deployments: make([]models.DeploymentEcst, 0),
+						Deployments: make([]namespaceModels.DeploymentEcst, 0),
 						Os:          "testOs1",
 						K8sVersion:  "1.0.0",
 						NoOfNodes:   "1",
@@ -226,10 +230,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data: models.Data{Cluster: models.ClusterEcst{
+					Data: namespaceModels.Data{Cluster: namespaceModels.ClusterEcst{
 						Name:        "testCluster2",
 						Namespace:   "testNamespace1",
-						Deployments: make([]models.DeploymentEcst, 0),
+						Deployments: make([]namespaceModels.DeploymentEcst, 0),
 						Os:          "testOs1",
 						K8sVersion:  "1.0.0",
 						NoOfNodes:   "1",
@@ -248,10 +252,10 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 					SourceInstance: "",
 					SourceType:     "",
 					Time:           "",
-					Data: models.Data{Cluster: models.ClusterEcst{
+					Data: namespaceModels.Data{Cluster: namespaceModels.ClusterEcst{
 						Name:        "testCluster2",
 						Namespace:   "testNamespace2",
-						Deployments: make([]models.DeploymentEcst, 0),
+						Deployments: make([]namespaceModels.DeploymentEcst, 0),
 						Os:          "testOs1",
 						K8sVersion:  "1.0.0",
 						NoOfNodes:   "1",
@@ -275,20 +279,24 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	assert.Len(t, deleted, 1)
 	// CREATED
 	assert.Equal(t, hex.EncodeToString(id1[:]), created[0].HeaderProperties.Id)
-	assert.Equal(t, EventTypeChange, created[0].HeaderProperties.Type)
-	assert.Equal(t, EventActionCreated, created[0].HeaderProperties.Action)
+	assert.Equal(t, models.EventTypeChange, created[0].HeaderProperties.Type)
+	assert.Equal(t, models.EventActionCreated, created[0].HeaderProperties.Action)
 	assert.Equal(t, "testNamespace1", created[0].Body.State.Name)
 	// UPDATED
 	assert.Equal(t, hex.EncodeToString(id3[:]), updated[0].HeaderProperties.Id)
-	assert.Equal(t, EventTypeChange, updated[0].HeaderProperties.Type)
-	assert.Equal(t, EventActionUpdated, updated[0].HeaderProperties.Action)
-	assert.Equal(t, "5", updated[0].Body.State.Data.Cluster.NoOfNodes)
+	assert.Equal(t, models.EventTypeChange, updated[0].HeaderProperties.Type)
+	assert.Equal(t, models.EventActionUpdated, updated[0].HeaderProperties.Action)
+	parsedData, err := ParseNamespaceData(updated[0])
+	assert.NoError(t, err)
+	assert.Equal(t, "5", parsedData.Cluster.NoOfNodes)
 	// DELETED
 	assert.Equal(t, hex.EncodeToString(id4[:]), deleted[0].HeaderProperties.Id)
-	assert.Equal(t, EventTypeChange, deleted[0].HeaderProperties.Type)
-	assert.Equal(t, EventActionDeleted, deleted[0].HeaderProperties.Action)
-	assert.Equal(t, "testCluster2", deleted[0].Body.State.Data.Cluster.Name)
-	assert.Equal(t, "testNamespace2", deleted[0].Body.State.Data.Cluster.Namespace)
+	assert.Equal(t, models.EventTypeChange, deleted[0].HeaderProperties.Type)
+	assert.Equal(t, models.EventActionDeleted, deleted[0].HeaderProperties.Action)
+	parsedData, err = ParseNamespaceData(deleted[0])
+	assert.NoError(t, err)
+	assert.Equal(t, "testCluster2", parsedData.Cluster.Name)
+	assert.Equal(t, "testNamespace2", parsedData.Cluster.Namespace)
 }
 
 func Test_eventProducer_processECSTResults_empty(t *testing.T) {
@@ -296,7 +304,7 @@ func Test_eventProducer_processECSTResults_empty(t *testing.T) {
 	defer ctrl.Finish()
 	mockApi := iris.NewMockAPI(ctrl)
 
-	var newData []models.Data
+	var newData []namespaceModels.Data
 	var oldData []models.DiscoveryEvent
 	p := NewEventProducer(mockApi, "testRunId", "testWorkspaceId")
 	err := p.ProcessResults(newData, oldData, "testConfigId")

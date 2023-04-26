@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services/iris"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	namespaceModels "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/services/events"
 	namespaceMap "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/services/mapper"
@@ -27,7 +27,7 @@ type Scanner interface {
 }
 
 type scanner struct {
-	configService         iris.ConfigService
+	configService         services.ConfigService
 	eventProducer         events.EventProducer
 	workloadEventProducer workloadService.WorkloadEventProducer
 	runId                 string
@@ -35,8 +35,8 @@ type scanner struct {
 }
 
 func NewScanner(kind string, uri string, runId string, token string, workspaceId string) Scanner {
-	api := iris.NewApi(http.DefaultClient, kind, uri, token)
-	configService := iris.NewConfigService(api)
+	api := services.NewApi(http.DefaultClient, kind, uri, token)
+	configService := services.NewConfigService(api)
 	eventProducer := events.NewEventProducer(api, runId, workspaceId)
 	workloadEventProducer := workloadService.NewEventWorkloadProducer(api, runId, workspaceId)
 	return &scanner{
