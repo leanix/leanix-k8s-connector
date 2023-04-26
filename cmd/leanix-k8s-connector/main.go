@@ -20,6 +20,7 @@ import (
 )
 
 func main() {
+	logger.Init()
 	err := parseFlags()
 	if err != nil {
 		logger.Error("Error occurred when parsing flags.", err)

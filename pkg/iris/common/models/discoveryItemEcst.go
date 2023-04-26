@@ -10,11 +10,11 @@ type DiscoveryBody struct {
 }
 
 type State struct {
-	Name           string      `json:"name"`
-	SourceType     string      `json:"sourceType"`
-	SourceInstance string      `json:"sourceInstance"`
-	Time           string      `json:"time"`
-	Data           interface{} `json:"data"`
+	Name           string                 `json:"name"`
+	SourceType     string                 `json:"sourceType"`
+	SourceInstance string                 `json:"sourceInstance"`
+	Time           string                 `json:"time"`
+	Data           map[string]interface{} `json:"data"`
 }
 
 type HeaderProperties struct {
