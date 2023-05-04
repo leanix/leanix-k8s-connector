@@ -17,12 +17,12 @@ type WorkloadEventProducer interface {
 }
 
 type workloadEventProducer struct {
-	irisApi     common.API
+	irisApi     common.IrisApi
 	runId       string
 	workspaceId string
 }
 
-func NewEventWorkloadProducer(irisApi common.API, runId string, workspaceId string) WorkloadEventProducer {
+func NewEventWorkloadProducer(irisApi common.IrisApi, runId string, workspaceId string) WorkloadEventProducer {
 	return &workloadEventProducer{
 		irisApi:     irisApi,
 		runId:       runId,

@@ -17,12 +17,12 @@ type EventProducer interface {
 }
 
 type eventProducer struct {
-	irisApi     common.API
+	irisApi     common.IrisApi
 	runId       string
 	workspaceId string
 }
 
-func NewEventProducer(irisApi common.API, runId string, workspaceId string) EventProducer {
+func NewEventProducer(irisApi common.IrisApi, runId string, workspaceId string) EventProducer {
 	return &eventProducer{
 		irisApi:     irisApi,
 		runId:       runId,

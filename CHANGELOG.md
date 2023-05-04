@@ -55,7 +55,7 @@
 * Empty `connectorID` will now use the `clustername` instead of a random uuid.
 
 ## Release 2021-11-18 - 6.0.1
-* Improved error logging for LeanIX Integration Hub API calls
+* Improved error logging for LeanIX Integration Hub IrisApi calls
 
 ## Release 2021-10-12 - 6.0.0
 * Breaking changes! Adapted changes for VSM data model. No changes in the behaviour of the connector.
@@ -81,10 +81,10 @@
 * 3.0.0 or below to 4.0.0
   * Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
   * New **mandatory** flag is introduced to work with Integration hub data source - `integrationApi.datasourceName`
-  * LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration API automatically. Hence `integrationApi.enabled` flag is removed
+  * LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration IrisApi automatically. Hence `integrationApi.enabled` flag is removed
   * All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
-  * Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
-  * Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
+  * Integration IrisApi connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
+  * Integration IrisApi connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
   * `schedule.integrationApi` flag is removed and there is a single `schedule.standard`
   * Lowest possible value for `schedule.standard` is every hour
 
@@ -94,7 +94,7 @@
 ### Release Notes
 
 * Changes
-  * Updated Integration API connector version and processor type default values to:
+  * Updated Integration IrisApi connector version and processor type default values to:
     * args.connectorVersion =  1.0.0 -> 1.1.1
     * args.processingMode = partial -> full
 
@@ -111,14 +111,14 @@
 ### Release Notes
 
 * Changes
-  * Add `processingMode` field to generated LDIF file as this is required when processing mode in the Integration API processor configuration is set to `full`.
+  * Add `processingMode` field to generated LDIF file as this is required when processing mode in the Integration IrisApi processor configuration is set to `full`.
 
 ## Release 2020-10-21 - 2.0.0-beta6
 
 ### Release Notes
 
 * Changes
-  * Improved error logging for LeanIX Integration API integration
+  * Improved error logging for LeanIX Integration IrisApi integration
 
 ## Release 2020-10-15 - 2.0.0-beta5
 
@@ -126,10 +126,10 @@
 
 * New Features
   * Configure Kubernetes CronJob schedule
-  * Upload LDIF to LeanIX Integration API
+  * Upload LDIF to LeanIX Integration IrisApi
 
 * Changes
-  * The `connectorVersion` field does not contain the build version anymore. It is now configurable by the user to match the LeanIX Integration API processor configuration version.
+  * The `connectorVersion` field does not contain the build version anymore. It is now configurable by the user to match the LeanIX Integration IrisApi processor configuration version.
   * The build version is moved to the section `customFields` and is mapped to the field `buildVersion` in the generated LDIF file.
   * Split LDIF and log upload into independent tasks
   * Use full container image path `docker.io/leanix/leanix-k8s-connector`

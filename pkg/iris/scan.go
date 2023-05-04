@@ -82,7 +82,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 
 	kubernetesAPI, err := getKubernetesAPI(config)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while getting Kubernetes IrisApi. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	logger.Info("Retrieved kubernetes config successfully")

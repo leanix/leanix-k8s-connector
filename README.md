@@ -26,7 +26,7 @@ The LeanIX Kubernetes Connector collects information from Kubernetes.
 
 ## Overview
 
-The LeanIX Kubernetes Connector (Integration Hub self start) runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc. The information are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. If custom storage backend is enabled, The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX. The progress is updated to Integration Hub datasource. The Integration API run is taken care by Integration Hub.
+The LeanIX Kubernetes Connector (Integration Hub self start) runs in the Kubernetes cluster as a container itself and collects information from the cluster like namespaces, deployments, pods, etc. The information are sanitized and brought into the LDIF (LeanIX Data Interchange Format) format that LeanIX understands. If custom storage backend is enabled, The output then is stored in the `kubernetes.ldif` file that gets imported into LeanIX. The progress is updated to Integration Hub datasource. The Integration IrisApi run is taken care by Integration Hub.
 
 ## Getting started
 
@@ -126,15 +126,15 @@ Create a new data source with k8s connector template(mentioned above) and add re
 | resolveStrategy | label/namespace |  empty  |    ✅     |
 |  resolveLabel   |   plain text    |  empty  |    ❌     |
 
-#### Integration API Default Configuration
-Default configurations are a list of Integration API configurations that are available on all workspaces automatically. 
+#### Integration IrisApi Default Configuration
+Default configurations are a list of Integration IrisApi configurations that are available on all workspaces automatically. 
 Availability and visibility can be still controlled using feature flags. The default configurations show all 
 processor configuration for a given workspace.
  
 In the context of `leanix-k8s-connector` the configuration file `integration-api-default-config`
 has feature flags `integration.integrationapi` and `integration.vsm.k8s` which needs to be enabled. 
 
-[Sample Default configuration Explained](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+API#Create-single-default-configuration)
+[Sample Default configuration Explained](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+IrisApi#Create-single-default-configuration)
 
 > It is important to know  iff certain changes on this file are needed and if you have no idea. Please contact #team-helios on Slack. 
 
@@ -142,11 +142,11 @@ _Additionally in the [References](#references-for-detailed-understanding) Sectio
 
 #### **Starting Connector in k8s**
 
-> **_NOTE:_** The LeanIX Integration API options requires an API token. See the LeanIX technical documentation on how to obtain one. [LeanIX Technical Documentation](https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
+> **_NOTE:_** The LeanIX Integration IrisApi options requires an IrisApi token. See the LeanIX technical documentation on how to obtain one. [LeanIX Technical Documentation](https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
 
 > **_NOTE:_** Make sure Integration Hub data source is setup on the workspace
 
-Create a Kubernetes secret with the LeanIX API token.
+Create a Kubernetes secret with the LeanIX IrisApi token.
 
 ``` bash
 kubectl create secret generic api-token --from-literal=token={LEANIX_API_TOKEN}
@@ -157,9 +157,9 @@ The following configuration example for quick start
 | Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
 |-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX IrisApi token.                                                                                                                                                                     |
 | integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
-| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration IrisApi option. Schedule lowest possible value is every hour                                                                                             |
 | lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
 | verbose                       | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
 | blacklistNameSpaces           | kube-system   | kube-system, default                 | Namespaces that are not scanned by the connector. Must be provided in the format `"{kube-system,default}"` when using the `--set` option. Wildcard blacklisting is also supported e.g. `"{kube-*,default}"` or `"{*-system,default}"`. |
@@ -201,9 +201,9 @@ The following configuration example assumes that you use the `azureblob` storage
 | Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
 |-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX IrisApi token.                                                                                                                                                                     |
 | integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
-| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration API option. Schedule lowest possible value is every hour                                                                                             |
+| schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour, when you enabled the LeanIX Integration IrisApi option. Schedule lowest possible value is every hour                                                                                             |
 | lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to. Make sure Integration Hub data source is also setup in the same workspace                                                                                                        |
 | verbose                       | false         | true                                 | Enables verbose logging on the stdout interface of the container.                                                                                                                                                                      |
 | storageBackend                | none          | azureblob                            | The default value for the storage backend is `none`, if not provided.                                                                                                                                                                  |
@@ -327,7 +327,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | Parameter                     | Default value             | Provided value                       | Notes                                                                                                                                                                                                                                  |
 |-------------------------------|---------------------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | integrationApi.fqdn           | ""                        | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName     | ""                        | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.secretName     | ""                        | api-token                            | The name of the Kubernetes secret containing the LeanIX IrisApi token.                                                                                                                                                                     |
 | integrationApi.datasourceName | ""                        | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
 | schedule.standard             | 0 */1 * * *               |                                      | CronJob schedule. Defaults to every hour.                                                                                                                                                                                              |
 | lxWorkspace                   | ""                        | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to.                                                                                                                                                                                  |
@@ -401,7 +401,7 @@ The following command deploys the connector to the Kubernetes cluster and overwr
 | Parameter                     | Default value | Provided value                       | Notes                                                                                                                                                                                                                                  |
 |-------------------------------|---------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | integrationApi.fqdn           | ""            | app.leanix.net                       | The FQDN of your LeanIX instance                                                                                                                                                                                                       |
-| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX API token.                                                                                                                                                                     |
+| integrationApi.secretName     | ""            | api-token                            | The name of the Kubernetes secret containing the LeanIX IrisApi token.                                                                                                                                                                     |
 | integrationApi.datasourceName | ""            | aks-cluster-k8s-connector            | The name of the datasource configured on the workspace                                                                                                                                                                                 |
 | schedule.standard             | 0 */1 * * *   |                                      | CronJob schedule. Defaults to every hour.                                                                                                                                                                                              |
 | lxWorkspace                   | ""            | 00000000-0000-0000-0000-000000000000 | The UUID of the LeanIX workspace the data is sent to.                                                                                                                                                                                  |
@@ -569,10 +569,10 @@ e.g `--set args.storageBackend=file`
 ### 3.0.0 to 4.0.0
 - Converted to a self-start connector of Integration Hub. Data source must be configured in the workspace before setting up the connector.
 - New **mandatory** flag is introduced to work with Integration hub data source - `integrationApi.datasourceName`
-- LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration API automatically. Hence `integrationApi.enabled` flag is removed
+- LDIF is still uploaded to choosen backend including the Integration Hub to trigger Integration IrisApi automatically. Hence `integrationApi.enabled` flag is removed
 - All the flags which are required when `integrationapi.enabled` is true should be passed such as `integrationApi.fqdn`, `integrationApi.secretName`
-- Integration API connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
-- Integration API connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
+- Integration IrisApi connector is automatically provisioned to the workspace. Dependency on cloud-beta is removed by introducing custom fields - `resolveStrategy`, `resolveLabel`
+- Integration IrisApi connector type is changed to `leanix-mi-connector` and connector id to `leanix-k8s-connector` hence the connector version is changed to `1.0.0`. The default value is also changed to `1.0.0` from `1.1.1`
 - `schedule.integrationApi` flag is removed and there is a single `schedule.standard`
 - Lowest possible value for `schedule.standard` is every hour
 
@@ -581,6 +581,6 @@ e.g `--set args.storageBackend=file`
 [CHANGELOG](CHANGELOG.md)
 
 ## References for detailed understanding
-[Integration API](https://leanix.atlassian.net/wiki/spaces/~956226893/pages/4296016089/Integration+API)  
+[Integration IrisApi](https://leanix.atlassian.net/wiki/spaces/~956226893/pages/4296016089/Integration+IrisApi)  
 [Integration Hub](https://leanix.atlassian.net/wiki/spaces/FLOW/pages/7464358115/Integration+Hub+-+Getting+started+creating+a+Connector)  
-[Default Config iAPI](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+API)  
+[Default Config iAPI](https://leanix.atlassian.net/wiki/spaces/EN/pages/1341784193/Default+Configuration+Management+in+Integration+IrisApi)  

@@ -10,10 +10,10 @@ type ConfigService interface {
 }
 
 type configService struct {
-	irisApi API
+	irisApi IrisApi
 }
 
-func NewConfigService(irisApi API) ConfigService {
+func NewConfigService(irisApi IrisApi) ConfigService {
 	return &configService{
 		irisApi: irisApi,
 	}

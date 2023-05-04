@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-type API interface {
+type IrisApi interface {
 	GetConfiguration(configurationName string) ([]byte, error)
 	GetScanResults(configurationId string) ([]models.DiscoveryEvent, error)
 	PostEcstResults(ecstResults []byte) error
@@ -27,7 +27,7 @@ type api struct {
 	token  string
 }
 
-func NewApi(client *http.Client, kind string, uri string, token string) API {
+func NewApi(client *http.Client, kind string, uri string, token string) IrisApi {
 	protocol := ""
 	if !strings.Contains(uri, "http") {
 		protocol = "https://"
