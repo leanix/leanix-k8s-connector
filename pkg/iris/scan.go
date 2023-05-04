@@ -35,7 +35,7 @@ type scanner struct {
 }
 
 func NewScanner(kind string, uri string, runId string, token string, workspaceId string) Scanner {
-	api := services.NewApi(http.DefaultClient, kind, uri, token)
+	api := services.NewIrisApi(http.DefaultClient, kind, uri, token)
 	configService := services.NewConfigService(api)
 	eventProducer := events.NewEventProducer(api, runId, workspaceId)
 	workloadEventProducer := workloadService.NewEventWorkloadProducer(api, runId, workspaceId)
@@ -82,7 +82,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 
 	kubernetesAPI, err := getKubernetesAPI(config)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while getting Kubernetes IrisApi. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	logger.Info("Retrieved kubernetes config successfully")

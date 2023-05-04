@@ -20,19 +20,19 @@ type IrisApi interface {
 	PostStatus(status []byte) error
 }
 
-type api struct {
+type irisApi struct {
 	client *http.Client
 	kind   string
 	uri    string
 	token  string
 }
 
-func NewApi(client *http.Client, kind string, uri string, token string) IrisApi {
+func NewIrisApi(client *http.Client, kind string, uri string, token string) IrisApi {
 	protocol := ""
 	if !strings.Contains(uri, "http") {
 		protocol = "https://"
 	}
-	return &api{
+	return &irisApi{
 		client: client,
 		kind:   kind,
 		uri:    fmt.Sprintf("%s%s", protocol, uri),
@@ -40,7 +40,7 @@ func NewApi(client *http.Client, kind string, uri string, token string) IrisApi 
 	}
 }
 
-func (a *api) GetConfiguration(configurationName string) ([]byte, error) {
+func (a *irisApi) GetConfiguration(configurationName string) ([]byte, error) {
 	if configurationName == "" {
 		return nil, errors.New("configuration name should not be null or empty")
 	}
@@ -72,7 +72,7 @@ func (a *api) GetConfiguration(configurationName string) ([]byte, error) {
 	return responseData, nil
 }
 
-func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
+func (a *irisApi) GetScanResults(configurationId string) ([]models.DiscoveryEvent, error) {
 	if configurationId == "" {
 		return nil, errors.New("configuration id should not be null or empty")
 	}
@@ -114,7 +114,7 @@ func (a *api) GetScanResults(configurationId string) ([]models.DiscoveryEvent, e
 }
 
 // Send request to ECST Endpoint
-func (a *api) PostEcstResults(ecstResults []byte) error {
+func (a *irisApi) PostEcstResults(ecstResults []byte) error {
 	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/results/ecst", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	if err != nil {
@@ -143,7 +143,7 @@ func (a *api) PostEcstResults(ecstResults []byte) error {
 	return nil
 }
 
-func (a *api) PostStatus(status []byte) error {
+func (a *irisApi) PostStatus(status []byte) error {
 	resultUrl := fmt.Sprintf("%s/services/vsm-iris/v1/status", a.uri)
 	postReq, err := http.NewRequest("POST", resultUrl, nil)
 	postReq.Header.Set("Content-Type", "application/json")
