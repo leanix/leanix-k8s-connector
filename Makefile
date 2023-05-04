@@ -27,7 +27,7 @@ version:
 
 gen:
 	go mod download
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/vektra/mockery/v2@v2.20.0
 	mockery --all --recursive --with-expecter --case=underscore --output ./pkg/mocks
 
 image:
