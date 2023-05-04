@@ -4,18 +4,16 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/golang/mock/gomock"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
 	common "github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	namespaceModels "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/mocks"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Test_eventProducer_filter_created(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockApi := NewMockAPI(ctrl)
+	mockApi := new(mocks.API)
 	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
@@ -52,9 +50,7 @@ func Test_eventProducer_filter_created(t *testing.T) {
 }
 
 func Test_eventProducer_filter_updated_no_change(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockApi := NewMockAPI(ctrl)
+	mockApi := new(mocks.API)
 	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
@@ -100,9 +96,7 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 }
 
 func Test_eventProducer_filter_updated_changed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockApi := NewMockAPI(ctrl)
+	mockApi := new(mocks.API)
 	newData := map[string]namespaceModels.Data{
 
 		"testId1": {
@@ -155,9 +149,7 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 }
 
 func Test_eventProducer_createECSTEvents(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockApi := NewMockAPI(ctrl)
+	mockApi := new(mocks.API)
 	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster1", "testNamespace1")))
 	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster1", "testNamespace2")))
 	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassNamespace, "testCluster2", "testNamespace1")))
@@ -302,9 +294,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 }
 
 func Test_eventProducer_processECSTResults_empty(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockApi := NewMockAPI(ctrl)
+	mockApi := new(mocks.API)
 
 	var newData []namespaceModels.Data
 	var oldData []models.DiscoveryEvent

@@ -10,7 +10,7 @@ type Service struct {
 
 type Workload struct {
 	ClusterName        string      `json:"clusterName"`
-	WorkloadType       string      `json:"workloadType"` //todo: check enum type instead of string
+	WorkloadType       string      `json:"workloadType"`
 	WorkloadName       string      `json:"workloadName"`
 	Containers         Containers  `json:"containers"`
 	ServiceName        string      `json:"serviceName"`

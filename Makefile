@@ -28,7 +28,7 @@ version:
 gen:
 	go mod download
 	go install github.com/golang/mock/mockgen@v1.6.0
-	mockgen -source=pkg/iris/common/services/api.go -destination=pkg/iris/namespaces/services/events/api_mocks_test.go -package=events
+	mockery --all --recursive --with-expecter --case=underscore --output ./pkg/mocks
 
 image:
 	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(IMAGE_LATEST) .
