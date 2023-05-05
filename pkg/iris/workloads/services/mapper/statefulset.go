@@ -26,7 +26,7 @@ func (m *mapworkload) MapStatefulSetsEcst(clusterName string, statefulSets *apps
 func (m *mapworkload) CreateStatefulSetEcst(clusterName string, statefulSet appsv1.StatefulSet, service string) workload.Workload {
 	mappedDeployment := workload.Workload{
 		ClusterName:  clusterName,
-		WorkloadType: "cronjob",
+		WorkloadType: "statefulSet",
 		WorkloadName: statefulSet.Name,
 		ServiceName:  service,
 		Labels:       statefulSet.ObjectMeta.Labels,

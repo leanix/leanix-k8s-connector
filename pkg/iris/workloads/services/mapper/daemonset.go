@@ -26,7 +26,7 @@ func (m *mapworkload) MapDaemonSetsEcst(clusterName string, daemonSets *appsv1.D
 func (m *mapworkload) CreateDaemonSetEcst(clusterName string, daemonSet appsv1.DaemonSet, service string) workload.Workload {
 	mappedDeployment := workload.Workload{
 		ClusterName:  clusterName,
-		WorkloadType: "cronjob",
+		WorkloadType: "daemonSet",
 		WorkloadName: daemonSet.Name,
 		ServiceName:  service,
 		Labels:       daemonSet.ObjectMeta.Labels,

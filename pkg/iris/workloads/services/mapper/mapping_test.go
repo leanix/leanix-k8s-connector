@@ -271,4 +271,27 @@ func Test_MapWorkloads_success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, results)
+	assert.Equal(t, 5, len(results))
+	assert.Equal(t, "test-deployment-1", results[0].WorkloadName)
+	assert.Equal(t, "service-2", results[0].ServiceName)
+	assert.Equal(t, "deployment", results[1].WorkloadType)
+
+	// test mapping cronjob
+	assert.Equal(t, "test-cronjob-1", results[2].WorkloadName)
+	assert.Equal(t, "service-2", results[2].ServiceName)
+	assert.Equal(t, "cronjob", results[2].WorkloadType)
+	assert.Equal(t, "0 0 * * *", results[2].WorkloadProperties.Schedule)
+
+	// test mapping statefulset
+	assert.Equal(t, "test-statefulset-1", results[3].WorkloadName)
+	assert.Equal(t, "service-1", results[3].ServiceName)
+	assert.Equal(t, "statefulSet", results[3].WorkloadType)
+	assert.Equal(t, string("\x01"), results[3].WorkloadProperties.Replicas)
+
+	// test mapping daemonset
+	assert.Equal(t, "test-daemonset-1", results[4].WorkloadName)
+	assert.Equal(t, "service-1", results[4].ServiceName)
+	assert.Equal(t, "daemonSet", results[4].WorkloadType)
+	assert.Equal(t, "50", results[4].Containers.K8sLimits.Memory)
+
 }
