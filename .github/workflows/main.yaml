@@ -3,7 +3,7 @@ name: leanix-k8s-connector
 on:
   push:
     branches:
-      - master
+      - main
       - develop
       - feature/**
       - bugfix/**
@@ -13,7 +13,6 @@ on:
       - "**CHANGELOG.md"
       - "**publishNewHelmChartVersion.sh"
       - "integration-api-default-config.json"
-      - 'ihub-resources/**'
 
 jobs:
   main:
