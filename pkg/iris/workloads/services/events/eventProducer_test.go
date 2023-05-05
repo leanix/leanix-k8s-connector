@@ -13,7 +13,7 @@ import (
 )
 
 func Test_eventProducer_filter_created(t *testing.T) {
-	mockApi := new(mocks.IrisApi)
+	mockApi := mocks.NewIrisApi(t)
 	newData := map[string]workload.Data{
 		"workload": {
 			Workload: []workload.Workload{
@@ -82,7 +82,7 @@ func Test_eventProducer_filter_created(t *testing.T) {
 }
 
 func Test_eventProducer_filter_updated_no_change(t *testing.T) {
-	mockApi := new(mocks.IrisApi)
+	mockApi := mocks.NewIrisApi(t)
 	newData := map[string]workload.Data{
 		"testId1": {
 			Workload: []workload.Workload{
@@ -153,7 +153,7 @@ func Test_eventProducer_filter_updated_no_change(t *testing.T) {
 }
 
 func Test_eventProducer_filter_updated_changed(t *testing.T) {
-	mockApi := new(mocks.IrisApi)
+	mockApi := mocks.NewIrisApi(t)
 	newData := map[string]workload.Data{
 		"testId1": {
 			Workload: []workload.Workload{
@@ -228,7 +228,7 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 }
 
 func Test_eventProducer_createECSTEvents(t *testing.T) {
-	mockApi := new(mocks.IrisApi)
+	mockApi := mocks.NewIrisApi(t)
 	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "testWorkload1")))
 	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "testWorkload2")))
 	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "testWorkload1")))
@@ -442,7 +442,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 }
 
 func Test_eventProducer_processECSTResults_empty(t *testing.T) {
-	mockApi := new(mocks.IrisApi)
+	mockApi := mocks.NewIrisApi(t)
 
 	var newData []workload.Data
 	var oldData []models.DiscoveryEvent
