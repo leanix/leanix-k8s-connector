@@ -6,7 +6,7 @@ import (
 )
 
 type MapperWorkload interface {
-	MapWorkloads(k8sApi *kubernetes.API, clusterName string) ([]models.Workload, error)
+	MapWorkloads(clusterName string) ([]models.Workload, error)
 }
 
 type mapworkload struct {
@@ -29,15 +29,15 @@ func NewMapper(
 	}
 }
 
-func (m *mapworkload) MapWorkloads(k8sApi *kubernetes.API, clusterName string) ([]models.Workload, error) {
+func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error) {
 
 	var scannedWorkloads []models.Workload
-	services, err := k8sApi.Services("")
+	services, err := m.KubernetesApi.Services("")
 	if err != nil {
 		return nil, err
 	}
 
-	deployments, err := k8sApi.Deployments("")
+	deployments, err := m.KubernetesApi.Deployments("")
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (m *mapworkload) MapWorkloads(k8sApi *kubernetes.API, clusterName string) (
 		return nil, err
 	}
 
-	cronJobs, err := k8sApi.CronJobs("")
+	cronJobs, err := m.KubernetesApi.CronJobs("")
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (m *mapworkload) MapWorkloads(k8sApi *kubernetes.API, clusterName string) (
 		return nil, err
 	}
 
-	statefulSets, err := k8sApi.StatefulSets("")
+	statefulSets, err := m.KubernetesApi.StatefulSets("")
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (m *mapworkload) MapWorkloads(k8sApi *kubernetes.API, clusterName string) (
 		return nil, err
 	}
 
-	daemonSets, err := k8sApi.DaemonSets("")
+	daemonSets, err := m.KubernetesApi.DaemonSets("")
 	if err != nil {
 		return nil, err
 	}
