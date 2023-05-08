@@ -89,7 +89,6 @@ func parseFlags() error {
 	flag.Bool(utils.LocalFlag, false, "use local kubeconfig from home folder")
 	flag.Bool(utils.IrisFlag, false, "send kubernetes events to new integration api")
 	flag.String(utils.ConfigurationNameFlag, "", "Leanix configuration name created on the workspace")
-	flag.Bool(utils.WorkloadFlag, false, "scans Workloads instead of Namespaces and send ECST events")
 	flag.Parse()
 	// Let flags overwrite configs in viper
 	err := viper.BindPFlags(flag.CommandLine)

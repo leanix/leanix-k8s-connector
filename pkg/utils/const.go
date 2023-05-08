@@ -18,5 +18,4 @@ const (
 	LocalFlag                        string = "local"
 	IrisFlag                         string = "enable-iris"
 	ConfigurationNameFlag            string = "configuration-name"
-	WorkloadFlag                     string = "enable-workload"
 )

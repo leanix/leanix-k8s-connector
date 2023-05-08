@@ -11,8 +11,6 @@ import (
 	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
 	workloadService "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/services/events"
 	workloadMap "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/services/mapper"
-	"github.com/leanix/leanix-k8s-connector/pkg/utils"
-	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
 
@@ -56,6 +54,7 @@ const (
 	ERROR              string = "ERROR"
 	WARNING            string = "WARNING"
 	INFO               string = "INFO"
+	WORKLOAD           string = "WORKLOAD"
 )
 
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
@@ -92,7 +91,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return err
 	}
 
-	if viper.GetBool(utils.WorkloadFlag) {
+	if kubernetesConfig.DiscoveryMode == WORKLOAD {
 		logger.Info("Scanning of Workloads is enabled")
 		return s.ScanWorkloads(kubernetesAPI, kubernetesConfig)
 	}
