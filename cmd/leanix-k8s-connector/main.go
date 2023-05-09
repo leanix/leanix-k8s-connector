@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
 	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"path/filepath"
 	"strings"
 
-	"github.com/leanix/leanix-k8s-connector/pkg/ihub"
 	"github.com/leanix/leanix-k8s-connector/pkg/iris"
 	"github.com/leanix/leanix-k8s-connector/pkg/leanix"
-	"github.com/leanix/leanix-k8s-connector/pkg/storage"
 	"github.com/leanix/leanix-k8s-connector/pkg/utils"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -21,7 +20,7 @@ import (
 )
 
 func main() {
-	debugLogBuffer := logger.Init()
+	logger.Init()
 	err := parseFlags()
 	if err != nil {
 		logger.Error("Error occurred when parsing flags.", err)
@@ -55,7 +54,7 @@ func main() {
 	}
 	if viper.GetBool(utils.IrisFlag) {
 		logger.Info("Enabled Iris")
-		runId := iris.GenerateRunId()
+		runId := models.GenerateRunId()
 		irisScanner := iris.NewScanner(
 			"Iris Integration",
 			apiHostFqdn,
@@ -69,31 +68,12 @@ func main() {
 			logger.Error("Failed to scan Kubernetes via vsm-iris.", err)
 		}
 	} else {
-		// use the current context in kubeconfig
-		startResponse, err := ihub.KubernetesScan(config, viper.GetViper())
-		if err != nil {
-			logger.Error("Error occurred when processing kubeconfig", err)
-		}
-		if startResponse != nil {
-			logger.Info("Uploading connector logs to iHub")
-			err := logger.Sync()
-			if err != nil {
-				logger.Error("Failed to sync buffer.", err)
-				return
-			}
-			err = storage.UploadConnectorLog(startResponse.ConnectorLoggingUrl, debugLogBuffer.Bytes())
-			if err != nil {
-				logger.Error("Error occurred uploading ConnectorLogs", err)
-			}
-		} else {
-			logger.Error("Invalid response from integration hub. Can't upload logs.", err)
-		}
+		logger.Error("Using deprecated configuration. Please set the iris flag to true.", err)
 	}
 }
 
 func parseFlags() error {
 	flag.Bool(utils.EnableCustomStorageFlag, false, "Disable/enable custom storage backend option")
-	flag.String(utils.StorageBackendFlag, storage.FileStorage, fmt.Sprintf("storage where the %s file is placed (%s, %s)", storage.LdifFileName, storage.FileStorage, storage.AzureBlobStorage))
 	flag.String(utils.AzureAccountNameFlag, "", "Azure storage account name")
 	flag.String(utils.AzureAccountKeyFlag, "", "Azure storage account key")
 	flag.String(utils.AzureContainerFlag, "", "Azure storage account container")

@@ -3,7 +3,7 @@ name: leanix-k8s-connector
 on:
   push:
     branches:
-      - master
+      - main
       - develop
       - feature/**
       - bugfix/**
@@ -13,7 +13,6 @@ on:
       - "**CHANGELOG.md"
       - "**publishNewHelmChartVersion.sh"
       - "integration-api-default-config.json"
-      - 'ihub-resources/**'
 
 jobs:
   main:
@@ -31,6 +30,6 @@ jobs:
       - name: Build and test
         run: |
           VERSION=$(make version)
-          go install github.com/golang/mock/mockgen
+          go install github.com/vektra/mockery/v2@v2.26.1
           make build gen
           make test

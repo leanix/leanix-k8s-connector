@@ -8,12 +8,12 @@ on:
       - completed
 
 env:
-  SLACK-CHANNEL: '#mi-connectors-notifications'
+  SLACK-CHANNEL: '#team-helios-notifications'
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.head_branch == 'master'
+    if: github.event.workflow_run.head_branch == 'main'
     steps:
       - name: Get credentials
         uses: leanix/secrets-action@master

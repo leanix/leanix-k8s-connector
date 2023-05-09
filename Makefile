@@ -27,8 +27,8 @@ version:
 
 gen:
 	go mod download
-	go install github.com/golang/mock/mockgen@v1.6.0
-	mockgen -source=pkg/iris/api.go -destination=pkg/iris/api_mocks_test.go -package=iris
+	go install github.com/vektra/mockery/v2@v2.26.1
+	mockery --all --recursive --with-expecter --case=underscore --output ./pkg/mocks
 
 image:
 	docker build --no-cache --pull --rm -t $(IMAGE) -t $(FULL_IMAGE) -t $(LATEST) -t $(IMAGE_LATEST) .

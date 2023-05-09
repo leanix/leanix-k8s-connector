@@ -5,3 +5,6 @@ bin
 vendor
 *.ldif
 .idea
+
+# mocks
+pkg/mocks

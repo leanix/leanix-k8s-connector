@@ -3,14 +3,21 @@ package iris
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/models"
-	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
-	"github.com/leanix/leanix-k8s-connector/pkg/logger"
-	"github.com/leanix/leanix-k8s-connector/pkg/storage"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/rest"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
+	namespaceModels "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/services/events"
+	namespaceMap "github.com/leanix/leanix-k8s-connector/pkg/iris/namespaces/services/mapper"
+	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	workloadService "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/services/events"
+	workloadMap "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/services/mapper"
 	"net/http"
 	"strconv"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 type Scanner interface {
@@ -18,28 +25,25 @@ type Scanner interface {
 }
 
 type scanner struct {
-	configService ConfigService
-	eventProducer EventProducer
-	runId         string
-	workspaceId   string
+	configService         services.ConfigService
+	eventProducer         events.EventProducer
+	workloadEventProducer workloadService.WorkloadEventProducer
+	runId                 string
+	workspaceId           string
 }
 
 func NewScanner(kind string, uri string, runId string, token string, workspaceId string) Scanner {
-	api := NewApi(http.DefaultClient, kind, uri, token)
-	configService := NewConfigService(api)
-	eventProducer := NewEventProducer(api, runId, workspaceId)
+	api := services.NewIrisApi(http.DefaultClient, kind, uri, token)
+	configService := services.NewConfigService(api)
+	eventProducer := events.NewEventProducer(api, runId, workspaceId)
+	workloadEventProducer := workloadService.NewEventWorkloadProducer(api, runId, workspaceId)
 	return &scanner{
-		configService: configService,
-		eventProducer: eventProducer,
-		runId:         runId,
-		workspaceId:   workspaceId,
+		configService:         configService,
+		eventProducer:         eventProducer,
+		workloadEventProducer: workloadEventProducer,
+		runId:                 runId,
+		workspaceId:           workspaceId,
 	}
-}
-
-type kubernetesConfig struct {
-	ID                    string   `json:"id"`
-	Cluster               string   `json:"cluster"`
-	BlackListedNamespaces []string `json:"blacklistedNamespaces"`
 }
 
 const (
@@ -50,6 +54,7 @@ const (
 	ERROR              string = "ERROR"
 	WARNING            string = "WARNING"
 	INFO               string = "INFO"
+	WORKLOAD           string = "WORKLOAD"
 )
 
 const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
@@ -59,15 +64,12 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	if err != nil {
 		return err
 	}
-	kubernetesConfig := kubernetesConfig{}
+	kubernetesConfig := models.KubernetesConfig{}
 	err = json.Unmarshal(configuration, &kubernetesConfig)
 	if err != nil {
 		return err
 	}
-	oldResults, err := s.configService.GetScanResults(kubernetesConfig.ID)
-	if err != nil {
-		return err
-	}
+
 	logger.Infof("Scan started for RunId: [%s]", s.runId)
 	logger.Infof("Configuration used: %s", configuration)
 
@@ -88,7 +90,22 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
-	mapper := NewMapper(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
+
+	if kubernetesConfig.DiscoveryMode == WORKLOAD {
+		logger.Info("Scanning of Workloads is enabled")
+		return s.ScanWorkloads(kubernetesAPI, kubernetesConfig)
+	}
+
+	return s.ScanNamespaces(kubernetesConfig, kubernetesAPI)
+}
+
+func (s *scanner) ScanNamespaces(kubernetesConfig models.KubernetesConfig, kubernetesAPI *kubernetes.API) error {
+	oldResults, err := s.configService.GetScanResults(kubernetesConfig.ID)
+	if err != nil {
+		return err
+	}
+
+	mapper := namespaceMap.NewMapper(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, kubernetesConfig.BlackListedNamespaces, s.runId)
 
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
@@ -106,7 +123,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 	//Fetch old scan results
-	ecstDiscoveredData, err := s.ScanNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
+	ecstDiscoveredData, err := s.ProcessNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
@@ -125,8 +142,31 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 	return err
 }
 
-func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces []corev1.Namespace, cluster ClusterDTO) ([]models.Data, error) {
-	var ecstData = make([]models.Data, 0)
+func (s *scanner) ScanWorkloads(kubernetesAPI *kubernetes.API, kubernetesConfig models.KubernetesConfig) error {
+	mapper := workloadMap.NewMapper(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, s.runId)
+	ecstWorkloadDiscoveredData, err := s.ProcessWorkloads(mapper, kubernetesConfig.Cluster)
+	if err != nil {
+		return s.LogAndShareError("Scan failed while retrieving k8s workload. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+	}
+	oldResults, err := s.configService.GetScanResults(kubernetesConfig.ID)
+	if err != nil {
+		return err
+	}
+	err = s.workloadEventProducer.ProcessWorkloads(ecstWorkloadDiscoveredData, oldResults, kubernetesConfig.ID)
+	if err != nil {
+		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+	}
+	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
+	err = s.ShareStatus(kubernetesConfig.ID, SUCCESSFUL, "Successfully Scanned")
+	if err != nil {
+		logger.Errorf(StatusErrorFormat, s.runId, err)
+		return err
+	}
+	return err
+}
+
+func (s *scanner) ProcessNamespace(k8sApi *kubernetes.API, mapper namespaceMap.Mapper, namespaces []corev1.Namespace, cluster namespaceMap.ClusterDTO) ([]namespaceModels.Data, error) {
+	var ecstData = make([]namespaceModels.Data, 0)
 
 	for _, namespace := range namespaces {
 		// collect all deployments
@@ -145,7 +185,7 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 			return nil, err
 		}
 
-		// create ECST discovery item for namespace
+		// create ECST discovery item for namespaceModels
 		ecstDiscoveryData := s.CreateEcstDiscoveryData(namespace, mappedDeploymentsEcst, &cluster)
 		ecstData = append(ecstData, ecstDiscoveryData)
 	}
@@ -153,7 +193,24 @@ func (s scanner) ScanNamespace(k8sApi *kubernetes.API, mapper Mapper, namespaces
 	return ecstData, nil
 }
 
-func (s scanner) LogAndShareError(message string, loglevel string, err error, id string) error {
+// ScanWorkloads todo: scanWorkload function
+func (s *scanner) ProcessWorkloads(mapper workloadMap.MapperWorkload, clusterName string) ([]workload.Data, error) {
+	var ecstData = make([]workload.Data, 0)
+
+	mappedWorkloadEcst, err := mapper.MapWorkloads(clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	// create ECST discovery item with Data object
+	ecstDiscoveryData := workload.Data{
+		Workload: mappedWorkloadEcst,
+	}
+	ecstData = append(ecstData, ecstDiscoveryData)
+	return ecstData, nil
+}
+
+func (s *scanner) LogAndShareError(message string, loglevel string, err error, id string) error {
 	logger.Errorf(message, s.runId, err)
 	statusErr := s.ShareStatus(id, FAILED, "Kubernetes scan failed")
 	if statusErr != nil {
@@ -166,26 +223,26 @@ func (s scanner) LogAndShareError(message string, loglevel string, err error, id
 	return err
 }
 
-func (s *scanner) CreateEcstDiscoveryData(namespace corev1.Namespace, deployments []models.DeploymentEcst, clusterDTO *ClusterDTO) models.Data {
-	result := models.ClusterEcst{
-		Namespace:   namespace.Name,
+func (s *scanner) CreateEcstDiscoveryData(currentNamespace corev1.Namespace, deployments []namespaceModels.DeploymentEcst, clusterDTO *namespaceMap.ClusterDTO) namespaceModels.Data {
+	result := namespaceModels.ClusterEcst{
+		Namespace:   currentNamespace.Name,
 		Deployments: deployments,
-		Name:        clusterDTO.name,
-		Os:          clusterDTO.osImage,
-		K8sVersion:  clusterDTO.k8sVersion,
-		NoOfNodes:   strconv.Itoa(clusterDTO.nodesCount),
+		Name:        clusterDTO.Name,
+		Os:          clusterDTO.OsImage,
+		K8sVersion:  clusterDTO.K8sVersion,
+		NoOfNodes:   strconv.Itoa(clusterDTO.NodesCount),
 	}
 
-	return models.Data{
+	return namespaceModels.Data{
 		Cluster: result,
 	}
 }
 
 func (s *scanner) ShareStatus(configid string, status string, message string) error {
-	var statusArray []StatusItem
-	statusObject := NewStatusEvent(configid, s.runId, s.workspaceId, status, message)
+	var statusArray []models.StatusItem
+	statusObject := models.NewStatusEvent(configid, s.runId, s.workspaceId, status, message)
 	statusArray = append(statusArray, *statusObject)
-	statusByte, err := storage.Marshal(statusArray)
+	statusByte, err := json.Marshal(statusArray)
 	err = s.eventProducer.PostStatus(statusByte)
 	if err != nil {
 		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v", s.runId, err)
@@ -194,11 +251,11 @@ func (s *scanner) ShareStatus(configid string, status string, message string) er
 	return nil
 }
 
-func (s *scanner) ShareAdminLogs(configid string, loglevel string, message string) error {
-	var statusArray []StatusItem
-	statusObject := NewAdminLogEvent(configid, s.runId, s.workspaceId, loglevel, message)
+func (s *scanner) ShareAdminLogs(configId string, loglevel string, message string) error {
+	var statusArray []models.StatusItem
+	statusObject := models.NewAdminLogEvent(configId, s.runId, s.workspaceId, loglevel, message)
 	statusArray = append(statusArray, *statusObject)
-	statusByte, err := storage.Marshal(statusArray)
+	statusByte, err := json.Marshal(statusArray)
 	err = s.eventProducer.PostStatus(statusByte)
 	if err != nil {
 		logger.Debugf("Failed sharing admin logs for RunId: [%s], with reason %v", s.runId, err)
