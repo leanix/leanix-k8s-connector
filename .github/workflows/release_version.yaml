@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup project
         run: |
-          go install github.com/golang/mock/mockgen
+          go install github.com/vektra/mockery/v2@v2.26.1
           make clean gen
 
       - name: Tests - Unit
