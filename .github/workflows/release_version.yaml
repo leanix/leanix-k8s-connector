@@ -37,11 +37,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get credentials
-        uses: leanix/secrets-action@master
-        with:
-          secret-store-credentials: ${{ secrets.INJECTED_SECRET_STORE_CREDENTIALS }}
-
       - uses: actions/setup-go@v2
         with:
           go-version: 1.18.3
@@ -49,9 +44,9 @@ jobs:
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ env.ACR_PUBLIC_LOGIN }}
-          username: ${{ env.ACR_PUBLIC_USERNAME }}
-          password: ${{ env.ACR_PUBLIC_PASSWORD }}
+          login-server: ${{ secrets.ACR_PUBLIC_LOGIN }}
+          username: ${{ secrets.ACR_PUBLIC_USERNAME }}
+          password: ${{ secrets.ACR_PUBLIC_PASSWORD }}
 
       - name: Validate version input
         run: echo ${{ github.event.inputs.version }}
@@ -105,7 +100,7 @@ jobs:
         if: failure() && (startsWith(github.ref, 'refs/tags/') || github.ref=='refs/heads/main')
         uses: archive/github-actions-slack@v1.0.0
         with:
-          slack-bot-user-oauth-access-token: ${{ env.SLACK_TOKEN }}
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
           slack-text: |
             :thumbsdown: ${{ github.repository }} could not be built / released for version ${{ github.ref }}
@@ -114,7 +109,7 @@ jobs:
       - name: Send build / release success message
         uses: archive/github-actions-slack@v1.0.0
         with:
-          slack-bot-user-oauth-access-token: ${{ env.SLACK_TOKEN }}
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
           slack-text: |
             :thumbsup: ${{ github.repository }} successfully built / released for version ${{ github.ref }}
