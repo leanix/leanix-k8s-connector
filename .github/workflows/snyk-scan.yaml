@@ -22,3 +22,5 @@ jobs:
       - uses: snyk/actions/golang@master
         with:
           command: monitor -d --project-tags=Team=Helios,Tribe=VSM --project-name=leanix/leanix-k8s-connector
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
