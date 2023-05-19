@@ -1,12 +1,14 @@
 package mapper
 
 import (
-	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strings"
 	"time"
+
+	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (m *mapworkload) MapStatefulSetsEcst(clusterName string, statefulSets *appsv1.StatefulSetList, services *v1.ServiceList) ([]workload.Workload, error) {
@@ -48,20 +50,25 @@ func (m *mapworkload) CreateStatefulSetEcst(clusterName string, statefulSet apps
 
 func ResolveK8sServiceForK8sStatefulSet(services *v1.ServiceList, statefulSet appsv1.StatefulSet) string {
 	statefulSetService := ""
-	for _, service := range services.Items {
-		sharedLabelsStatefulSet := map[string]string{}
-		sharedLabelsService := map[string]string{}
-		for label := range service.Spec.Selector {
-			if _, ok := statefulSet.Spec.Selector.MatchLabels[label]; ok {
-				sharedLabelsStatefulSet[label] = statefulSet.Spec.Selector.MatchLabels[label]
-				sharedLabelsService[label] = service.Spec.Selector[label]
+	if statefulSet.Spec.Selector.MatchLabels == nil {
+
+		for _, service := range services.Items {
+			sharedLabelsStatefulSet := map[string]string{}
+			sharedLabelsService := map[string]string{}
+			for label := range service.Spec.Selector {
+				if _, ok := statefulSet.Spec.Selector.MatchLabels[label]; ok {
+					sharedLabelsStatefulSet[label] = statefulSet.Spec.Selector.MatchLabels[label]
+					sharedLabelsService[label] = service.Spec.Selector[label]
+				}
+			}
+
+			if len(sharedLabelsStatefulSet) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsStatefulSet, sharedLabelsService) {
+				statefulSetService = service.Name
+				break
 			}
 		}
-
-		if len(sharedLabelsStatefulSet) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsStatefulSet, sharedLabelsService) {
-			statefulSetService = service.Name
-			break
-		}
+	} else {
+		logger.Infof("StatefulSet %s has no selector labels", statefulSet.Name)
 	}
 	return statefulSetService
 }

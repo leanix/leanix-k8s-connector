@@ -1,12 +1,14 @@
 package mapper
 
 import (
-	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strings"
 	"time"
+
+	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (m *mapworkload) MapDaemonSetsEcst(clusterName string, daemonSets *appsv1.DaemonSetList, services *v1.ServiceList) ([]workload.Workload, error) {
@@ -47,20 +49,24 @@ func (m *mapworkload) CreateDaemonSetEcst(clusterName string, daemonSet appsv1.D
 
 func ResolveK8sServiceForK8sDaemonSet(services *v1.ServiceList, daemonSet appsv1.DaemonSet) string {
 	daemonSetService := ""
-	for _, service := range services.Items {
-		sharedLabelsStatefulSet := map[string]string{}
-		sharedLabelsService := map[string]string{}
-		for label := range service.Spec.Selector {
-			if _, ok := daemonSet.Spec.Selector.MatchLabels[label]; ok {
-				sharedLabelsStatefulSet[label] = daemonSet.Spec.Selector.MatchLabels[label]
-				sharedLabelsService[label] = service.Spec.Selector[label]
+	if daemonSet.Spec.Selector.MatchLabels != nil {
+		for _, service := range services.Items {
+			sharedLabelsStatefulSet := map[string]string{}
+			sharedLabelsService := map[string]string{}
+			for label := range service.Spec.Selector {
+				if _, ok := daemonSet.Spec.Selector.MatchLabels[label]; ok {
+					sharedLabelsStatefulSet[label] = daemonSet.Spec.Selector.MatchLabels[label]
+					sharedLabelsService[label] = service.Spec.Selector[label]
+				}
+			}
+
+			if len(sharedLabelsStatefulSet) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsStatefulSet, sharedLabelsService) {
+				daemonSetService = service.Name
+				break
 			}
 		}
-
-		if len(sharedLabelsStatefulSet) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsStatefulSet, sharedLabelsService) {
-			daemonSetService = service.Name
-			break
-		}
+	} else {
+		logger.Infof("DaemonSet %s has no selector labels", daemonSet.Name)
 	}
 	return daemonSetService
 }
