@@ -1,13 +1,15 @@
 package mapper
 
 import (
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
-	batchv1 "k8s.io/api/batch/v1"
-	_ "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	batchv1 "k8s.io/api/batch/v1"
+	_ "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (m *mapworkload) MapCronJobsEcst(clusterName string, cronJobs *batchv1.CronJobList, services *v1.ServiceList) ([]models.Workload, error) {
@@ -49,20 +51,24 @@ func (m *mapworkload) CreateCronjobEcst(clusterName string, cronJob batchv1.Cron
 
 func ResolveK8sServiceForK8sCronJob(services *v1.ServiceList, cronJob batchv1.CronJob) string {
 	cronJobService := ""
-	for _, service := range services.Items {
-		sharedLabelsCronJob := map[string]string{}
-		sharedLabelsService := map[string]string{}
-		for label := range service.Spec.Selector {
-			if _, ok := cronJob.Spec.JobTemplate.Spec.Selector.MatchLabels[label]; ok {
-				sharedLabelsCronJob[label] = cronJob.Spec.JobTemplate.Spec.Selector.MatchLabels[label]
-				sharedLabelsService[label] = service.Spec.Selector[label]
+	if cronJob.Spec.JobTemplate.Spec.Selector != nil {
+		for _, service := range services.Items {
+			sharedLabelsCronJob := map[string]string{}
+			sharedLabelsService := map[string]string{}
+
+			for label := range service.Spec.Selector {
+				if _, ok := cronJob.Spec.JobTemplate.Spec.Selector.MatchLabels[label]; ok {
+					sharedLabelsCronJob[label] = cronJob.Spec.JobTemplate.Spec.Selector.MatchLabels[label]
+					sharedLabelsService[label] = service.Spec.Selector[label]
+				}
+			}
+			if len(sharedLabelsCronJob) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsCronJob, sharedLabelsService) {
+				cronJobService = service.Name
+				break
 			}
 		}
-
-		if len(sharedLabelsCronJob) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsCronJob, sharedLabelsService) {
-			cronJobService = service.Name
-			break
-		}
+	} else {
+		logger.Infof("CronJob %s has no selector labels", cronJob.Name)
 	}
 	return cronJobService
 }

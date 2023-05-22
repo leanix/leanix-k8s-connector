@@ -1,12 +1,14 @@
 package mapper
 
 import (
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	"github.com/leanix/leanix-k8s-connector/pkg/logger"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (m *mapworkload) MapDeploymentsEcst(clusterName string, deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Workload, error) {
@@ -70,20 +72,25 @@ func CreateK8sResources(resourceList v1.ResourceList) models.K8sResources {
 
 func ResolveK8sServiceForK8sDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {
 	deploymentService := ""
-	for _, service := range services.Items {
-		sharedLabelsDeployment := map[string]string{}
-		sharedLabelsService := map[string]string{}
-		for label := range service.Spec.Selector {
-			if _, ok := deployment.Spec.Selector.MatchLabels[label]; ok {
-				sharedLabelsDeployment[label] = deployment.Spec.Selector.MatchLabels[label]
-				sharedLabelsService[label] = service.Spec.Selector[label]
+	if deployment.Spec.Selector != nil {
+
+		for _, service := range services.Items {
+			sharedLabelsDeployment := map[string]string{}
+			sharedLabelsService := map[string]string{}
+			for label := range service.Spec.Selector {
+				if _, ok := deployment.Spec.Selector.MatchLabels[label]; ok {
+					sharedLabelsDeployment[label] = deployment.Spec.Selector.MatchLabels[label]
+					sharedLabelsService[label] = service.Spec.Selector[label]
+				}
+			}
+
+			if len(sharedLabelsDeployment) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsService) {
+				deploymentService = service.Name
+				break
 			}
 		}
-
-		if len(sharedLabelsDeployment) != 0 && len(sharedLabelsService) != 0 && reflect.DeepEqual(sharedLabelsDeployment, sharedLabelsService) {
-			deploymentService = service.Name
-			break
-		}
+	} else {
+		logger.Infof("Deployment %s has no selector labels", deployment.Name)
 	}
 	return deploymentService
 }
