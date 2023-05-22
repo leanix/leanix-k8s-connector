@@ -1,7 +1,7 @@
 package models
 
 type Data struct {
-	Workload []Workload `json:"workload"`
+	Workload Workload `json:"workload"`
 }
 
 type Service struct {
