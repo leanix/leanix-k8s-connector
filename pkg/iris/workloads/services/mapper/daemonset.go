@@ -49,7 +49,7 @@ func (m *mapworkload) CreateDaemonSetEcst(clusterName string, daemonSet appsv1.D
 
 func ResolveK8sServiceForK8sDaemonSet(services *v1.ServiceList, daemonSet appsv1.DaemonSet) string {
 	daemonSetService := ""
-	if daemonSet.Spec.Selector.MatchLabels != nil {
+	if daemonSet.Spec.Selector != nil {
 		for _, service := range services.Items {
 			sharedLabelsStatefulSet := map[string]string{}
 			sharedLabelsService := map[string]string{}

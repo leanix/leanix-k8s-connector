@@ -50,7 +50,7 @@ func (m *mapworkload) CreateStatefulSetEcst(clusterName string, statefulSet apps
 
 func ResolveK8sServiceForK8sStatefulSet(services *v1.ServiceList, statefulSet appsv1.StatefulSet) string {
 	statefulSetService := ""
-	if statefulSet.Spec.Selector.MatchLabels != nil {
+	if statefulSet.Spec.Selector != nil {
 
 		for _, service := range services.Items {
 			sharedLabelsStatefulSet := map[string]string{}

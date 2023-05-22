@@ -51,7 +51,7 @@ func (m *mapworkload) CreateCronjobEcst(clusterName string, cronJob batchv1.Cron
 
 func ResolveK8sServiceForK8sCronJob(services *v1.ServiceList, cronJob batchv1.CronJob) string {
 	cronJobService := ""
-	if cronJob.Spec.JobTemplate.Spec.Selector.MatchLabels != nil {
+	if cronJob.Spec.JobTemplate.Spec.Selector != nil {
 		for _, service := range services.Items {
 			sharedLabelsCronJob := map[string]string{}
 			sharedLabelsService := map[string]string{}

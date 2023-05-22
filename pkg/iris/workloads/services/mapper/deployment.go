@@ -72,7 +72,7 @@ func CreateK8sResources(resourceList v1.ResourceList) models.K8sResources {
 
 func ResolveK8sServiceForK8sDeployment(services *v1.ServiceList, deployment appsv1.Deployment) string {
 	deploymentService := ""
-	if deployment.Spec.Selector.MatchLabels != nil {
+	if deployment.Spec.Selector != nil {
 
 		for _, service := range services.Items {
 			sharedLabelsDeployment := map[string]string{}
