@@ -146,8 +146,8 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data Data, 
 
 func GenerateId(workspaceId string, configId string, data Data) string {
 	scope := fmt.Sprintf(models.EventScopeFormat, workspaceId, configId)
-	// workspace/{workspaceId}/configuration/{configurationId}/discoveryItem/service/kubernetes/workload/{clusterName}/{workloadName}
-	idString := fmt.Sprintf("%s/%s/%s/%s", scope, models.EventClassWorkload, data.Workload.ClusterName, data.Workload.WorkloadName)
+	// workspace/{workspaceId}/configuration/{configurationId}/discoveryItem/service/kubernetes/workload/{clusterName}/{workloadType}/{workloadName}
+	idString := fmt.Sprintf("%s/%s/%s/%s/%s", scope, models.EventClassWorkload, data.Workload.ClusterName, data.Workload.WorkloadType, data.Workload.WorkloadName)
 	sum := sha256.Sum256([]byte(idString))
 	id := hex.EncodeToString(sum[:])
 	return id

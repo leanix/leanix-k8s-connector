@@ -217,10 +217,11 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 
 func Test_eventProducer_createECSTEvents(t *testing.T) {
 	mockApi := mocks.NewIrisApi(t)
-	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "testWorkload1")))
-	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "testWorkload2")))
-	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "testWorkload1")))
-	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "testWorkload2")))
+	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload1")))
+	//workspace/testWorkspaceId/configuration/testConfigId/discoveryItem/service/kubernetes/workload/testCluster1/deployment/testWorkload2
+	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload2")))
+	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload1")))
+	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload2")))
 	newData := []workload.Workload{
 		{
 			ClusterName:  "testCluster1",
