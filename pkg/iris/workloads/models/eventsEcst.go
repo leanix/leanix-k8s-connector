@@ -128,7 +128,7 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data Data, 
 
 	body := models.DiscoveryBody{
 		State: models.State{
-			Name:           data.Workload.ClusterName,
+			Name:           fmt.Sprintf("%s/%s", data.Workload.WorkloadType, data.Workload.WorkloadName),
 			SourceType:     "kubernetes",
 			SourceInstance: fmt.Sprintf("cluster/%s", data.Workload.ClusterName),
 			Time:           time,

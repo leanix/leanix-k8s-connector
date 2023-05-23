@@ -75,7 +75,7 @@ func Test_eventProducer_filter_created(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, updated)
 	assert.Len(t, created, 1)
-	assert.Equal(t, "testCluster1", created[0].Body.State.Name)
+	assert.Equal(t, "deployment/testWorkload1", created[0].Body.State.Name)
 }
 
 func Test_eventProducer_filter_updated_no_change(t *testing.T) {
@@ -394,7 +394,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 	assert.Equal(t, hex.EncodeToString(id1[:]), created[0].HeaderProperties.Id)
 	assert.Equal(t, models.EventTypeChange, created[0].HeaderProperties.Type)
 	assert.Equal(t, models.EventActionCreated, created[0].HeaderProperties.Action)
-	assert.Equal(t, "testCluster1", created[0].Body.State.Name)
+	assert.Equal(t, "deployment/testWorkload1", created[0].Body.State.Name)
 	// UPDATED
 	assert.Equal(t, models.EventTypeChange, updated[0].HeaderProperties.Type)
 	assert.Equal(t, models.EventActionUpdated, updated[0].HeaderProperties.Action)
