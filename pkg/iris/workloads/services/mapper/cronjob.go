@@ -12,13 +12,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *mapworkload) MapCronJobsEcst(clusterName string, cronJobs *batchv1.CronJobList, services *v1.ServiceList) ([]models.Workload, error) {
-	var groupedCronJobs []models.Workload
+func (m *MappedWorkload) MapCronJobsEcst(cluster models.Cluster, cronJobs *batchv1.CronJobList, services *v1.ServiceList) ([]models.Data, error) {
+	var groupedCronJobs []models.Data
 
 	for _, cronJob := range cronJobs.Items {
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
 		cronJobService := ResolveK8sServiceForK8sCronJob(services, cronJob)
-		mappedCronJob := m.CreateCronjobEcst(clusterName, cronJob, cronJobService)
+		mappedCronJob := m.CreateCronjobEcst(cluster, cronJob, cronJobService)
 		groupedCronJobs = append(groupedCronJobs, mappedCronJob)
 	}
 
@@ -26,25 +26,30 @@ func (m *mapworkload) MapCronJobsEcst(clusterName string, cronJobs *batchv1.Cron
 }
 
 // CreateCronjobEcst create a data object that contains name, labels, CronJobSchedule and more
-func (m *mapworkload) CreateCronjobEcst(clusterName string, cronJob batchv1.CronJob, service string) models.Workload {
-	mappedDeployment := models.Workload{
-		ClusterName:  clusterName,
-		WorkloadType: "cronjob",
-		WorkloadName: cronJob.Name,
-		ServiceName:  service,
-		Labels:       cronJob.ObjectMeta.Labels,
-		Timestamp:    cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
-		Containers: models.Containers{
-			Name:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name,
-			Image:       strings.Split(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image, ":")[0],
-			Port:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Ports,
-			K8sLimits:   CreateK8sResources(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits),
-			K8sRequests: CreateK8sResources(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Requests),
+func (m *MappedWorkload) CreateCronjobEcst(cluster models.Cluster, cronJob batchv1.CronJob, service string) models.Data {
+	mappedDeployment := models.Data{
+		Workload: models.Workload{
+			Name:         cronJob.Name,
+			WorkloadType: "cronjob",
+			Labels:       cronJob.ObjectMeta.Labels,
+			WorkloadProperties: models.WorkloadProperties{
+				Replicas: cronJob.Status.String(),
+				Schedule: cronJob.Spec.Schedule,
+				Containers: models.Containers{
+					Name:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name,
+					Image:       strings.Split(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image, ":")[0],
+					Port:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Ports,
+					K8sLimits:   CreateK8sResources(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits),
+					K8sRequests: CreateK8sResources(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Requests),
+				},
+			},
 		},
-		WorkloadProperties: models.Properties{
-			Replicas: cronJob.Status.String(),
-			Schedule: cronJob.Spec.Schedule,
+		Cluster: models.Cluster{
+			Name: cluster.Name,
+			Os:   cluster.Os,
 		},
+		ServiceName: service,
+		Timestamp:   cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
 	return mappedDeployment
 }

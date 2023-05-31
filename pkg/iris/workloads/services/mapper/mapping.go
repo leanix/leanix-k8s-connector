@@ -1,15 +1,19 @@
 package mapper
 
 import (
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
+	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
+	"github.com/leanix/leanix-k8s-connector/pkg/set"
+	v1 "k8s.io/api/core/v1"
+	"strings"
 )
 
 type MapperWorkload interface {
-	MapWorkloads(clusterName string) ([]models.Workload, error)
+	MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error)
+	MapWorkloads(cluster workload.Cluster) ([]workload.Data, error)
 }
 
-type mapworkload struct {
+type MappedWorkload struct {
 	KubernetesApi *kubernetes.API
 	ClusterName   string
 	WorkspaceId   string
@@ -21,7 +25,7 @@ func NewMapper(
 	clusterName string,
 	workspaceId string,
 	runId string) MapperWorkload {
-	return &mapworkload{
+	return &MappedWorkload{
 		KubernetesApi: kubernetesApi,
 		ClusterName:   clusterName,
 		WorkspaceId:   workspaceId,
@@ -29,9 +33,9 @@ func NewMapper(
 	}
 }
 
-func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error) {
+func (m *MappedWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data, error) {
 
-	var scannedWorkloads []models.Workload
+	var scannedWorkloads []workload.Data
 	services, err := m.KubernetesApi.Services("")
 	if err != nil {
 		return nil, err
@@ -41,7 +45,7 @@ func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error
 	if err != nil {
 		return nil, err
 	}
-	mappedDeployments, err := m.MapDeploymentsEcst(clusterName, deployments, services)
+	mappedDeployments, err := m.MapDeploymentsEcst(cluster, deployments, services)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +54,7 @@ func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error
 	if err != nil {
 		return nil, err
 	}
-	mappedCronJobs, err := m.MapCronJobsEcst(clusterName, cronJobs, services)
+	mappedCronJobs, err := m.MapCronJobsEcst(cluster, cronJobs, services)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +63,7 @@ func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error
 	if err != nil {
 		return nil, err
 	}
-	MappedStatefulSets, err := m.MapStatefulSetsEcst(clusterName, statefulSets, services)
+	MappedStatefulSets, err := m.MapStatefulSetsEcst(cluster, statefulSets, services)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +72,7 @@ func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error
 	if err != nil {
 		return nil, err
 	}
-	MappedDaemonSets, err := m.MapDaemonSetsEcst(clusterName, daemonSets, services)
+	MappedDaemonSets, err := m.MapDaemonSetsEcst(cluster, daemonSets, services)
 	if err != nil {
 		return nil, err
 	}
@@ -78,4 +82,22 @@ func (m *mapworkload) MapWorkloads(clusterName string) ([]models.Workload, error
 	scannedWorkloads = append(scannedWorkloads, MappedStatefulSets...)
 	scannedWorkloads = append(scannedWorkloads, MappedDaemonSets...)
 	return scannedWorkloads, nil
+}
+
+func (m *MappedWorkload) MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error) {
+	items := nodes.Items
+	if len(items) == 0 {
+		return workload.Cluster{
+			Name: clusterName,
+		}, nil
+	}
+	os := set.NewStringSet()
+
+	for _, n := range items {
+		os.Add(n.Status.NodeInfo.OSImage)
+	}
+	return workload.Cluster{
+		Name: clusterName,
+		Os:   strings.Join(os.Items(), ", "),
+	}, nil
 }

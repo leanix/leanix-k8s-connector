@@ -11,7 +11,7 @@ import (
 )
 
 type WorkloadEventProducer interface {
-	ProcessWorkloads(data []workload.Workload, oldData []models.DiscoveryEvent, configId string) error
+	ProcessWorkloads(data []workload.Data, oldData []models.DiscoveryEvent, configId string) error
 	PostStatus(status []byte) error
 	FilterForChangedItems(newData map[string]workload.Data, oldData map[string]models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, map[string]models.DiscoveryEvent, error)
 }
@@ -30,7 +30,7 @@ func NewEventWorkloadProducer(irisApi common.IrisApi, runId string, workspaceId 
 	}
 }
 
-func (p *workloadEventProducer) ProcessWorkloads(data []workload.Workload, oldData []models.DiscoveryEvent, configId string) error {
+func (p *workloadEventProducer) ProcessWorkloads(data []workload.Data, oldData []models.DiscoveryEvent, configId string) error {
 	created, updated, deleted, err := p.CreateECSTWorkloadEvents(data, oldData, configId)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (p *workloadEventProducer) PostStatus(status []byte) error {
 	return p.irisApi.PostStatus(status)
 }
 
-func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Workload, oldData []models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
+func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Data, oldData []models.DiscoveryEvent, configId string) ([]models.DiscoveryEvent, []models.DiscoveryEvent, []models.DiscoveryEvent, error) {
 	resultMap := p.createItemMap(data, configId)
 	oldResultMap := p.createOldItemMap(oldData)
 
@@ -70,13 +70,12 @@ func (p *workloadEventProducer) CreateECSTWorkloadEvents(data []workload.Workloa
 
 }
 
-func (p *workloadEventProducer) createItemMap(workflows []workload.Workload, configId string) map[string]workload.Data {
+func (p *workloadEventProducer) createItemMap(workloads []workload.Data, configId string) map[string]workload.Data {
 	resultMap := map[string]workload.Data{}
-	for _, item := range workflows {
-		data := workload.Data{Workload: item}
+	for _, item := range workloads {
 		// Build unique string hash for discoveryItem
-		id := workload.GenerateId(p.workspaceId, configId, data)
-		resultMap[id] = data
+		id := workload.GenerateId(p.workspaceId, configId, item)
+		resultMap[id] = item
 	}
 	return resultMap
 }

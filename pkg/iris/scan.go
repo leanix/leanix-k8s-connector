@@ -144,7 +144,18 @@ func (s *scanner) ScanNamespaces(kubernetesConfig models.KubernetesConfig, kuber
 
 func (s *scanner) ScanWorkloads(kubernetesAPI *kubernetes.API, kubernetesConfig models.KubernetesConfig) error {
 	mapper := workloadMap.NewMapper(kubernetesAPI, kubernetesConfig.Cluster, s.workspaceId, s.runId)
-	discoveredWorkloads, err := s.ProcessWorkloads(mapper, kubernetesConfig.Cluster)
+
+	nodes, err := kubernetesAPI.Nodes()
+	if err != nil {
+		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+	}
+
+	clusterInfo, err := mapper.MapCluster(kubernetesConfig.Cluster, nodes)
+	if err != nil {
+		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+	}
+
+	discoveredWorkloads, err := s.ProcessWorkloads(mapper, clusterInfo)
 	if err != nil {
 		return s.LogAndShareError("Scan failed while retrieving k8s workload. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
@@ -193,8 +204,8 @@ func (s *scanner) ProcessNamespace(k8sApi *kubernetes.API, mapper namespaceMap.M
 	return ecstData, nil
 }
 
-func (s *scanner) ProcessWorkloads(mapper workloadMap.MapperWorkload, clusterName string) ([]workload.Workload, error) {
-	return mapper.MapWorkloads(clusterName)
+func (s *scanner) ProcessWorkloads(mapper workloadMap.MapperWorkload, clusterInfo workload.Cluster) ([]workload.Data, error) {
+	return mapper.MapWorkloads(clusterInfo)
 }
 
 func (s *scanner) LogAndShareError(message string, loglevel string, err error, id string) error {
