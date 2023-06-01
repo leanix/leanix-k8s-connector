@@ -11,7 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *mapperWorkload) MapDaemonSetsEcst(cluster workload.Cluster, daemonSets *appsv1.DaemonSetList, services *v1.ServiceList) ([]workload.Data, error) {
+func (m *workloadMapper) MapDaemonSetsEcst(cluster workload.Cluster, daemonSets *appsv1.DaemonSetList, services *v1.ServiceList) ([]workload.Data, error) {
 	var allDaemonSets []workload.Data
 
 	for _, daemonSet := range daemonSets.Items {
@@ -25,7 +25,7 @@ func (m *mapperWorkload) MapDaemonSetsEcst(cluster workload.Cluster, daemonSets 
 }
 
 // CreateDaemonSetEcst create a data object that contains name, labels, DaemonSet properties and more
-func (m *mapperWorkload) CreateDaemonSetEcst(cluster workload.Cluster, daemonSet appsv1.DaemonSet, service string) workload.Data {
+func (m *workloadMapper) CreateDaemonSetEcst(cluster workload.Cluster, daemonSet appsv1.DaemonSet, service string) workload.Data {
 	mappedDeployment := workload.Data{
 		Workload: workload.Workload{
 			Name:         daemonSet.Name,

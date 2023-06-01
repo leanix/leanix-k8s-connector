@@ -13,7 +13,7 @@ type WorkloadMapper interface {
 	MapWorkloads(cluster workload.Cluster) ([]workload.Data, error)
 }
 
-type mapperWorkload struct {
+type workloadMapper struct {
 	KubernetesApi *kubernetes.API
 	ClusterName   string
 	WorkspaceId   string
@@ -25,7 +25,7 @@ func NewMapper(
 	clusterName string,
 	workspaceId string,
 	runId string) WorkloadMapper {
-	return &mapperWorkload{
+	return &workloadMapper{
 		KubernetesApi: kubernetesApi,
 		ClusterName:   clusterName,
 		WorkspaceId:   workspaceId,
@@ -33,7 +33,7 @@ func NewMapper(
 	}
 }
 
-func (m *mapperWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data, error) {
+func (m *workloadMapper) MapWorkloads(cluster workload.Cluster) ([]workload.Data, error) {
 
 	var scannedWorkloads []workload.Data
 	services, err := m.KubernetesApi.Services("")
@@ -84,7 +84,7 @@ func (m *mapperWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data
 	return scannedWorkloads, nil
 }
 
-func (m *mapperWorkload) MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error) {
+func (m *workloadMapper) MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error) {
 	items := nodes.Items
 	if len(items) == 0 {
 		return workload.Cluster{

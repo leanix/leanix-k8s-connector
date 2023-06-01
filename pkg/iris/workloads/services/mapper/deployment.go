@@ -11,7 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *mapperWorkload) MapDeploymentsEcst(cluster models.Cluster, deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Data, error) {
+func (m *workloadMapper) MapDeploymentsEcst(cluster models.Cluster, deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Data, error) {
 	var allDeployments []models.Data
 
 	for _, deployment := range deployments.Items {
@@ -24,7 +24,7 @@ func (m *mapperWorkload) MapDeploymentsEcst(cluster models.Cluster, deployments 
 	return allDeployments, nil
 }
 
-func (m *mapperWorkload) CreateDeploymentEcst(cluster models.Cluster, deploymentService string, deployment appsv1.Deployment) models.Data {
+func (m *workloadMapper) CreateDeploymentEcst(cluster models.Cluster, deploymentService string, deployment appsv1.Deployment) models.Data {
 	var service = ""
 	if deploymentService != "" {
 		service = deploymentService
