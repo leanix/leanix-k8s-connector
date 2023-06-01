@@ -204,7 +204,7 @@ func (s *scanner) ProcessNamespace(k8sApi *kubernetes.API, mapper namespaceMap.M
 	return ecstData, nil
 }
 
-func (s *scanner) ProcessWorkloads(mapper workloadMap.MapperWorkload, clusterInfo workload.Cluster) ([]workload.Data, error) {
+func (s *scanner) ProcessWorkloads(mapper workloadMap.WorkloadMapper, clusterInfo workload.Cluster) ([]workload.Data, error) {
 	return mapper.MapWorkloads(clusterInfo)
 }
 

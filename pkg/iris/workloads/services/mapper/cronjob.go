@@ -12,7 +12,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *MappedWorkload) MapCronJobsEcst(cluster models.Cluster, cronJobs *batchv1.CronJobList, services *v1.ServiceList) ([]models.Data, error) {
+func (m *mapperWorkload) MapCronJobsEcst(cluster models.Cluster, cronJobs *batchv1.CronJobList, services *v1.ServiceList) ([]models.Data, error) {
 	var groupedCronJobs []models.Data
 
 	for _, cronJob := range cronJobs.Items {
@@ -26,7 +26,7 @@ func (m *MappedWorkload) MapCronJobsEcst(cluster models.Cluster, cronJobs *batch
 }
 
 // CreateCronjobEcst create a data object that contains name, labels, CronJobSchedule and more
-func (m *MappedWorkload) CreateCronjobEcst(cluster models.Cluster, cronJob batchv1.CronJob, service string) models.Data {
+func (m *mapperWorkload) CreateCronjobEcst(cluster models.Cluster, cronJob batchv1.CronJob, service string) models.Data {
 	mappedDeployment := models.Data{
 		Workload: models.Workload{
 			Name:         cronJob.Name,
@@ -45,8 +45,10 @@ func (m *MappedWorkload) CreateCronjobEcst(cluster models.Cluster, cronJob batch
 			},
 		},
 		Cluster: models.Cluster{
-			Name: cluster.Name,
-			Os:   cluster.Os,
+			Name:       cluster.Name,
+			OsImage:    cluster.OsImage,
+			NoOfNodes:  cluster.NoOfNodes,
+			K8sVersion: cluster.K8sVersion,
 		},
 		ServiceName: service,
 		Timestamp:   cronJob.CreationTimestamp.UTC().Format(time.RFC3339),

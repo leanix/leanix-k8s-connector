@@ -268,8 +268,8 @@ func Test_MapWorkloads_success(t *testing.T) {
 		Client: fake.NewSimpleClientset(append(dummyDeployments, dummyServices...)...),
 	}
 	testCluster := models.Cluster{
-		Name: "testCluster",
-		Os:   "linux",
+		Name:    "testCluster",
+		OsImage: "linux",
 	}
 	mapper := NewMapper(&mockApi, "testCluster", "testWorkspace", "testRunId")
 	results, err := mapper.MapWorkloads(testCluster)

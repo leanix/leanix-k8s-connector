@@ -36,6 +36,8 @@ type K8sResources struct {
 }
 
 type Cluster struct {
-	Name string `json:"name"`
-	Os   string `json:"os"`
+	Name       string `json:"name"`
+	OsImage    string `json:"os"`
+	K8sVersion string `json:"k8sVersion"`
+	NoOfNodes  int    `json:"noOfNodes"`
 }

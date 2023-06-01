@@ -11,7 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *MappedWorkload) MapStatefulSetsEcst(cluster workload.Cluster, statefulSets *appsv1.StatefulSetList, services *v1.ServiceList) ([]workload.Data, error) {
+func (m *mapperWorkload) MapStatefulSetsEcst(cluster workload.Cluster, statefulSets *appsv1.StatefulSetList, services *v1.ServiceList) ([]workload.Data, error) {
 	var allStatefulSets []workload.Data
 
 	for _, statefulSet := range statefulSets.Items {
@@ -25,7 +25,7 @@ func (m *MappedWorkload) MapStatefulSetsEcst(cluster workload.Cluster, statefulS
 }
 
 // CreateStatefulSetEcst create a data object that contains name, labels, StatefulSet properties and more
-func (m *MappedWorkload) CreateStatefulSetEcst(cluster workload.Cluster, statefulSet appsv1.StatefulSet, service string) workload.Data {
+func (m *mapperWorkload) CreateStatefulSetEcst(cluster workload.Cluster, statefulSet appsv1.StatefulSet, service string) workload.Data {
 	mappedDeployment := workload.Data{
 		Workload: workload.Workload{
 			Name:         statefulSet.Name,
@@ -44,8 +44,10 @@ func (m *MappedWorkload) CreateStatefulSetEcst(cluster workload.Cluster, statefu
 			},
 		},
 		Cluster: workload.Cluster{
-			Name: cluster.Name,
-			Os:   cluster.Os,
+			Name:       cluster.Name,
+			OsImage:    cluster.OsImage,
+			NoOfNodes:  cluster.NoOfNodes,
+			K8sVersion: cluster.K8sVersion,
 		},
 		ServiceName:   service,
 		NamespaceName: statefulSet.Namespace,

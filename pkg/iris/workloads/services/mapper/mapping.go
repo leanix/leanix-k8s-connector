@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-type MapperWorkload interface {
+type WorkloadMapper interface {
 	MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error)
 	MapWorkloads(cluster workload.Cluster) ([]workload.Data, error)
 }
 
-type MappedWorkload struct {
+type mapperWorkload struct {
 	KubernetesApi *kubernetes.API
 	ClusterName   string
 	WorkspaceId   string
@@ -24,8 +24,8 @@ func NewMapper(
 	kubernetesApi *kubernetes.API,
 	clusterName string,
 	workspaceId string,
-	runId string) MapperWorkload {
-	return &MappedWorkload{
+	runId string) WorkloadMapper {
+	return &mapperWorkload{
 		KubernetesApi: kubernetesApi,
 		ClusterName:   clusterName,
 		WorkspaceId:   workspaceId,
@@ -33,7 +33,7 @@ func NewMapper(
 	}
 }
 
-func (m *MappedWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data, error) {
+func (m *mapperWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data, error) {
 
 	var scannedWorkloads []workload.Data
 	services, err := m.KubernetesApi.Services("")
@@ -84,7 +84,7 @@ func (m *MappedWorkload) MapWorkloads(cluster workload.Cluster) ([]workload.Data
 	return scannedWorkloads, nil
 }
 
-func (m *MappedWorkload) MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error) {
+func (m *mapperWorkload) MapCluster(clusterName string, nodes *v1.NodeList) (workload.Cluster, error) {
 	items := nodes.Items
 	if len(items) == 0 {
 		return workload.Cluster{
@@ -92,12 +92,16 @@ func (m *MappedWorkload) MapCluster(clusterName string, nodes *v1.NodeList) (wor
 		}, nil
 	}
 	os := set.NewStringSet()
+	k8sVersion := set.NewStringSet()
 
 	for _, n := range items {
 		os.Add(n.Status.NodeInfo.OSImage)
+		k8sVersion.Add(n.Status.NodeInfo.KubeletVersion)
 	}
 	return workload.Cluster{
-		Name: clusterName,
-		Os:   strings.Join(os.Items(), ", "),
+		Name:       clusterName,
+		OsImage:    strings.Join(os.Items(), ", "),
+		K8sVersion: strings.Join(k8sVersion.Items(), ", "),
+		NoOfNodes:  len(items),
 	}, nil
 }
