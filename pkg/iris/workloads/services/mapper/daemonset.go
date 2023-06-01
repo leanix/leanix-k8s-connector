@@ -11,13 +11,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *mapworkload) MapDaemonSetsEcst(clusterName string, daemonSets *appsv1.DaemonSetList, services *v1.ServiceList) ([]workload.Workload, error) {
-	var allDaemonSets []workload.Workload
+func (m *workloadMapper) MapDaemonSetsEcst(cluster workload.Cluster, daemonSets *appsv1.DaemonSetList, services *v1.ServiceList) ([]workload.Data, error) {
+	var allDaemonSets []workload.Data
 
 	for _, daemonSet := range daemonSets.Items {
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
 		daemonSetService := ResolveK8sServiceForK8sDaemonSet(services, daemonSet)
-		mappedDaemonSet := m.CreateDaemonSetEcst(clusterName, daemonSet, daemonSetService)
+		mappedDaemonSet := m.CreateDaemonSetEcst(cluster, daemonSet, daemonSetService)
 		allDaemonSets = append(allDaemonSets, mappedDaemonSet)
 	}
 
@@ -25,24 +25,32 @@ func (m *mapworkload) MapDaemonSetsEcst(clusterName string, daemonSets *appsv1.D
 }
 
 // CreateDaemonSetEcst create a data object that contains name, labels, DaemonSet properties and more
-func (m *mapworkload) CreateDaemonSetEcst(clusterName string, daemonSet appsv1.DaemonSet, service string) workload.Workload {
-	mappedDeployment := workload.Workload{
-		ClusterName:  clusterName,
-		WorkloadType: "daemonSet",
-		WorkloadName: daemonSet.Name,
-		ServiceName:  service,
-		Labels:       daemonSet.ObjectMeta.Labels,
-		Timestamp:    daemonSet.CreationTimestamp.UTC().Format(time.RFC3339),
-		Containers: workload.Containers{
-			Name:        daemonSet.Spec.Template.Spec.Containers[0].Name,
-			Image:       strings.Split(daemonSet.Spec.Template.Spec.Containers[0].Image, ":")[0],
-			Port:        daemonSet.Spec.Template.Spec.Containers[0].Ports,
-			K8sLimits:   CreateK8sResources(daemonSet.Spec.Template.Spec.Containers[0].Resources.Limits),
-			K8sRequests: CreateK8sResources(daemonSet.Spec.Template.Spec.Containers[0].Resources.Requests),
+func (m *workloadMapper) CreateDaemonSetEcst(cluster workload.Cluster, daemonSet appsv1.DaemonSet, service string) workload.Data {
+	mappedDeployment := workload.Data{
+		Workload: workload.Workload{
+			Name:         daemonSet.Name,
+			WorkloadType: "daemonSet",
+			Labels:       daemonSet.ObjectMeta.Labels,
+			WorkloadProperties: workload.WorkloadProperties{
+				UpdateStrategy: string(daemonSet.Spec.UpdateStrategy.Type),
+				Containers: workload.Containers{
+					Name:        daemonSet.Spec.Template.Spec.Containers[0].Name,
+					Image:       strings.Split(daemonSet.Spec.Template.Spec.Containers[0].Image, ":")[0],
+					Port:        daemonSet.Spec.Template.Spec.Containers[0].Ports,
+					K8sLimits:   CreateK8sResources(daemonSet.Spec.Template.Spec.Containers[0].Resources.Limits),
+					K8sRequests: CreateK8sResources(daemonSet.Spec.Template.Spec.Containers[0].Resources.Requests),
+				},
+			},
 		},
-		WorkloadProperties: workload.Properties{
-			UpdateStrategy: string(daemonSet.Spec.UpdateStrategy.Type),
+		Cluster: workload.Cluster{
+			Name:       cluster.Name,
+			OsImage:    cluster.OsImage,
+			NoOfNodes:  cluster.NoOfNodes,
+			K8sVersion: cluster.K8sVersion,
 		},
+		ServiceName:   service,
+		NamespaceName: daemonSet.Namespace,
+		Timestamp:     daemonSet.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
 	return mappedDeployment
 }

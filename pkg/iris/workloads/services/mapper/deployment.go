@@ -11,42 +11,50 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func (m *mapworkload) MapDeploymentsEcst(clusterName string, deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Workload, error) {
-	var allDeployments []models.Workload
+func (m *workloadMapper) MapDeploymentsEcst(cluster models.Cluster, deployments *appsv1.DeploymentList, services *v1.ServiceList) ([]models.Data, error) {
+	var allDeployments []models.Data
 
 	for _, deployment := range deployments.Items {
 		deploymentService := ""
 		// Check if any service has the exact same selector labels and use this as the service related to the deployment
 		deploymentService = ResolveK8sServiceForK8sDeployment(services, deployment)
-		allDeployments = append(allDeployments, m.CreateDeploymentEcst(clusterName, deploymentService, deployment))
+		allDeployments = append(allDeployments, m.CreateDeploymentEcst(cluster, deploymentService, deployment))
 	}
 
 	return allDeployments, nil
 }
 
-func (m *mapworkload) CreateDeploymentEcst(clusterName string, deploymentService string, deployment appsv1.Deployment) models.Workload {
+func (m *workloadMapper) CreateDeploymentEcst(cluster models.Cluster, deploymentService string, deployment appsv1.Deployment) models.Data {
 	var service = ""
 	if deploymentService != "" {
 		service = deploymentService
 	}
-	mappedDeployment := models.Workload{
-		ClusterName:  clusterName,
-		WorkloadType: "deployment",
-		WorkloadName: deployment.Name,
-		ServiceName:  service,
-		Labels:       deployment.ObjectMeta.Labels,
-		Timestamp:    deployment.CreationTimestamp.UTC().Format(time.RFC3339),
-		Containers: models.Containers{
-			Name:        deployment.Spec.Template.Spec.Containers[0].Name,
-			Image:       deployment.Spec.Template.Spec.Containers[0].Image,
-			Port:        deployment.Spec.Template.Spec.Containers[0].Ports,
-			K8sLimits:   CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
-			K8sRequests: CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
+	mappedDeployment := models.Data{
+		Workload: models.Workload{
+			Name:         deployment.Name,
+			WorkloadType: "deployment",
+			Labels:       deployment.ObjectMeta.Labels,
+			WorkloadProperties: models.WorkloadProperties{
+				Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
+				UpdateStrategy: string(deployment.Spec.Strategy.Type),
+				Containers: models.Containers{
+					Name:        deployment.Spec.Template.Spec.Containers[0].Name,
+					Image:       deployment.Spec.Template.Spec.Containers[0].Image,
+					Port:        deployment.Spec.Template.Spec.Containers[0].Ports,
+					K8sLimits:   CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Limits),
+					K8sRequests: CreateK8sResources(deployment.Spec.Template.Spec.Containers[0].Resources.Requests),
+				},
+			},
 		},
-		WorkloadProperties: models.Properties{
-			Replicas:       strconv.FormatInt(int64(deployment.Status.Replicas), 10),
-			UpdateStrategy: string(deployment.Spec.Strategy.Type),
+		Cluster: models.Cluster{
+			Name:       cluster.Name,
+			OsImage:    cluster.OsImage,
+			NoOfNodes:  cluster.NoOfNodes,
+			K8sVersion: cluster.K8sVersion,
 		},
+		ServiceName:   service,
+		NamespaceName: deployment.Namespace,
+		Timestamp:     deployment.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
 	return mappedDeployment
 }

@@ -1,32 +1,29 @@
 package models
 
 type Data struct {
-	Workload Workload `json:"workload"`
-}
-
-type Service struct {
-	Name string `json:"name"`
+	Workload      Workload `json:"workload"`
+	NamespaceName string   `json:"namespaceName"`
+	ServiceName   string   `json:"serviceName"`
+	Cluster       Cluster  `json:"cluster"`
+	Timestamp     string   `json:"timestamp"`
 }
 
 type Workload struct {
-	ClusterName        string      `json:"clusterName"`
-	WorkloadType       string      `json:"workloadType"`
-	WorkloadName       string      `json:"workloadName"`
-	Containers         Containers  `json:"containers"`
-	ServiceName        string      `json:"serviceName"`
-	Labels             interface{} `json:"labels"`
-	Timestamp          string      `json:"timestamp"`
-	WorkloadProperties Properties  `json:"WorkloadProperties"`
+	Name               string             `json:"name"`
+	WorkloadType       string             `json:"type"`
+	Labels             map[string]string  `json:"labels"`
+	WorkloadProperties WorkloadProperties `json:"workloadProperties"`
 }
 
-type Properties struct {
-	Schedule       string `json:"schedule"`
-	Replicas       string `json:"replicas"`
-	UpdateStrategy string `json:"updateStrategy"`
+type WorkloadProperties struct {
+	Schedule       string     `json:"schedule"`
+	Replicas       string     `json:"replicas"`
+	UpdateStrategy string     `json:"updateStrategy"`
+	Containers     Containers `json:"containers"`
 }
 
 type Containers struct {
-	Name        string       `json:"containerName"`
+	Name        string       `json:"name"`
 	Image       string       `json:"image"`
 	Port        interface{}  `json:"port"`
 	K8sLimits   K8sResources `json:"k8sLimits"`
@@ -36,4 +33,11 @@ type Containers struct {
 type K8sResources struct {
 	Cpu    string `json:"cpu"`
 	Memory string `json:"memory"`
+}
+
+type Cluster struct {
+	Name       string `json:"name"`
+	OsImage    string `json:"os"`
+	K8sVersion string `json:"k8sVersion"`
+	NoOfNodes  int    `json:"noOfNodes"`
 }
