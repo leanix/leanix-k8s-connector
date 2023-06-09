@@ -50,8 +50,9 @@ func (m *workloadMapper) CreateCronjobEcst(cluster models.Cluster, cronJob batch
 			NoOfNodes:  cluster.NoOfNodes,
 			K8sVersion: cluster.K8sVersion,
 		},
-		ServiceName: service,
-		Timestamp:   cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
+		NamespaceName: cronJob.Namespace,
+		ServiceName:   service,
+		Timestamp:     cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
 	return mappedDeployment
 }
