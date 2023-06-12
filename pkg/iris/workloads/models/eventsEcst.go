@@ -4,8 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
 	time2 "time"
+
+	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
 )
 
 // ECST Discovery Items
@@ -147,7 +148,7 @@ func CreateEcstDiscoveryEvent(eventType string, changeAction string, data Data, 
 func GenerateId(workspaceId string, configId string, data Data) string {
 	scope := fmt.Sprintf(models.EventScopeFormat, workspaceId, configId)
 	// workspace/{workspaceId}/configuration/{configurationId}/discoveryItem/service/kubernetes/workload/{clusterName}/{workloadType}/{workloadName}
-	idString := fmt.Sprintf("%s/%s/%s/%s/%s", scope, models.EventClassWorkload, data.Cluster.Name, data.Workload.WorkloadType, data.Workload.Name)
+	idString := fmt.Sprintf("%s/%s/%s/%s/%s/%s", scope, models.EventClassWorkload, data.Cluster.Name, data.Workload.WorkloadType, data.Workload.Name, data.NamespaceName)
 	sum := sha256.Sum256([]byte(idString))
 	id := hex.EncodeToString(sum[:])
 	return id
