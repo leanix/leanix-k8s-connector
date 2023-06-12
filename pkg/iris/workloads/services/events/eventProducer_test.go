@@ -4,12 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"testing"
+
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/common/models"
 	common "github.com/leanix/leanix-k8s-connector/pkg/iris/common/services"
 	workload "github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/mocks"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_eventProducer_filter_created(t *testing.T) {
@@ -257,11 +258,11 @@ func Test_eventProducer_filter_updated_changed(t *testing.T) {
 
 func Test_eventProducer_createECSTEvents(t *testing.T) {
 	mockApi := mocks.NewIrisApi(t)
-	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload1")))
+	id1 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload1", "testNamespace")))
 	//workspace/testWorkspaceId/configuration/testConfigId/discoveryItem/service/kubernetes/workload/testCluster1/deployment/testWorkload2
-	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload2")))
-	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload1")))
-	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload2")))
+	id2 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster1", "deployment", "testWorkload2", "testNamespace")))
+	id3 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload1", "testNamespace")))
+	id4 := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/%s/%s/%s/%s", "workspace/testWorkspaceId/configuration/testConfigId", models.EventClassWorkload, "testCluster2", "deployment", "testWorkload2", "testNamespace")))
 	newData := []workload.Data{
 		{
 			Workload: workload.Workload{
@@ -282,7 +283,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 				},
 			},
 			ServiceName:   "serviceName1",
-			NamespaceName: "namespaceName1",
+			NamespaceName: "testNamespace",
 			Cluster: workload.Cluster{
 				Name:    "testCluster1",
 				OsImage: "linux",
@@ -312,7 +313,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 				OsImage: "linux",
 			},
 			ServiceName:   "serviceName2",
-			NamespaceName: "namespaceName2",
+			NamespaceName: "testNamespace",
 			Timestamp:     "",
 		},
 		{
@@ -338,7 +339,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 				OsImage: "linux",
 			},
 			ServiceName:   "serviceName3",
-			NamespaceName: "namespaceName3",
+			NamespaceName: "testNamespace",
 			Timestamp:     "",
 		},
 	}
@@ -377,7 +378,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 							OsImage: "linux",
 						},
 						ServiceName:   "serviceName1",
-						NamespaceName: "namespaceName1",
+						NamespaceName: "testNamespace",
 						Timestamp:     "",
 					},
 				},
@@ -417,7 +418,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 							OsImage: "linux",
 						},
 						ServiceName:   "serviceName2",
-						NamespaceName: "namespaceName2",
+						NamespaceName: "testNamespace",
 						Timestamp:     "",
 					},
 				},
@@ -457,7 +458,7 @@ func Test_eventProducer_createECSTEvents(t *testing.T) {
 							OsImage: "linux",
 						},
 						ServiceName:   "serviceName3",
-						NamespaceName: "namespaceName3",
+						NamespaceName: "testNamespace",
 						Timestamp:     "",
 					},
 				},

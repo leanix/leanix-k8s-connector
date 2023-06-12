@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +12,6 @@ import (
 )
 
 func TestDeployments(t *testing.T) {
-	logger.Init()
 	// create a dummy nodes
 	dummyDeployments := []runtime.Object{
 		&appsv1.Deployment{
