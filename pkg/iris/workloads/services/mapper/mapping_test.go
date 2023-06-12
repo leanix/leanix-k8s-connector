@@ -6,7 +6,6 @@ import (
 
 	"github.com/leanix/leanix-k8s-connector/pkg/iris/workloads/models"
 	"github.com/leanix/leanix-k8s-connector/pkg/kubernetes"
-	"github.com/leanix/leanix-k8s-connector/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -19,7 +18,6 @@ import (
 )
 
 func Test_MapWorkloads_success(t *testing.T) {
-	logger.Init()
 	dummyServices := []runtime.Object{
 		&corev1.Service{
 			Spec: corev1.ServiceSpec{
