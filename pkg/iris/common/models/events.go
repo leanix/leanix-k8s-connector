@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-const (
-	typeAsK8sNamespace string = "leanix.vsm.item-discovered.kubernetes.namespace"
-)
-
 // struct to extend Log with RunId
 type Log struct {
 	// Root        *Logger
@@ -69,7 +65,7 @@ func NewAdminLogEvent(configurationId string, runId string, workspaceId string, 
 	Type := fmt.Sprintf("leanix.vsm.item-logged.admin")
 	Scope := fmt.Sprintf("workspace/%s", workspaceId)
 	Source := fmt.Sprintf("kubernetes/%s#%s", configurationId, runId)
-	Time := fmt.Sprintf(time.Now().Format(time.RFC3339))
+	Time := fmt.Sprintf(time.Now().Format(time.RFC3339Nano))
 	DataContentType := fmt.Sprintf("application/json")
 	DataSchema := fmt.Sprintf("/vsm-iris/schemas/feedback-items/v1")
 
