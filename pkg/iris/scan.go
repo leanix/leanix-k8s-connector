@@ -47,17 +47,15 @@ func NewScanner(kind string, uri string, runId string, token string, workspaceId
 }
 
 const (
-	IN_PROGRESS        string = "IN_PROGRESS"
-	FAILED             string = "FAILED"
-	SUCCESSFUL         string = "SUCCESSFUL"
-	SUCCESSFUL_WARNING string = "SUCCESSFUL_WARNING"
-	ERROR              string = "ERROR"
-	WARNING            string = "WARNING"
-	INFO               string = "INFO"
-	WORKLOAD           string = "WORKLOAD"
+	IN_PROGRESS string = "IN_PROGRESS"
+	FAILED      string = "FAILED"
+	SUCCESSFUL  string = "SUCCESSFUL"
+	ERROR       string = "ERROR"
+	INFO        string = "INFO"
+	WORKLOAD    string = "WORKLOAD"
 )
 
-const StatusErrorFormat = "Scan failed while posting status. RunId: [%s], with reason: '%v'"
+const StatusErrorFormat = "Scan failed while posting status. RunId: '%s', with reason: '%v'"
 
 func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *rest.Config, configurationName string) error {
 	configuration, err := s.configService.GetConfiguration(configurationName)
@@ -70,7 +68,7 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return err
 	}
 
-	logger.Infof("Scan started for RunId: [%s]", s.runId)
+	logger.Infof("Scan started for Run Id: '%s'", s.runId)
 	logger.Infof("Configuration used: %s", configuration)
 
 	err = s.ShareStatus(kubernetesConfig.ID, IN_PROGRESS, "Started Kubernetes Scan")
@@ -79,20 +77,29 @@ func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *res
 		return err
 	}
 
+	feedbackErr := s.ShareAdminLogs(kubernetesConfig.ID, INFO, fmt.Sprintf("Scan started with Run Id: '%v'.", s.runId))
+	if feedbackErr != nil {
+		return feedbackErr
+	}
+
 	kubernetesAPI, err := getKubernetesAPI(config)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while getting Kubernetes API. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while getting Kubernetes API. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	logger.Info("Retrieved kubernetes config successfully")
-	err = s.ShareAdminLogs(kubernetesConfig.ID, INFO, "Retrieved kubernetes config successfully")
 	if err != nil {
 		logger.Errorf(StatusErrorFormat, s.runId, err)
 		return err
 	}
 
 	if kubernetesConfig.DiscoveryMode == WORKLOAD {
-		logger.Info("Scanning of Workloads is enabled")
+		logger.Info("Workload scanning enabled.")
+		err = s.ShareAdminLogs(kubernetesConfig.ID, INFO, fmt.Sprintf("Workload scanning enabled for the configuration '%v'.", configurationName))
+		if err != nil {
+			logger.Errorf(StatusErrorFormat, s.runId, err)
+			return err
+		}
 		return s.ScanWorkloads(kubernetesAPI, kubernetesConfig)
 	}
 
@@ -109,31 +116,40 @@ func (s *scanner) ScanNamespaces(kubernetesConfig models.KubernetesConfig, kuber
 
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	clusterDTO, err := mapper.MapCluster(kubernetesConfig.Cluster, nodes)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while aggregating cluster information. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+	}
+	feedbackErr := s.ShareAdminLogs(kubernetesConfig.ID, INFO, fmt.Sprintf("Namespace scanning enabled for the cluster '%v'.", clusterDTO.Name))
+	if feedbackErr != nil {
+		return feedbackErr
 	}
 
 	// Aggregate cluster information for the event
 	namespaces, err := kubernetesAPI.Namespaces(kubernetesConfig.BlackListedNamespaces)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s namespaces. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while retrieving Kubernetes namespaces. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 	//Fetch old scan results
 	ecstDiscoveredData, err := s.ProcessNamespace(kubernetesAPI, mapper, namespaces.Items, clusterDTO)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s deployments. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while retrieving k8s deployments. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	err = s.eventProducer.ProcessResults(ecstDiscoveredData, oldResults, kubernetesConfig.ID)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while posting ECST results. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
-	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
+	feedbackErr = s.ShareAdminLogs(kubernetesConfig.ID, INFO, fmt.Sprintf("Found and processed %v unblacklisted namespaces from the cluster '%v'.", len(namespaces.Items), clusterDTO.Name))
+	if feedbackErr != nil {
+		return feedbackErr
+	}
+
+	logger.Infof("Scan Finished for RunId: '%s'", s.runId)
 	err = s.ShareStatus(kubernetesConfig.ID, SUCCESSFUL, "Successfully Scanned")
 	if err != nil {
 		logger.Errorf(StatusErrorFormat, s.runId, err)
@@ -147,17 +163,17 @@ func (s *scanner) ScanWorkloads(kubernetesAPI *kubernetes.API, kubernetesConfig 
 
 	nodes, err := kubernetesAPI.Nodes()
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while retrieving k8s cluster nodes. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	clusterInfo, err := mapper.MapCluster(kubernetesConfig.Cluster, nodes)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while aggregating cluster information. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while aggregating cluster information. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 
 	discoveredWorkloads, err := s.ProcessWorkloads(mapper, clusterInfo)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while retrieving k8s workload. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while retrieving k8s workload. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
 	oldResults, err := s.configService.GetScanResults(kubernetesConfig.ID)
 	if err != nil {
@@ -165,9 +181,15 @@ func (s *scanner) ScanWorkloads(kubernetesAPI *kubernetes.API, kubernetesConfig 
 	}
 	err = s.workloadEventProducer.ProcessWorkloads(discoveredWorkloads, oldResults, kubernetesConfig.ID)
 	if err != nil {
-		return s.LogAndShareError("Scan failed while posting ECST results. RunId: [%s], with reason: '%v'", ERROR, err, kubernetesConfig.ID)
+		return s.LogAndShareError("Scan failed while posting ECST results. Run Id: '%s', with reason: '%v'", ERROR, err, kubernetesConfig.ID)
 	}
-	logger.Infof("Scan Finished for RunId: [%s]", s.runId)
+
+	feedbackErr := s.ShareAdminLogs(kubernetesConfig.ID, INFO, fmt.Sprintf("Found and processed %v workloads from the cluster '%v'.", len(discoveredWorkloads), clusterInfo.Name))
+	if feedbackErr != nil {
+		return feedbackErr
+	}
+
+	logger.Infof("Scan Finished for Run Id: '%s'", s.runId)
 	err = s.ShareStatus(kubernetesConfig.ID, SUCCESSFUL, "Successfully Scanned")
 	if err != nil {
 		logger.Errorf(StatusErrorFormat, s.runId, err)
@@ -243,7 +265,7 @@ func (s *scanner) ShareStatus(configid string, status string, message string) er
 	statusByte, err := json.Marshal(statusArray)
 	err = s.eventProducer.PostStatus(statusByte)
 	if err != nil {
-		logger.Debugf("Failed sharing status for RunId: [%s], with reason %v", s.runId, err)
+		logger.Debugf("Failed sharing status for Run Id: '%s', with reason %v", s.runId, err)
 		return err
 	}
 	return nil
@@ -256,7 +278,7 @@ func (s *scanner) ShareAdminLogs(configId string, loglevel string, message strin
 	statusByte, err := json.Marshal(statusArray)
 	err = s.eventProducer.PostStatus(statusByte)
 	if err != nil {
-		logger.Debugf("Failed sharing admin logs for RunId: [%s], with reason %v", s.runId, err)
+		logger.Debugf("Failed sharing admin logs for Run Id: '%s', with reason %v", s.runId, err)
 		return err
 	}
 	return nil
