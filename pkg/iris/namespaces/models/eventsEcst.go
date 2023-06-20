@@ -55,9 +55,8 @@ func (eb *ecstEventBuilder) Build() models.DiscoveryEvent {
 }
 
 // CreateEcstDiscoveryEvent ECST Discovery Items
-func CreateEcstDiscoveryEvent(eventType string, changeAction string, data Data, workspaceId string, configId string) models.DiscoveryEvent {
+func CreateEcstDiscoveryEvent(eventType string, changeAction string, id string, data Data, workspaceId string, configId string) models.DiscoveryEvent {
 	// Metadata for the event
-	id := GenerateId(workspaceId, configId, data)
 	time := time2.Now().Format(time2.RFC3339)
 
 	var header models.HeaderProperties

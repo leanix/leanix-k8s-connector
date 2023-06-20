@@ -55,7 +55,7 @@ const (
 	WORKLOAD    string = "WORKLOAD"
 )
 
-const StatusErrorFormat = "Scan failed while posting status. RunId: '%s', with reason: '%v'"
+const StatusErrorFormat = "Scan failed while posting status. Run Id: '%s', with reason: '%v'"
 
 func (s *scanner) Scan(getKubernetesAPI kubernetes.GetKubernetesAPI, config *rest.Config, configurationName string) error {
 	configuration, err := s.configService.GetConfiguration(configurationName)

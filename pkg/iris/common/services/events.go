@@ -9,20 +9,20 @@ import (
 
 func FilterForDeletedItems(oldResultMap map[string]models.DiscoveryEvent, workspaceId string, configId string, runId string) ([]models.DiscoveryEvent, error) {
 	deletedEvents := make([]models.DiscoveryEvent, 0)
-	for _, oldItem := range oldResultMap {
+	for id, oldItem := range oldResultMap {
 		if oldItem.HeaderProperties.Class == models.EventClassNamespace {
 			mappedData, err := ParseNamespaceData(oldItem)
 			if err != nil {
 				return nil, err
 			}
-			deletedEvent := namespace.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, *mappedData, workspaceId, configId)
+			deletedEvent := namespace.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, id, *mappedData, workspaceId, configId)
 			deletedEvents = append(deletedEvents, deletedEvent)
 		} else if oldItem.HeaderProperties.Class == models.EventClassWorkload {
 			mappedData, err := ParseWorkloadData(oldItem)
 			if err != nil {
 				return nil, err
 			}
-			deletedEvent := workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, *mappedData, runId, workspaceId, configId)
+			deletedEvent := workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionDeleted, id, *mappedData, runId, workspaceId, configId)
 			deletedEvents = append(deletedEvents, deletedEvent)
 		}
 	}

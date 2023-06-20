@@ -105,7 +105,7 @@ func (p *workloadEventProducer) FilterForChangedItems(newData map[string]workloa
 	for id, newItem := range newData {
 		// if the current element from the freshly discovered items is not in the old results, create an CREATED event
 		if oldItem, ok := oldData[id]; !ok {
-			createdEcstDiscoveryEvent := workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionCreated, newItem, p.runId, p.workspaceId, configId)
+			createdEcstDiscoveryEvent := workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionCreated, id, newItem, p.runId, p.workspaceId, configId)
 			created = append(created, createdEcstDiscoveryEvent)
 			// if item has been discovered before, check if there are any changes in the new payload
 		} else {
@@ -119,7 +119,7 @@ func (p *workloadEventProducer) FilterForChangedItems(newData map[string]workloa
 			}
 
 			if oldItemHash != newItemHash {
-				updated = append(updated, workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionUpdated, newItem, p.runId, p.workspaceId, configId))
+				updated = append(updated, workload.CreateEcstDiscoveryEvent(models.EventTypeChange, models.EventActionUpdated, id, newItem, p.runId, p.workspaceId, configId))
 			}
 			// Remove key from oldData results, so we only have the entries inside which shall be deleted
 			delete(oldData, id)
