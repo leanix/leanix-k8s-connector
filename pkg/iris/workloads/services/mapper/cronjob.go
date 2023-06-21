@@ -27,13 +27,12 @@ func (m *workloadMapper) MapCronJobsEcst(cluster models.Cluster, cronJobs *batch
 
 // CreateCronjobEcst create a data object that contains name, labels, CronJobSchedule and more
 func (m *workloadMapper) CreateCronjobEcst(cluster models.Cluster, cronJob batchv1.CronJob, service string) models.Data {
-	mappedDeployment := models.Data{
+	mappedCronjob := models.Data{
 		Workload: models.Workload{
 			Name:         cronJob.Name,
 			WorkloadType: "cronjob",
 			Labels:       cronJob.ObjectMeta.Labels,
 			WorkloadProperties: models.WorkloadProperties{
-				Replicas: cronJob.Status.String(),
 				Schedule: cronJob.Spec.Schedule,
 				Containers: models.Containers{
 					Name:        cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name,
@@ -54,7 +53,7 @@ func (m *workloadMapper) CreateCronjobEcst(cluster models.Cluster, cronJob batch
 		ServiceName:   service,
 		Timestamp:     cronJob.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
-	return mappedDeployment
+	return mappedCronjob
 }
 
 func ResolveK8sServiceForK8sCronJob(services *v1.ServiceList, cronJob batchv1.CronJob) string {
