@@ -1,11 +1,11 @@
-# Sample Create RoleBinding in the  specific namespace
+# Sample Create RoleBinding in the cariad specific namespace
 ---
 # Source: leanix-k8s-connector/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: leanix-k8s-connector-{{ .Release.Name }}
-  namespace: roles-test
+  namespace: test1
   labels:
     app.kubernetes.io/name: leanix-k8s-connector
     helm.sh/chart: leanix-k8s-connector-7.0.11
