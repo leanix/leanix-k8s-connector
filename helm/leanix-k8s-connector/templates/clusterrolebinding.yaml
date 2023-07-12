@@ -1,4 +1,4 @@
-{{- if and (.Values.rbac) (not .Values.clusterRoleAlreadyCreated) -}}
+{{- if and (.Values.rbac) ( .Values.createClusterRoleBinding) -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -12,5 +12,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: leanix-k8s-connector-{{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: test1
 {{- end -}}
