@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 rbac: true
-clusterRoleAlreadyCreated: false
+createClusterRoleBinding: true
 
 integrationApi:
   fqdn: ""
