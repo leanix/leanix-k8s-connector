@@ -9,9 +9,9 @@ import (
 func TestBlacklistFieldSelector(t *testing.T) {
 	blacklist := []string{"kube-system", "private"}
 
-	fieldSelector := BlacklistFieldSelector(blacklist)
+	fieldSelector := NamespaceBlacklistFieldSelector(blacklist)
 
-	assert.Equal(t, "metadata.namespace!=kube-system,metadata.namespace!=private", fieldSelector)
+	assert.Equal(t, "metadata.name!=kube-system,metadata.name!=private", fieldSelector)
 }
 
 func TestPrefix(t *testing.T) {
