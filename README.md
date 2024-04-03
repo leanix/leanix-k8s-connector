@@ -1,5 +1,6 @@
 # LeanIX Kubernetes Connector
 [![Go Report Card](https://goreportcard.com/badge/github.com/leanix/leanix-k8s-connector)](https://goreportcard.com/report/github.com/leanix/leanix-k8s-connector)
+[![REUSE status](https://api.reuse.software/badge/github.com/leanIX/leanix-k8s-connector)](https://api.reuse.software/info/github.com/leanIX/leanix-k8s-connector)
 
 **Note**: This document is intended solely for developers. VSM users should follow the [LeanIX VSM docs](https://docs-mi.leanix.net/docs/kubernetes).
 
