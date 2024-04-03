@@ -98,7 +98,7 @@ jobs:
 
       - name: Send build / release fail message
         if: failure() && (startsWith(github.ref, 'refs/tags/') || github.ref=='refs/heads/main')
-        uses: archive/github-actions-slack@v1.0.0
+        uses: archive/github-actions-slack@v1.1.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
@@ -107,7 +107,7 @@ jobs:
             ${{ env.ACTION_URL }}
 
       - name: Send build / release success message
-        uses: archive/github-actions-slack@v1.0.0
+        uses: archive/github-actions-slack@v1.1.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
