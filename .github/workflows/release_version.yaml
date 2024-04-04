@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
           go-version: 1.18.3
 
@@ -35,9 +35,9 @@ jobs:
     needs: build-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
           go-version: 1.18.3
 
@@ -66,7 +66,7 @@ jobs:
           message: ${{ github.event.inputs.description }}
 
       - name: Install Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4
         with:
           version: v3.8.1
 
@@ -98,7 +98,7 @@ jobs:
 
       - name: Send build / release fail message
         if: failure() && (startsWith(github.ref, 'refs/tags/') || github.ref=='refs/heads/main')
-        uses: archive/github-actions-slack@v1.1.0
+        uses: archive/github-actions-slack@v2.9.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
@@ -107,7 +107,7 @@ jobs:
             ${{ env.ACTION_URL }}
 
       - name: Send build / release success message
-        uses: archive/github-actions-slack@v1.1.0
+        uses: archive/github-actions-slack@v2.9.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: '#team-helios-notifications'
