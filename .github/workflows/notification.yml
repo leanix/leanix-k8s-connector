@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Send CI/CD pipeline success message
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        uses: archive/github-actions-slack@v1.0.0
+        uses: archive/github-actions-slack@v2.9.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: ${{ env.SLACK-CHANNEL }}
@@ -26,7 +26,7 @@ jobs:
 
       - name: Send CI/CD pipeline failure message
         if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-        uses: archive/github-actions-slack@v1.0.0
+        uses: archive/github-actions-slack@v2.9.0
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_TOKEN }}
           slack-channel: ${{ env.SLACK-CHANNEL }}
