@@ -27,7 +27,7 @@ version:
 
 gen:
 	go mod download
-	go install github.com/vektra/mockery/v2@v2.26.1
+	go install github.com/vektra/mockery/v2@v2.40.1
 	mockery --all --recursive --with-expecter --case=underscore --output ./pkg/mocks
 
 image:
