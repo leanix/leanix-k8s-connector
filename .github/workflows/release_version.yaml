@@ -85,7 +85,7 @@ jobs:
           ./update_helm_index_locally.sh ${{ github.event.inputs.version  }} ${{ env.BASE_VERSION  }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6
         with:
           title: Release helm chart ${{ github.event.inputs.version }}
           base: main
