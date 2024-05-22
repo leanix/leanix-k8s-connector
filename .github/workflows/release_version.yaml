@@ -42,7 +42,7 @@ jobs:
           go-version: 1.18.3
 
       - name: Login to Azure Container Registry
-        uses: azure/docker-login@v1
+        uses: azure/docker-login@v2
         with:
           login-server: ${{ secrets.ACR_PUBLIC_LOGIN }}
           username: ${{ secrets.ACR_PUBLIC_USERNAME }}
