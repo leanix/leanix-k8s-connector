@@ -2,18 +2,18 @@ module github.com/leanix/leanix-k8s-connector
 
 go 1.22.0
 
-toolchain go1.23.1
+toolchain go1.24.5
 
 require (
 	github.com/google/uuid v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/spf13/pflag v1.0.6
+	github.com/spf13/viper v1.20.1
+	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
-	k8s.io/api v0.31.1
-	k8s.io/apimachinery v0.31.1
-	k8s.io/client-go v0.31.1
+	k8s.io/api v0.33.3
+	k8s.io/apimachinery v0.33.3
+	k8s.io/client-go v0.33.3
 	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6
 )
 
